@@ -1,4 +1,4 @@
-#include <potential_gap/planner.h>
+#include <quad_gap/planner.h>
 #include "tf/transform_datatypes.h"
 #include <tf/LinearMath/Matrix3x3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -6,7 +6,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace potential_gap
+namespace quad_gap
 {
     Planner::Planner()
     {
@@ -170,7 +170,7 @@ namespace potential_gap
         // Visualization Setup
         // Fix this later
         local_traj_pub = nh.advertise<geometry_msgs::PoseArray>("relevant_traj", 500);
-        trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("pg_traj", 10);
+        trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
         gap_vis_pub = nh.advertise<visualization_msgs::MarkerArray>("gaps", 1);
         selected_gap_vis_pub = nh.advertise<visualization_msgs::MarkerArray>("sel_gaps", 1);
         ni_traj_pub = nh.advertise<geometry_msgs::PoseArray>("ni_traj", 10);
@@ -184,15 +184,15 @@ namespace potential_gap
         tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
         _initialized = true;
 
-        finder = new potential_gap::GapUtils(cfg, robot_geo_proc_);
-        gapvisualizer = new potential_gap::GapVisualizer(nh, cfg);
-        goalselector = new potential_gap::GoalSelector(nh, cfg, robot_geo_proc_);
-        trajvisualizer = new potential_gap::TrajectoryVisualizer(nh, cfg);
-        trajArbiter = new potential_gap::TrajectoryArbiter(nh, cfg, robot_geo_proc_);
-        gapTrajSyn = new potential_gap::GapTrajGenerator(nh, cfg, robot_geo_proc_);
-        goalvisualizer = new potential_gap::GoalVisualizer(nh, cfg);
-        gapManip = new potential_gap::GapManipulator(nh, cfg, robot_geo_proc_);
-        trajController = new potential_gap::TrajectoryController(nh, cfg);
+        finder = new quad_gap::GapUtils(cfg, robot_geo_proc_);
+        gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
+        goalselector = new quad_gap::GoalSelector(nh, cfg, robot_geo_proc_);
+        trajvisualizer = new quad_gap::TrajectoryVisualizer(nh, cfg);
+        trajArbiter = new quad_gap::TrajectoryArbiter(nh, cfg, robot_geo_proc_);
+        gapTrajSyn = new quad_gap::GapTrajGenerator(nh, cfg, robot_geo_proc_);
+        goalvisualizer = new quad_gap::GoalVisualizer(nh, cfg);
+        gapManip = new quad_gap::GapManipulator(nh, cfg, robot_geo_proc_);
+        trajController = new quad_gap::TrajectoryController(nh, cfg);
 
         map2rbt.transform.rotation.w = 1;
         rbt2map.transform.rotation.w = 1;
@@ -208,7 +208,7 @@ namespace potential_gap
         return true;
     }
 
-    void Planner::configCB(potential_gap::CollisionCheckerConfig &config, uint32_t level)
+    void Planner::configCB(quad_gap::CollisionCheckerConfig &config, uint32_t level)
     {
         ROS_INFO_STREAM("CC Reconfigure Request: "); // TODO: print out the cc type and other parameter values
 
@@ -223,17 +223,17 @@ namespace potential_gap
 
         if(config.cc_type != cc_type_)
         {
-            if(config.cc_type == potential_gap::CollisionChecker_depth)
+            if(config.cc_type == quad_gap::CollisionChecker_depth)
             {
                 ROS_INFO_STREAM("New cc type = depth");
                 cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
             }
-            else if(config.cc_type == potential_gap::CollisionChecker_depth_ego)
+            else if(config.cc_type == quad_gap::CollisionChecker_depth_ego)
             {
                 ROS_INFO_STREAM("New cc type = depth ego");
                 cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
             }
-            else if(config.cc_type == potential_gap::CollisionChecker_egocircle)
+            else if(config.cc_type == quad_gap::CollisionChecker_egocircle)
             {
                 ROS_INFO_STREAM("New cc type = egocircle");
                 cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
@@ -501,16 +501,16 @@ namespace potential_gap
     }
 
     [[deprecated("Use Proper trajectory scoring instead")]]
-    void Planner::vectorSelectGap(potential_gap::Gap & selected_gap)
+    void Planner::vectorSelectGap(quad_gap::Gap & selected_gap)
     {
-        potential_gap::Gap result = trajArbiter->returnAndScoreGaps();
+        quad_gap::Gap result = trajArbiter->returnAndScoreGaps();
         selected_gap = result;
         return;
     }
 
-    std::vector<potential_gap::Gap> Planner::gapManipulate() {
+    std::vector<quad_gap::Gap> Planner::gapManipulate() {
         boost::mutex::scoped_lock gapset(gapset_mutex);
-        std::vector<potential_gap::Gap> manip_set;
+        std::vector<quad_gap::Gap> manip_set;
         manip_set = observed_gaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
@@ -534,7 +534,7 @@ namespace potential_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<potential_gap::Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) {
+    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<quad_gap::Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<geometry_msgs::PoseArray> ret_traj(vec.size());
         std::vector<geometry_msgs::PoseArray> virtual_traj(vec.size());
@@ -657,7 +657,7 @@ namespace potential_gap
     }
 
     geometry_msgs::PoseArray Planner::pickTraj(std::vector<geometry_msgs::PoseArray> prr, std::vector<std::vector<double>> score, std::vector<geometry_msgs::PoseArray> virtual_path, geometry_msgs::PoseArray& chosen_virtual_path) {
-        ROS_INFO_STREAM_NAMED("pg_trajCount", "pg_trajCount, " << prr.size());
+        ROS_INFO_STREAM_NAMED("qg_trajCount", "qg_trajCount, " << prr.size());
         if (prr.size() == 0) {
             ROS_WARN_STREAM("No traj synthesized");
             return geometry_msgs::PoseArray();
@@ -893,7 +893,7 @@ namespace potential_gap
         return cmd_vel;
     }
 
-    void Planner::rcfgCallback(potential_gap::pgConfig &config, uint32_t level)
+    void Planner::rcfgCallback(quad_gap::qgConfig &config, uint32_t level)
     {
         cfg.reconfigure(config);
         

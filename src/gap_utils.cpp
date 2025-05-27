@@ -1,6 +1,6 @@
-#include <potential_gap/gap_utils.h>
+#include <quad_gap/gap_utils.h>
 
-namespace potential_gap {
+namespace quad_gap {
     GapUtils::GapUtils() {}
 
     GapUtils::~GapUtils() {}
@@ -11,7 +11,7 @@ namespace potential_gap {
     }
 
     void GapUtils::hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
-        std::vector<potential_gap::Gap> & observed_gaps)
+        std::vector<quad_gap::Gap> & observed_gaps)
     {
         observed_gaps.clear();
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
@@ -41,7 +41,7 @@ namespace potential_gap {
                 // If both current and last values are not infinity, meaning this is not a swept gap
                 if (scan_dist < max_scan_dist && last_scan < max_scan_dist) 
                 {
-                    potential_gap::Gap detected_gap(frame, it - 1, last_scan, true, half_scan);
+                    quad_gap::Gap detected_gap(frame, it - 1, last_scan, true, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -63,7 +63,7 @@ namespace potential_gap {
                 if (prev_lgap)
                 {
                     prev_lgap = false;
-                    potential_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+                    quad_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -88,7 +88,7 @@ namespace potential_gap {
         // Catch the last gap
         if (prev_lgap) 
         {
-            potential_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+            quad_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
             detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);
@@ -122,14 +122,14 @@ namespace potential_gap {
 
     void GapUtils::mergeGapsOneGo(
         boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
-        std::vector<potential_gap::Gap>& observed_gaps)
+        std::vector<quad_gap::Gap>& observed_gaps)
     {
         // int left_idx = -1;
         // int right_idx = -1;
         // float right_dist = 3;
         // float left_dist = 3; // TODO: Make this reconfigurable
         int observed_size = (int) observed_gaps.size();
-        std::vector<potential_gap::Gap> second_gap;
+        std::vector<quad_gap::Gap> second_gap;
 
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
         // Termination Condition

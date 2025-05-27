@@ -1,0 +1,19 @@
+<library path="lib/libquad_gap">
+
+  <class name="quad_gap/QuadGapPlannerROS" 
+          type="quad_gap::QuadGapPlanner" 
+          base_class_type="nav_core::BaseLocalPlanner">
+    <description>
+      The quad_gap package implements a plugin to the base_local_planner of the 2D navigation stack.
+    </description>
+  </class>
+
+	<class name="quad_gap/QuadGapPlannerROS" 
+          type="quad_gap::QuadGapPlanner" 
+          base_class_type="mbf_costmap_core::CostmapController">
+		<description>
+			Same plugin implemented MBF CostmapController's extended interface.
+		</description>
+	</class>
+
+</library>

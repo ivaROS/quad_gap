@@ -1,13 +1,13 @@
-#include <potential_gap/gap_manip.h>
+#include <quad_gap/gap_manip.h>
 
-namespace potential_gap {
+namespace quad_gap {
     void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
         boost::mutex::scoped_lock lock(egolock);
         msg = msg_;
         num_of_scan = (int)(msg.get()->ranges.size());
     }
 
-    void GapManipulator::setGapWaypoint(potential_gap::Gap& gap, geometry_msgs::PoseStamped localgoal){
+    void GapManipulator::setGapWaypoint(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal){
         // TODO: assume there is no idx that will pass 0
         auto half_num_scan = gap.half_scan;
         float x1, x2, y1, y2;
@@ -181,7 +181,7 @@ namespace potential_gap {
     }
 
     // In place modification
-    void GapManipulator::reduceGap(potential_gap::Gap& gap, geometry_msgs::PoseStamped localgoal) {
+    void GapManipulator::reduceGap(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal) {
         int lidx = gap.LIdx();
         int ridx = gap.RIdx();
         if (!msg) return; 
@@ -230,7 +230,7 @@ namespace potential_gap {
         return;
     }
 
-    void GapManipulator::convertAxialGap(potential_gap::Gap& gap) {
+    void GapManipulator::convertAxialGap(quad_gap::Gap& gap) {
         // Return if not axial gap or disabled
         if (!gap.isAxial() || !cfg_->gap_manip.axial_convert) {
             // ROS_INFO_STREAM("Swept gap.");
@@ -391,7 +391,7 @@ namespace potential_gap {
         gap.mode.agc = true;
     }
 
-    void GapManipulator::radialExtendGap(potential_gap::Gap& selected_gap) {
+    void GapManipulator::radialExtendGap(quad_gap::Gap& selected_gap) {
         if (!cfg_->gap_manip.radial_extend) {
             ROS_DEBUG_STREAM_THROTTLE(1, "Radial Extension is off");
             return;

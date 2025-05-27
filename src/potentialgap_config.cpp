@@ -1,6 +1,6 @@
-#include <potential_gap/potentialgap_config.h>
+#include <quad_gap/potentialgap_config.h>
 
-namespace potential_gap {
+namespace quad_gap {
     void PotentialGapConfig::loadRosParamFromNodeHandle(const ros::NodeHandle& nh)
     {
         nh.param("map_frame_id", map_frame_id, map_frame_id);
@@ -86,7 +86,7 @@ namespace potential_gap {
 
     }
 
-    void PotentialGapConfig::reconfigure(pgConfig& cfg)
+    void PotentialGapConfig::reconfigure(qgConfig& cfg)
     {
         // This locks the lock within this function
         boost::mutex::scoped_lock lock(config_mutex);

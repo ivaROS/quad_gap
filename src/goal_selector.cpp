@@ -1,8 +1,8 @@
-#include <potential_gap/goal_selector.h>
+#include <quad_gap/goal_selector.h>
 
-namespace potential_gap {
+namespace quad_gap {
     GoalSelector::GoalSelector(ros::NodeHandle& nh,
-    const potential_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
+    const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
         cfg_ = &cfg;
         robot_geo_proc_ = robot_geo_proc;
     }

@@ -1,15 +1,15 @@
-#include <potential_gap/visualization.h>
+#include <quad_gap/visualization.h>
 
-namespace potential_gap{
+namespace quad_gap{
     GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const PotentialGapConfig& cfg) {
         initialize(nh, cfg);
     }
 
     void GapVisualizer::initialize(ros::NodeHandle& nh, const PotentialGapConfig& cfg) {
         cfg_ = &cfg;
-        gaparc_publisher = nh.advertise<visualization_msgs::MarkerArray>("pg_arcs", 1000);
-        gapside_publisher = nh.advertise<visualization_msgs::MarkerArray>("pg_sides", 100);
-        gapgoal_publisher = nh.advertise<visualization_msgs::MarkerArray>("pg_markers", 10);
+        gaparc_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_arcs", 1000);
+        gapside_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_sides", 100);
+        gaqgoal_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_markers", 10);
 
         std_msgs::ColorRGBA std_color;
         std::vector<std_msgs::ColorRGBA> raw_radial;
@@ -61,7 +61,7 @@ namespace potential_gap{
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, potential_gap::Gap g, std::string ns, std::string color) {
+    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, quad_gap::Gap g, std::string ns, std::string color) {
         // ROS_INFO_STREAM(g._left_idx << ", " << g._ldist << ", " << g._right_idx << ", " << g._rdist << ", " << g._frame);
         if (!cfg_->gap_viz.debug_viz) return;
 
@@ -148,7 +148,7 @@ namespace potential_gap{
         vis_arr.markers.push_back(this_marker);
     }
     
-    void GapVisualizer::drawGaps(std::vector<potential_gap::Gap> g, std::string ns, std::string color) {
+    void GapVisualizer::drawGaps(std::vector<quad_gap::Gap> g, std::string ns, std::string color) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         for (auto & gap : g) {
@@ -157,7 +157,7 @@ namespace potential_gap{
         gaparc_publisher.publish(vis_arr);
     }
 
-    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, potential_gap::Gap g, bool & circle) {
+    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, quad_gap::Gap g, bool & circle) {
         // if AGC: Color is Red
         // if Convex: color is Brown, viz_jitter + 0.1
         // if RadialExtension: color is green, draw additional circle
@@ -327,7 +327,7 @@ namespace potential_gap{
 
     }
 
-    void GapVisualizer::drawManipGaps(std::vector<potential_gap::Gap> vec) {
+    void GapVisualizer::drawManipGaps(std::vector<quad_gap::Gap> vec) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         bool circle = false;
@@ -337,7 +337,7 @@ namespace potential_gap{
         gapside_publisher.publish(vis_arr);
     }
 
-    TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const potential_gap::PotentialGapConfig& cfg)
+    TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg)
     {
         cfg_ = &cfg;
         goal_selector_traj_vis = nh.advertise<geometry_msgs::PoseArray>("goal_select_traj", 1000);
@@ -478,7 +478,7 @@ namespace potential_gap{
         all_traj_viz.publish(vis_traj_arr);
     }
 
-    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const potential_gap::PotentialGapConfig& cfg)
+    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg)
     {
         cfg_ = &cfg;
         goal_pub = nh.advertise<visualization_msgs::Marker>("goals", 1000);
@@ -514,7 +514,7 @@ namespace potential_gap{
         goal_pub.publish(lg_marker);
     }
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, potential_gap::Gap g) {
+    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, quad_gap::Gap g) {
         if (!cfg_->gap_viz.debug_viz) return;
         if (!g.goal.set) {
             return;
@@ -540,7 +540,7 @@ namespace potential_gap{
 
     }
 
-    void GoalVisualizer::drawGapGoals(std::vector<potential_gap::Gap> gs) {
+    void GoalVisualizer::drawGapGoals(std::vector<quad_gap::Gap> gs) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         for (auto & gap : gs) {

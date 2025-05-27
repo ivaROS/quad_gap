@@ -1,7 +1,7 @@
-#include <potential_gap/trajectory_scoring.h>
+#include <quad_gap/trajectory_scoring.h>
 
-namespace potential_gap {
-    TrajectoryArbiter::TrajectoryArbiter(ros::NodeHandle& nh, const potential_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc)
+namespace quad_gap {
+    TrajectoryArbiter::TrajectoryArbiter(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc)
     {
         cfg_ = & cfg;
         r_inscr = cfg_->rbt.r_inscr;
@@ -16,7 +16,7 @@ namespace potential_gap {
         boost::mutex::scoped_lock lock(egocircle_mutex);
         msg = msg_;
     }
-    void TrajectoryArbiter::updateGapContainer(const std::vector<potential_gap::Gap> observed_gaps) {
+    void TrajectoryArbiter::updateGapContainer(const std::vector<quad_gap::Gap> observed_gaps) {
         boost::mutex::scoped_lock lock(gap_mutex);
         gaps.clear();
         gaps = observed_gaps;
@@ -43,7 +43,7 @@ namespace potential_gap {
         int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
         ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
         ROS_DEBUG_STREAM(local_goal.pose.position);
-        auto costFn = [](potential_gap::Gap g, int goal_idx) -> double
+        auto costFn = [](quad_gap::Gap g, int goal_idx) -> double
         {
             int leftdist = std::abs(g._left_idx - goal_idx);
             int rightdist = std::abs(g._right_idx - goal_idx);
@@ -183,7 +183,7 @@ namespace potential_gap {
     //     return searchIdx;
     // }
 
-    potential_gap::Gap TrajectoryArbiter::returnAndScoreGaps() {
+    quad_gap::Gap TrajectoryArbiter::returnAndScoreGaps() {
         boost::mutex::scoped_lock gaplock(gap_mutex);
         std::vector<double> cost = scoreGaps();
         auto decision_iter = std::min_element(cost.begin(), cost.end());

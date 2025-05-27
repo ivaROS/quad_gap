@@ -1,6 +1,6 @@
-#include <potential_gap/robot_geo_parser.h>
+#include <quad_gap/robot_geo_parser.h>
 
-namespace potential_gap{
+namespace quad_gap{
     RobotGeoStorage::RobotGeoStorage(std::string config_file)
     {
         loadConfigFile(config_file);

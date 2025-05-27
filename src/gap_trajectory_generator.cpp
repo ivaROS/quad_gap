@@ -1,7 +1,7 @@
-#include <potential_gap/gap_trajectory_generator.h>
+#include <quad_gap/gap_trajectory_generator.h>
 
-namespace potential_gap{
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(potential_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) {
+namespace quad_gap{
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(quad_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
@@ -72,12 +72,12 @@ namespace potential_gap{
     }
 
     [[deprecated("Use single trajectory generation")]]
-    std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<potential_gap::Gap> gapset) {
+    std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<quad_gap::Gap> gapset) {
         std::vector<geometry_msgs::PoseArray> traj_set(gapset.size());
         return traj_set;
     }
 
-    bool GapTrajGenerator::findBezierControlPts(potential_gap::Gap selectedGap, Bezier::Bezier<2>& bezier_curve, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
+    bool GapTrajGenerator::findBezierControlPts(quad_gap::Gap selectedGap, Bezier::Bezier<2>& bezier_curve, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
     {
         // Find the intersections of triangle and circle
         float x1, x2, y1, y2;
@@ -652,7 +652,7 @@ namespace potential_gap{
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(potential_gap::Gap selectedGap, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(quad_gap::Gap selectedGap, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
     {
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();

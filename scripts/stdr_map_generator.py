@@ -8,9 +8,9 @@ import signal
 # world_name = "campus"
 world_name = ['fourth_floor'] #'campus'
 # world_name = ['dense']
-map_save_path = "/home/shiyu/potential_gap_ws/src/potential_gap/maps/"
+map_save_path = "/home/shiyu/quad_gap_ws/src/quad_gap/maps/"
 
-launch_file_path = "/home/shiyu/potential_gap_ws/src/navigation_test/configs/launch/"
+launch_file_path = "/home/shiyu/quad_gap_ws/src/navigation_test/configs/launch/"
 
 min_seed = 77
 max_seed = 100

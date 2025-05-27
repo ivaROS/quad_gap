@@ -1,7 +1,7 @@
-#include <potential_gap/trajectory_controller.h>
+#include <quad_gap/trajectory_controller.h>
 
-namespace potential_gap{
-    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const potential_gap::PotentialGapConfig& cfg) {
+namespace quad_gap{
+    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg) {
         projection_viz = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
         cfg_ = & cfg;
         thres = 0.1;
@@ -479,7 +479,7 @@ namespace potential_gap{
     }
 
 
-    int TrajectoryController::targetPoseIdx(geometry_msgs::Pose curr_pose, potential_gap::TrajPlan ref_pose) {
+    int TrajectoryController::targetPoseIdx(geometry_msgs::Pose curr_pose, quad_gap::TrajPlan ref_pose) {
         // Find pose right ahead
         std::vector<double> pose_diff(ref_pose.poses.size());
         // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
@@ -500,9 +500,9 @@ namespace potential_gap{
     }
 
 
-    potential_gap::TrajPlan TrajectoryController::trajGen(geometry_msgs::PoseArray orig_traj)
+    quad_gap::TrajPlan TrajectoryController::trajGen(geometry_msgs::PoseArray orig_traj)
     {
-        potential_gap::TrajPlan traj;
+        quad_gap::TrajPlan traj;
         traj.header.frame_id = cfg_->odom_frame_id;
         for(size_t i = 0; i < orig_traj.poses.size(); i++)
         {

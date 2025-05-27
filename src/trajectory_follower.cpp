@@ -1,9 +1,9 @@
 #include <ros/ros.h>
-#include <potential_gap/trajectory_follower.h>
+#include <quad_gap/trajectory_follower.h>
 #include <math.h>
 #include <cmath>
 
-namespace potential_gap
+namespace quad_gap
 {
     float P2EDistance(float r1, float r2, float the1, float the2)
     {
@@ -225,4 +225,4 @@ namespace potential_gap
         cmd_vel.angular.z = v_ang_fb;
         return cmd_vel;
     }
-} // namespace potential_gap
+} // namespace quad_gap
