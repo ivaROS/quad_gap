@@ -49,6 +49,7 @@
   <exec_depend>nav_core</exec_depend>
   <exec_depend>pips_trajectory_msgs</exec_depend>
 
+  <depend>mbf_costmap_core</depend>
   <depend>pips</depend>
   <depend>pips_trajectory_testing</depend>
   <depend>turtlebot_trajectory_testing</depend>

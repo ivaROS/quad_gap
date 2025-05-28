@@ -44,7 +44,8 @@ namespace quad_gap {
         bool gap_size_check = (right_ori - left_ori) < M_PI;
         float dist = 0;
         bool small_gap = false;
-        if (gap_size_check && !cfg_->planning.planning_inflated) {
+        if (gap_size_check) //  && !cfg_->planning.planning_inflated
+        {
             // if smaller than M_PI/3
             dist = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
             small_gap = dist < 2 * epl;

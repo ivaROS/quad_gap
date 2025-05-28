@@ -51,7 +51,7 @@ namespace quad_gap {
                     Eigen::Vector2d m_pt_vec = detected_gap.get_middle_pt_vec();
                     // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
                     double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-                    if (detected_gap.get_dist_side() > epl || cfg_->planning.planning_inflated) observed_gaps.push_back(detected_gap);
+                    if (detected_gap.get_dist_side() > epl) observed_gaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
                 }
                 
             }
@@ -73,7 +73,7 @@ namespace quad_gap {
                     Eigen::Vector2d m_pt_vec = detected_gap.get_middle_pt_vec();
                     // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
                     double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-                    if (detected_gap.get_dist_side() > epl || cfg_->planning.planning_inflated) observed_gaps.push_back(detected_gap);
+                    if (detected_gap.get_dist_side() > epl) observed_gaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
                 }
                 else // previously not marked a gap, not marking the gap
                 {
@@ -161,7 +161,7 @@ namespace quad_gap {
                             int erase_counter = 0;
                             int last_mergable = -1;
 
-                            float coefs = cfg_->planning.planning_inflated ? 0 : 1;
+                            // float coefs = cfg_->planning.planning_inflated ? 0 : 1;
                             for (int j = (int) (second_gap.size() - 1); j >= 0; j--)
                             {
                                 int start_idx = std::min(second_gap[j].RIdx(), observed_gaps[i].LIdx());
@@ -175,7 +175,7 @@ namespace quad_gap {
                                 Eigen::Vector2d orient_vec(1, 0);
                                 double erl_rdist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_rdist);
                                 double erl_ldist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, second_gap[j].LDist());
-                                bool second_test = curr_rdist <= (*farside_iter - coefs * erl_rdist) && second_gap[j].LDist() <= (*farside_iter - coefs * erl_ldist);
+                                bool second_test = curr_rdist <= (*farside_iter - erl_rdist) && second_gap[j].LDist() <= (*farside_iter - erl_ldist);
                                 bool dist_diff = second_gap[j].isLeftType() || !second_gap[j].isAxial();
                                 bool idx_diff = observed_gaps[i].RIdx() - second_gap[j].LIdx() < cfg_->gap_manip.max_idx_diff;
                                 if (second_test && dist_diff && idx_diff) {

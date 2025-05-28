@@ -1,7 +1,9 @@
 #include <quad_gap/trajectory_controller.h>
 
-namespace quad_gap{
-    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg) {
+namespace quad_gap
+{
+    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg) 
+    {
         projection_viz = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
         cfg_ = & cfg;
         thres = 0.1;

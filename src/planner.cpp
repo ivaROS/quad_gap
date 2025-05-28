@@ -16,7 +16,7 @@ namespace quad_gap
 
     Planner::~Planner() {}
 
-    bool Planner::initialize(const ros::NodeHandle& unh)
+    bool Planner::initialize(const std::string & name)
     {
         if (initialized())
         {
@@ -24,11 +24,13 @@ namespace quad_gap
             return true;
         }
 
+        ros::NodeHandle unh("~/" + name);
+
         // pnh = unh;
         pnh = ros::NodeHandle(unh.getNamespace() + "/cc");
 
         // Config Setup
-        cfg.loadRosParamFromNodeHandle(unh);
+        cfg.loadRosParamFromNodeHandle(name);
 
         // Load precomputed robot geo
         std::string file_name = "/home/shiyu/workspaces/cheetah_ws/src/quadruped_nav_benchmark/config/robot_geometry/box_1_geometry.yaml";
@@ -323,12 +325,12 @@ namespace quad_gap
         return boost::make_shared<sensor_msgs::LaserScan const>(transformed_laser);
     }
 
-    void Planner::inflatedlaserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
-    {
-        // sharedPtr_inflatedlaser = msg;
-        sharedPtr_inflatedlaser = transformLaserToRbt(msg);
-        // TODO: didn't transform to robot frame, may have problem if using inflated egocircle.
-    }
+    // void Planner::inflatedlaserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
+    // {
+    //     // sharedPtr_inflatedlaser = msg;
+    //     sharedPtr_inflatedlaser = transformLaserToRbt(msg);
+    //     // TODO: didn't transform to robot frame, may have problem if using inflated egocircle.
+    // }
 
     void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
@@ -338,22 +340,24 @@ namespace quad_gap
 
         boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = sharedPtr_laser;
 
-        if (cfg.planning.planning_inflated && sharedPtr_inflatedlaser) {
-            // msg = sharedPtr_inflatedlaser;
-            // TODO: not sure if the transformed inflated egocircle is right
-            tmp_msg = sharedPtr_inflatedlaser;
-        }
+        // if (cfg.planning.planning_inflated && sharedPtr_inflatedlaser) {
+        //     // msg = sharedPtr_inflatedlaser;
+        //     // TODO: not sure if the transformed inflated egocircle is right
+        //     tmp_msg = sharedPtr_inflatedlaser;
+        // }
 
         // ROS_INFO_STREAM(msg.get()->ranges.size());
 
-        try {
+        try 
+        {
             boost::mutex::scoped_lock gapset(gapset_mutex);
             finder->hybridScanGap(msg, observed_gaps);
             gapvisualizer->drawGaps(observed_gaps, std::string("raw"));
             finder->mergeGapsOneGo(msg, observed_gaps);
             gapvisualizer->drawGaps(observed_gaps, std::string("fin"));
             // ROS_INFO_STREAM("observed_gaps count:" << observed_gaps.size());
-        } catch (...) {
+        } catch (...) 
+        {
             ROS_FATAL_STREAM("mergeGapsOneGo");
         }
 
@@ -386,7 +390,7 @@ namespace quad_gap
     void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& msg)
     {
         // Transform the msg to odom frame
-        if(msg->header.frame_id != cfg.odom_frame_id)
+        if (msg->header.frame_id != cfg.odom_frame_id)
         {
             geometry_msgs::TransformStamped robot_pose_odom_trans = tfBuffer->lookupTransform(cfg.odom_frame_id, msg->header.frame_id, ros::Time(0));
 
@@ -460,18 +464,24 @@ namespace quad_gap
         trajArbiter->updateLocalGoal(local_waypoint_odom, odom2rbt);
 
         // Visualization only
-        try { 
+        try 
+        { 
             auto traj = goalselector->getRelevantGlobalPlan(map2rbt);
             geometry_msgs::PoseArray pub_traj;
-            if (traj.size() > 0) {
+
+            if (traj.size() > 0) 
+            {
                 // Should be safe with this check
                 pub_traj.header = traj.at(0).header;
             }
-            for (auto trajpose : traj) {
+            
+            for (auto trajpose : traj) 
+            {
                 pub_traj.poses.push_back(trajpose.pose);
             }
             local_traj_pub.publish(pub_traj);
-        } catch (...) {
+        } catch (...) 
+        {
             ROS_FATAL_STREAM("getRelevantGlobalPlan");
         }
 
@@ -500,15 +510,16 @@ namespace quad_gap
         }
     }
 
-    [[deprecated("Use Proper trajectory scoring instead")]]
-    void Planner::vectorSelectGap(quad_gap::Gap & selected_gap)
-    {
-        quad_gap::Gap result = trajArbiter->returnAndScoreGaps();
-        selected_gap = result;
-        return;
-    }
+    // [[deprecated("Use Proper trajectory scoring instead")]]
+    // void Planner::vectorSelectGap(quad_gap::Gap & selected_gap)
+    // {
+    //     quad_gap::Gap result = trajArbiter->returnAndScoreGaps();
+    //     selected_gap = result;
+    //     return;
+    // }
 
-    std::vector<quad_gap::Gap> Planner::gapManipulate() {
+    std::vector<quad_gap::Gap> Planner::gapManipulate() 
+    {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<quad_gap::Gap> manip_set;
         manip_set = observed_gaps;
@@ -516,7 +527,8 @@ namespace quad_gap
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(goalselector->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam);
         geometry_msgs::PoseStamped local_goal_rbt_frame = goalselector->rbtFrameLocalGoal();
-        try {
+        try 
+        {
             for (size_t i = 0; i < manip_set.size(); i++)
             {
                 gapManip->reduceGap(manip_set.at(i), local_goal_rbt_frame);
@@ -524,7 +536,8 @@ namespace quad_gap
                 gapManip->radialExtendGap(manip_set.at(i));
                 gapManip->setGapWaypoint(manip_set.at(i), local_goal_rbt_frame);
             }
-        } catch(...) {
+        } catch(...) 
+        {
             ROS_FATAL_STREAM("gapManipulate");
         }
 
@@ -534,7 +547,8 @@ namespace quad_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<quad_gap::Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) {
+    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<quad_gap::Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
+    {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<geometry_msgs::PoseArray> ret_traj(vec.size());
         std::vector<geometry_msgs::PoseArray> virtual_traj(vec.size());
@@ -697,7 +711,8 @@ namespace quad_gap
         return prr.at(idx);
     }
 
-    geometry_msgs::PoseArray Planner::compareToOldTraj(geometry_msgs::PoseArray incoming, geometry_msgs::PoseArray& virtual_curr_traj) {
+    geometry_msgs::PoseArray Planner::compareToOldTraj(geometry_msgs::PoseArray incoming, geometry_msgs::PoseArray& virtual_curr_traj) 
+    {
         auto curr_traj = getCurrentTraj();
 
         try {
@@ -881,11 +896,11 @@ namespace quad_gap
         ctrl_target_pose.twist.twist = orig_ref.twist.at(ctrl_idx);
 
         sensor_msgs::LaserScan stored_scan_msgs;
-        if (cfg.planning.projection_inflated) {
-            stored_scan_msgs = *sharedPtr_inflatedlaser.get();
-        } else {
-            stored_scan_msgs = *sharedPtr_laser.get();
-        }
+        // if (cfg.planning.projection_inflated) {
+        //     stored_scan_msgs = *sharedPtr_inflatedlaser.get();
+        // } else {
+        stored_scan_msgs = *sharedPtr_laser.get();
+        // }
 
         // geometry_msgs::PoseStamped rbt_in_cam_lc = rbt_in_cam;
         auto cmd_vel = trajController->controlLaw(curr_pose, ctrl_target_pose, stored_scan_msgs, curr_pose_local);

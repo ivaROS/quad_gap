@@ -66,7 +66,7 @@ namespace quad_gap {
             struct PlanningMode {
                 bool feasi_inflated;  
                 bool projection_inflated;
-                bool planning_inflated;
+                // bool planning_inflated;
                 bool holonomic;
                 bool full_fov;
                 bool projection_operator;
@@ -110,11 +110,12 @@ namespace quad_gap {
                 bool line;
             } man;
 
-        PotentialGapConfig() {
+        PotentialGapConfig() 
+        {
             map_frame_id = "map";
-            odom_frame_id = "odom";
-            robot_frame_id = "base_link";
-            sensor_frame_id = "camera_link";
+            odom_frame_id = "TBD";
+            robot_frame_id = "TBD";
+            sensor_frame_id = "TBD";
 
             gap_viz.min_resoln = 1;
             gap_viz.close_gap_vis = false;
@@ -155,7 +156,7 @@ namespace quad_gap {
 
             planning.feasi_inflated = false;
             planning.projection_inflated = false;
-            planning.planning_inflated = false;
+            // planning.planning_inflated = false;
             planning.holonomic = false;
             planning.full_fov = false;
             planning.projection_operator = true;
@@ -191,7 +192,7 @@ namespace quad_gap {
             rbt.r_inscr = 0.18;
         }
 
-        void loadRosParamFromNodeHandle(const ros::NodeHandle& nh);
+        void loadRosParamFromNodeHandle(const std::string & name);
 
         void reconfigure(qgConfig& cfg);
 

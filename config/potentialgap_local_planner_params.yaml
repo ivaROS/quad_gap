@@ -22,7 +22,7 @@ QuadGapPlanner:
     k_drive_x: 2
     k_drive_y: 3.5
     projection_inflated: False
-    planning_inflated: False
+    # planning_inflated: False
     fig_gen: False
     k_po: 1
     k_po_turn: 1
