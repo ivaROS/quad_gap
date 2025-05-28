@@ -1,5 +1,4 @@
-#ifndef TRAJ_CONT_H
-#define TRAJ_CONT_H
+#pragma once
 
 #include <ros/ros.h>
 #include <quad_gap/potentialgap_config.h>
@@ -55,5 +54,3 @@ namespace quad_gap {
             ros::Time last_time;
     };
 }
-
-#endif

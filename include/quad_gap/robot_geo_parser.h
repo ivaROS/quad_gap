@@ -1,5 +1,4 @@
-#ifndef ROBOT_GEO_PARSER_H
-#define ROBOT_GEO_PARSER_H
+#pragma once
 
 #include <yaml-cpp/yaml.h>
 #include <string>
@@ -463,5 +462,3 @@ namespace quad_gap{
             bool initialized_ = false;
     };
 }
-
-#endif // ROBOT_GEO_PARSER_H

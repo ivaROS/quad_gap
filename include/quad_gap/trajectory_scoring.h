@@ -1,5 +1,4 @@
-#ifndef TRAJ_SCORE_H
-#define TRAJ_SCORE_H
+#pragma once
 
 #include <ros/ros.h>
 #include <math.h>
@@ -74,5 +73,3 @@ namespace quad_gap{
             RobotGeoProc robot_geo_proc_;
     };
 }
-
-#endif

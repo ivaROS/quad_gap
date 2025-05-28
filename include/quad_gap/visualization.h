@@ -1,5 +1,4 @@
-#ifndef VIS_H
-#define VIS_H
+#pragma once
 
 #include <ros/ros.h>
 #include <math.h>
@@ -48,7 +47,8 @@ namespace quad_gap
             ros::Publisher gaqgoal_publisher;
     };
 
-    class TrajectoryVisualizer : public Visualizer{
+    class TrajectoryVisualizer : public Visualizer
+    {
             using Visualizer::Visualizer;
         public: 
             TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
@@ -62,7 +62,8 @@ namespace quad_gap
             ros::Publisher all_traj_viz;
     };
 
-    class GoalVisualizer : public Visualizer{
+    class GoalVisualizer : public Visualizer
+    {
         public: 
             using Visualizer::Visualizer;
             GoalVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
@@ -76,5 +77,3 @@ namespace quad_gap
             std_msgs::ColorRGBA localGoal_color;
     };
 }
-
-#endif

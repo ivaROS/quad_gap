@@ -31,30 +31,30 @@ namespace quad_gap
         planner_name = name;
         ros::NodeHandle pnh("~/" + planner_name);
 
-        laser_sub = pnh.subscribe("/scan", 100, &Planner::laserScanCB, &planner);
-        // inflated_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
-        // feasi_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
-        pose_sub = pnh.subscribe("/odom",10, &Planner::poseCB, &planner);
-        planner.initialize(name);
-        initialized = true;
+        // laser_sub = pnh.subscribe("/scan", 100, &Planner::laserScanCB, &planner);
+        // // inflated_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
+        // // feasi_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
+        // pose_sub = pnh.subscribe("/odom",10, &Planner::poseCB, &planner);
+        // planner.initialize(name);
+        // initialized = true;
 
-        // Setup dynamic reconfigure
-        dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <quad_gap::qgConfig> > (pnh);
-        f = boost::bind(&quad_gap::Planner::rcfgCallback, &planner, _1, _2);
-        dynamic_recfg_server->setCallback(f);
+        // // Setup dynamic reconfigure
+        // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <quad_gap::qgConfig> > (pnh);
+        // f = boost::bind(&quad_gap::Planner::rcfgCallback, &planner, _1, _2);
+        // dynamic_recfg_server->setCallback(f);
     }
 
     bool QuadGapPlanner::computeVelocityCommands(geometry_msgs::Twist & cmdVel)
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::computeVelocityCommands(short)]");
 
-        std::string dummy_message;
-        geometry_msgs::PoseStamped dummy_pose;
-        geometry_msgs::TwistStamped dummy_velocity, cmd_vel_stamped;
+        // std::string dummy_message;
+        // geometry_msgs::PoseStamped dummy_pose;
+        // geometry_msgs::TwistStamped dummy_velocity, cmd_vel_stamped;
 
-        bool outcome = computeVelocityCommands(dummy_pose, dummy_velocity, cmd_vel_stamped, dummy_message);
+        // bool outcome = computeVelocityCommands(dummy_pose, dummy_velocity, cmd_vel_stamped, dummy_message);
 
-        cmdVel = cmd_vel_stamped.twist;
+        // cmdVel = cmd_vel_stamped.twist;
 
         // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "computeVelocityCommands cmdVel: ");
         // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "                linear: ");
@@ -73,26 +73,28 @@ namespace quad_gap
                                                         geometry_msgs::TwistStamped &cmd_vel,
                                                         std::string &message)
     {
-        if (!planner.initialized())
-        {
-            ros::NodeHandle pnh("~/" + planner_name);
-            planner.initialize(planner_name);
-            ROS_WARN_STREAM("computerVelocity called before initializing planner");
-        }
+        // if (!planner.initialized())
+        // {
+        //     ros::NodeHandle pnh("~/" + planner_name);
+        //     planner.initialize(planner_name);
+        //     ROS_WARN_STREAM("computerVelocity called before initializing planner");
+        // }
 
-        if(planner.ccEnabled() && !planner.getCCWrapper()->isReady())
-        {
-            ROS_ERROR("CC NOT READY");
-            return false;
-        }
+        // if(planner.ccEnabled() && !planner.getCCWrapper()->isReady())
+        // {
+        //     ROS_ERROR("CC NOT READY");
+        //     return false;
+        // }
 
-        auto final_traj = planner.getPlanTrajectory();
+        // auto final_traj = planner.getPlanTrajectory();
 
-        geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(final_traj);
+        // geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(final_traj);
 
-        cmd_vel.twist = cmdVelNoStamp;
+        // cmd_vel.twist = cmdVelNoStamp;
 
-        bool acceptedCmdVel = planner.recordAndCheckVel(cmdVelNoStamp);        
+        // bool acceptedCmdVel = planner.recordAndCheckVel(cmdVelNoStamp);  
+        
+        bool acceptedCmdVel = 1;
 
         if (acceptedCmdVel)
             return mbf_msgs::ExePathResult::SUCCESS;
@@ -105,20 +107,22 @@ namespace quad_gap
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::isGoalReached()]");
 
-        return planner.isGoalReached();
+        return false;
+        // return planner.isGoalReached();
     }
 
     bool QuadGapPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame)
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::setPlan()]");
 
-        if (!planner.initialized())
-        {
-            return false;
-        } else
-        {
-            return planner.setGoal(globalPlanMapFrame);
-        }
+        return 1;
+        // if (!planner.initialized())
+        // {
+        //     return false;
+        // } else
+        // {
+        //     return planner.setGoal(globalPlanMapFrame);
+        // }
         // 0: fail, 1: success
         // return 1;
     }

@@ -1,5 +1,4 @@
-#ifndef PG_CONFIG_H
-#define PG_CONFIG_H
+#pragma once
 
 #include <ros/console.h>
 #include <ros/ros.h>
@@ -202,5 +201,3 @@ namespace quad_gap {
             boost::mutex config_mutex; 
     };
 }
-
-#endif

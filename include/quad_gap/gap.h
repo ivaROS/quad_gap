@@ -1,5 +1,4 @@
-#ifndef GAP_H
-#define GAP_H
+#pragma once
 
 #include <ros/ros.h>
 #include <math.h>
@@ -300,5 +299,3 @@ namespace quad_gap
         // private:
     };
 }
-
-#endif

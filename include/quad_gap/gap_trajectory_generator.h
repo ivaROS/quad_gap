@@ -1,5 +1,4 @@
-#ifndef TRAJ_GEN_H
-#define TRAJ_GEN_H
+#pragma once
 
 #include <ros/ros.h>
 #include <boost/numeric/odeint.hpp>
@@ -124,5 +123,3 @@ namespace quad_gap {
             }
     };
 }
-
-#endif

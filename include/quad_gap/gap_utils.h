@@ -1,5 +1,4 @@
-#ifndef GAP_FINDER_H
-#define GAP_FINDER_H
+#pragma once
 
 #include <ros/ros.h>
 #include <vector>
@@ -49,6 +48,3 @@ namespace quad_gap {
 
 
 }
-
-
-#endif

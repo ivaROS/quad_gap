@@ -1,16 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10)
 project(quad_gap)
 
 add_compile_options(-std=c++17)
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-
-find_package(OpenMP REQUIRED)
-if(OPENMP_FOUND)
-  message(STATUS "OPENMP FOUND")
-  set(OpenMP_FLAGS ${OpenMP_CXX_FLAGS})
-  set(OpenMP_LIBS gomp)
-endif()
 
 find_package(catkin REQUIRED COMPONENTS
   base_local_planner
@@ -31,9 +22,9 @@ find_package(catkin REQUIRED COMPONENTS
   pips_egocylindrical
   pips_egocircle
 )
+
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
-# find_package(yaml-cpp REQUIRED)
 
 generate_dynamic_reconfigure_options(
   cfg/qg.cfg
@@ -43,8 +34,8 @@ generate_dynamic_reconfigure_options(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  SYSTEM ${EIGEN3_INCLUDE_DIRS}
   include
+  ${EIGEN3_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
 )
@@ -64,12 +55,11 @@ catkin_package(
  INCLUDE_DIRS 
     include 
     ${EIGEN3_INCLUDE_DIRS} 
+    ${catkin_INCLUDE_DIRS}
     ${YAML_CPP_INCLUDE_DIR}
  LIBRARIES 
     quad_gap 
     yaml-cpp
-  DEPENDS 
-    OpenMP 
   CATKIN_DEPENDS 
     base_local_planner dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs pips_trajectory_msgs message_runtime pips_egocircle
 )
@@ -89,10 +79,11 @@ add_library(quad_gap
   src/gap_manip.cpp
   src/trajectory_controller.cpp
   ) 
+
 add_dependencies(quad_gap ${PROJECT_NAME}_gencfg)
-target_compile_options(quad_gap PRIVATE ${OpenMP_FLAGS})
-target_link_libraries(quad_gap
-${catkin_LIBRARIES}
-${OpenMP_LIBS}
-yaml-cpp
+                  target_compile_options(quad_gap PRIVATE ${OpenMP_FLAGS})
+                  target_link_libraries(quad_gap
+                  ${catkin_LIBRARIES}
+                  ${OpenMP_LIBS}
+                  yaml-cpp
 )

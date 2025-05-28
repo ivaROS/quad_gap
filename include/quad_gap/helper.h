@@ -1,5 +1,4 @@
-#ifndef ODE_H
-#define ODE_H
+#pragma once
 
 #include <ros/ros.h>
 #include <boost/array.hpp>
@@ -144,5 +143,3 @@ namespace quad_gap {
     };
 
 }
-
-#endif

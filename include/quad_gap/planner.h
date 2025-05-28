@@ -1,3 +1,5 @@
+#pragma once
+
 #include <ros/ros.h>
 #include <quad_gap/gap.h>
 #include <visualization_msgs/Marker.h>

@@ -1,5 +1,4 @@
-#ifndef TRAJ_FOL_H
-#define TRAJ_FOL_H
+#pragma once
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -33,5 +32,3 @@ namespace quad_gap {
         double k_drive_y_ = 3.5);
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef GOAL_SELECT_H
-#define GOAL_SELECT_H
+#pragma once
 
 #include <ros/ros.h>
 #include <math.h>
@@ -74,5 +73,3 @@ namespace quad_gap
 
     };
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef POTENTIAL_GAP_H
-#define POTENTIAL_GAP_H
+#pragma once
 
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -138,5 +137,3 @@ namespace quad_gap {
             dynamic_reconfigure::Server<quad_gap::qgConfig>::CallbackType f;
     };
 }
-
-#endif 
