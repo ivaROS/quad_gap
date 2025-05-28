@@ -193,6 +193,10 @@ namespace quad_gap
 
         boost::circular_buffer<double> log_vel_comp;
 
+        ros::Subscriber tfSub_; /**< Subscriber to TF tree */
+
+        bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
+
         bool goal_set = false;
         // Box modification
         bool use_geo_storage_;
@@ -247,6 +251,12 @@ namespace quad_gap
          * @return None
          */
         void poseCB(const nav_msgs::Odometry::ConstPtr& msg);
+
+        /**
+        * \brief Function for updating all tf transform at the beginning of every planning cycle
+        * \param msg incoming agent odometry message
+        */
+        void tfCB(const tf2_msgs::TFMessage& msg);
 
         /**
          * Interface function for receiving global plan

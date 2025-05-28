@@ -186,6 +186,8 @@ namespace quad_gap
         tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
         _initialized = true;
 
+        tfSub_ = nh.subscribe("/tf", 10, &Planner::tfCB, this);
+
         finder = new quad_gap::GapUtils(cfg, robot_geo_proc_);
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
         goalselector = new quad_gap::GoalSelector(nh, cfg, robot_geo_proc_);
@@ -334,7 +336,9 @@ namespace quad_gap
 
     void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
-        // sharedPtr_laser = msg;
+        ROS_INFO_STREAM_NAMED("Planner", "[laserScanCB()]");
+
+        sharedPtr_laser = msg;
         sharedPtr_laser = transformLaserToRbt(msg);
         transformed_laser_pub.publish(sharedPtr_laser);
 
@@ -373,7 +377,8 @@ namespace quad_gap
         trajArbiter->updateEgoCircle(tmp_msg);
 
         geometry_msgs::PoseStamped local_goal;
-        if(goal_set)
+
+        if (goal_set)
         {
             goalselector->updateLocalGoal(map2rbt);
             local_goal = goalselector->getCurrentLocalGoal(rbt2odom);
@@ -389,6 +394,12 @@ namespace quad_gap
 
     void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& msg)
     {
+        ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
+        ROS_INFO_STREAM("[poseCB()]");
+
+        if (!haveTFs_)
+            return;
+
         // Transform the msg to odom frame
         if (msg->header.frame_id != cfg.odom_frame_id)
         {
@@ -413,85 +424,92 @@ namespace quad_gap
 
     bool Planner::setGoal(const std::vector<geometry_msgs::PoseStamped> &plan)
     {
-        updateTF();
+        ROS_INFO_STREAM_NAMED("Planner", "[setGoal()]");
 
-        if (plan.size() == 0) return true;
+        if (plan.size() == 0) 
+            return true;
+
+        if (!haveTFs_)
+            return false;        
 
         // plan should be in global frame
-        std::vector<geometry_msgs::PoseStamped> global_plan;
-        if(plan[0].header.frame_id != cfg.map_frame_id)
-        {
-            geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg.map_frame_id, plan[0].header.frame_id, ros::Time(0));
-            for(size_t i = 0; i < plan.size(); i++)
-            {
-                geometry_msgs::PoseStamped plan_pose = plan[i];
-                geometry_msgs::PoseStamped out_pose;
-                tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
-                out_pose.header.stamp = plan_pose.header.stamp;
-                out_pose.header.frame_id = cfg.map_frame_id;
-                global_plan.push_back(out_pose);
-            }
-        }
-        else
-        {
-            global_plan = plan;
-        }
+        // std::vector<geometry_msgs::PoseStamped> global_plan;
+        // if(plan[0].header.frame_id != cfg.map_frame_id)
+        // {
+        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg.map_frame_id, plan[0].header.frame_id, ros::Time(0));
+        //     for(size_t i = 0; i < plan.size(); i++)
+        //     {
+        //         geometry_msgs::PoseStamped plan_pose = plan[i];
+        //         geometry_msgs::PoseStamped out_pose;
+        //         tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
+        //         out_pose.header.stamp = plan_pose.header.stamp;
+        //         out_pose.header.frame_id = cfg.map_frame_id;
+        //         global_plan.push_back(out_pose);
+        //     }
+        // }
+        // else
+        // {
+        //     global_plan = plan;
+        // }
         
-        final_goal_odom = *std::prev(global_plan.end());
-        tf2::doTransform(final_goal_odom, final_goal_odom, map2odom);
+        // final_goal_odom = *std::prev(global_plan.end());
+        // tf2::doTransform(final_goal_odom, final_goal_odom, map2odom);
 
-        // Store New Global Plan to Goal Selector
-        goalselector->setGoal(global_plan);
+        // // Store New Global Plan to Goal Selector
+        // goalselector->setGoal(global_plan);
         
-        trajvisualizer->rawGlobalPlan(goalselector->getRawGlobalPlan());
+        // trajvisualizer->rawGlobalPlan(goalselector->getRawGlobalPlan());
 
-        // Find Local Goal
-        goalselector->updateLocalGoal(map2rbt);
-        // return local goal (odom) frame
-        auto new_local_waypoint = goalselector->getCurrentLocalGoal(rbt2odom);
+        // // Find Local Goal
+        // goalselector->updateLocalGoal(map2rbt);
+        // // return local goal (odom) frame
+        // auto new_local_waypoint = goalselector->getCurrentLocalGoal(rbt2odom);
 
-        {
-            // Plan New
-            double waydx = local_waypoint_odom.pose.position.x - new_local_waypoint.pose.position.x;
-            double waydy = local_waypoint_odom.pose.position.y - new_local_waypoint.pose.position.y;
-            bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) > cfg.goal.waypoint_tolerance;
-            if (wayres) {
-                local_waypoint_odom = new_local_waypoint;
-            }
-        }
+        // {
+        //     // Plan New
+        //     double waydx = local_waypoint_odom.pose.position.x - new_local_waypoint.pose.position.x;
+        //     double waydy = local_waypoint_odom.pose.position.y - new_local_waypoint.pose.position.y;
+        //     bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) > cfg.goal.waypoint_tolerance;
+        //     if (wayres) {
+        //         local_waypoint_odom = new_local_waypoint;
+        //     }
+        // }
 
-        // Set new local goal to trajectory arbiter
-        trajArbiter->updateLocalGoal(local_waypoint_odom, odom2rbt);
+        // // Set new local goal to trajectory arbiter
+        // trajArbiter->updateLocalGoal(local_waypoint_odom, odom2rbt);
 
-        // Visualization only
-        try 
-        { 
-            auto traj = goalselector->getRelevantGlobalPlan(map2rbt);
-            geometry_msgs::PoseArray pub_traj;
+        // // Visualization only
+        // try 
+        // { 
+        //     auto traj = goalselector->getRelevantGlobalPlan(map2rbt);
+        //     geometry_msgs::PoseArray pub_traj;
 
-            if (traj.size() > 0) 
-            {
-                // Should be safe with this check
-                pub_traj.header = traj.at(0).header;
-            }
+        //     if (traj.size() > 0) 
+        //     {
+        //         // Should be safe with this check
+        //         pub_traj.header = traj.at(0).header;
+        //     }
             
-            for (auto trajpose : traj) 
-            {
-                pub_traj.poses.push_back(trajpose.pose);
-            }
-            local_traj_pub.publish(pub_traj);
-        } catch (...) 
-        {
-            ROS_FATAL_STREAM("getRelevantGlobalPlan");
-        }
+        //     for (auto trajpose : traj) 
+        //     {
+        //         pub_traj.poses.push_back(trajpose.pose);
+        //     }
+        //     local_traj_pub.publish(pub_traj);
+        // } catch (...) 
+        // {
+        //     ROS_FATAL_STREAM("getRelevantGlobalPlan");
+        // }
 
-        goal_set = true;
+        // goal_set = true;
         return true;
     }
 
-    void Planner::updateTF()
+    void Planner::tfCB(const tf2_msgs::TFMessage& msg)
     {
-        try {
+        ROS_INFO_STREAM_NAMED("Planner", "[tfCB()]");
+
+        try 
+        {
             map2rbt  = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.map_frame_id, ros::Time(0));
             rbt2map  = tfBuffer->lookupTransform(cfg.map_frame_id, cfg.robot_frame_id, ros::Time(0));
             odom2rbt = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.odom_frame_id, ros::Time(0));
@@ -503,7 +521,10 @@ namespace quad_gap
             cam2rbt = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.sensor_frame_id, ros::Time(0));
 
             tf2::doTransform(rbt_in_rbt, rbt_in_cam, rbt2cam);
-        } catch (tf2::TransformException &ex) {
+        
+            haveTFs_ = true;
+        } catch (tf2::TransformException &ex) 
+        {
             ROS_WARN("%s", ex.what());
             ros::Duration(0.1).sleep();
             return;
@@ -873,8 +894,14 @@ namespace quad_gap
         replan = false;
     }
 
-    geometry_msgs::Twist Planner::ctrlGeneration(geometry_msgs::PoseArray traj) {
-        if (traj.poses.size() < 1){
+    geometry_msgs::Twist Planner::ctrlGeneration(geometry_msgs::PoseArray traj) 
+    {
+        
+        if (!haveTFs_)
+            return geometry_msgs::Twist();
+
+        if (traj.poses.size() < 1)
+        {
             ROS_WARN_STREAM("Available Execution Traj length: " << traj.poses.size() << " < 1");
             return geometry_msgs::Twist();
         }
@@ -918,8 +945,9 @@ namespace quad_gap
         log_vel_comp.set_capacity(cfg.planning.halt_size);
     }
 
-    geometry_msgs::PoseArray Planner::getPlanTrajectory() {
-        updateTF();
+    geometry_msgs::PoseArray Planner::getPlanTrajectory() 
+    {
+        // updateTF();
 
         auto gap_set = gapManipulate();
         
@@ -959,7 +987,7 @@ namespace quad_gap
 
     geometry_msgs::PoseArray Planner::getSinglePath()
     {
-        updateTF();
+        // updateTF();
 
         auto gap_set = gapManipulate();
         

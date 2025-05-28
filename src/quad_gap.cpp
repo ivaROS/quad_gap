@@ -28,15 +28,17 @@ namespace quad_gap
     void QuadGapPlanner::initialize(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros)
     {
         ROS_INFO_STREAM_NAMED("Planner", "Initializing Planner with name: " << name);
+        
         planner_name = name;
+        planner.initialize(name);
+
         ros::NodeHandle pnh("~/" + planner_name);
 
-        // laser_sub = pnh.subscribe("/scan", 100, &Planner::laserScanCB, &planner);
-        // // inflated_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
-        // // feasi_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
-        // pose_sub = pnh.subscribe("/odom",10, &Planner::poseCB, &planner);
-        // planner.initialize(name);
-        // initialized = true;
+        laser_sub = pnh.subscribe("/scan", 100, &Planner::laserScanCB, &planner);
+        // inflated_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
+        // feasi_laser_sub = pnh.subscribe("/inflated_point_scan", 100, &Planner::inflatedlaserScanCB, &planner);
+        pose_sub = pnh.subscribe("/odom",10, &Planner::poseCB, &planner);
+        initialized = true;
 
         // // Setup dynamic reconfigure
         // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <quad_gap::qgConfig> > (pnh);
@@ -107,22 +109,25 @@ namespace quad_gap
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::isGoalReached()]");
 
-        return false;
-        // return planner.isGoalReached();
+        // return false;
+        return planner.isGoalReached();
     }
 
     bool QuadGapPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame)
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::setPlan()]");
 
-        return 1;
-        // if (!planner.initialized())
-        // {
-        //     return false;
-        // } else
-        // {
-        //     return planner.setGoal(globalPlanMapFrame);
-        // }
+        // return 1;
+
+        if (!planner.initialized())
+        {
+            return false;
+        } else
+        {
+            return planner.setGoal(globalPlanMapFrame);
+        }
+
+        
         // 0: fail, 1: success
         // return 1;
     }
