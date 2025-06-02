@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg) 
+    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg) 
     {
         projection_viz = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
         cfg_ = & cfg;

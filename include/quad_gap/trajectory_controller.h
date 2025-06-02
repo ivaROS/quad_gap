@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <ros/ros.h>
@@ -24,7 +24,7 @@ namespace quad_gap {
     class TrajectoryController {
         public:
 
-            TrajectoryController(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
+            TrajectoryController(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
             geometry_msgs::Twist controlLaw(geometry_msgs::Pose, nav_msgs::Odometry, sensor_msgs::LaserScan, geometry_msgs::PoseStamped);
             void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
             int targetPoseIdx(geometry_msgs::Pose curr_pose, quad_gap::TrajPlan ref_pose);
@@ -47,7 +47,7 @@ namespace quad_gap {
             Eigen::Vector3d projection_method(float min_diff_x, float min_diff_y);
 
             double thres;
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> msg_;
             boost::mutex egocircle_l;
             ros::Publisher projection_viz;

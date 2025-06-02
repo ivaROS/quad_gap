@@ -1,7 +1,7 @@
 #include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
 
 namespace quad_gap {
-    TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc)
+    TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc)
     {
         cfg_ = & cfg;
         r_inscr = cfg_->rbt.r_inscr;

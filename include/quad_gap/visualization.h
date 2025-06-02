@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
 #include <visualization_msgs/MarkerArray.h>
@@ -21,20 +21,20 @@ namespace quad_gap
             Visualizer() {};
             ~Visualizer() {};
 
-            Visualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
+            Visualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
             Visualizer& operator=(Visualizer other) {cfg_ = other.cfg_;};
             Visualizer(const Visualizer &t) {cfg_ = t.cfg_;};
 
         protected:
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
     };
 
     class GapVisualizer : public Visualizer{
             using Visualizer::Visualizer;
         public: 
 
-            GapVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
-            void initialize(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
+            GapVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
+            void initialize(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
             void drawGap(visualization_msgs::MarkerArray &, quad_gap::Gap g, std::string ns, std::string color = "Default");
             void drawGaps(std::vector<quad_gap::Gap> g, std::string ns, std::string color = "Default");
             void drawManipGap(visualization_msgs::MarkerArray &, quad_gap::Gap g, bool &);
@@ -51,7 +51,7 @@ namespace quad_gap
     {
             using Visualizer::Visualizer;
         public: 
-            TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
+            TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
             void rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & );
             void trajScore(geometry_msgs::PoseArray, std::vector<double>);
             void pubAllTraj(std::vector<geometry_msgs::PoseArray> prr);
@@ -66,7 +66,7 @@ namespace quad_gap
     {
         public: 
             using Visualizer::Visualizer;
-            GoalVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg);
+            GoalVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
             void localGoal(geometry_msgs::PoseStamped);
             void drawGapGoal(visualization_msgs::MarkerArray&, quad_gap::Gap);
             void drawGapGoals(std::vector<quad_gap::Gap>);

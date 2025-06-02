@@ -23,7 +23,7 @@
 #include <quad_gap/trajectory_follower.h>
 #include <quad_gap/gap_detection/GapDetector.h>
 
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <quad_gap/visualization.h>
 #include <quad_gap/global_plan_management/GlobalPlanManager.h>
 #include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
@@ -185,7 +185,7 @@ namespace quad_gap
 
         bool replan = true;
         
-        quad_gap::PotentialGapConfig cfg;
+        quad_gap::QuadGapConfig cfg;
 
         boost::mutex gapset_mutex;
 

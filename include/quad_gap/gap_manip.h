@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <geometry_msgs/PoseStamped.h>
 #include <Eigen/Core>
@@ -18,7 +18,7 @@ namespace quad_gap {
             GapManipulator(){};
             ~GapManipulator(){};
 
-            GapManipulator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
+            GapManipulator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -42,7 +42,7 @@ namespace quad_gap {
             void radialExtendGap(quad_gap::Gap&);
         private:
             boost::shared_ptr<sensor_msgs::LaserScan const> msg;
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
             int num_of_scan;
             boost::mutex egolock;
 

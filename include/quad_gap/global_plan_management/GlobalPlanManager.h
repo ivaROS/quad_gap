@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <geometry_msgs/PoseStamped.h>
 #include <Eigen/Core>
@@ -27,7 +27,7 @@ namespace quad_gap
             GlobalPlanManager() {};
             ~GlobalPlanManager() {};
 
-            GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+            GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
             GlobalPlanManager& operator=(GlobalPlanManager other) 
             {
                 cfg_ = other.cfg_;
@@ -50,7 +50,7 @@ namespace quad_gap
 
 
         private:
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
             RobotGeoProc robot_geo_proc_;
             boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser;
             std::vector<geometry_msgs::PoseStamped> global_plan;

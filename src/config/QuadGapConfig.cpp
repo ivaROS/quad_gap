@@ -1,8 +1,8 @@
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 
 namespace quad_gap 
 {
-    void PotentialGapConfig::loadRosParamFromNodeHandle(const std::string & name)
+    void QuadGapConfig::loadRosParamFromNodeHandle(const std::string & name)
     {
         ros::NodeHandle nh("~/" + name);
 
@@ -100,7 +100,7 @@ namespace quad_gap
 
     }
 
-    void PotentialGapConfig::reconfigure(qgConfig& cfg)
+    void QuadGapConfig::reconfigure(qgConfig& cfg)
     {
         // This locks the lock within this function
         boost::mutex::scoped_lock lock(config_mutex);

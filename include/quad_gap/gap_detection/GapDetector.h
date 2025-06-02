@@ -10,7 +10,7 @@
 
 // QUADGAP
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <quad_gap/robot_geo_parser.h>
 
 namespace quad_gap 
@@ -22,7 +22,7 @@ namespace quad_gap
 
             ~GapDetector();
 
-            GapDetector(const PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+            GapDetector(const QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
 
             GapDetector& operator=(GapDetector other) 
             {
@@ -43,7 +43,7 @@ namespace quad_gap
             RobotGeoProc robot_geo_proc_;
 
         private:
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
     };
 
 

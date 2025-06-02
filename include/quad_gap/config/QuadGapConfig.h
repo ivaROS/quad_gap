@@ -6,8 +6,10 @@
 #include <Eigen/Core>
 #include <boost/thread/mutex.hpp>
 
-namespace quad_gap {
-    class PotentialGapConfig {
+namespace quad_gap 
+{
+    class QuadGapConfig 
+    {
         public:
             std::string map_frame_id;
             std::string odom_frame_id;
@@ -109,7 +111,7 @@ namespace quad_gap {
                 bool line;
             } man;
 
-        PotentialGapConfig() 
+        QuadGapConfig() 
         {
             map_frame_id = "map";
             odom_frame_id = "TBD";

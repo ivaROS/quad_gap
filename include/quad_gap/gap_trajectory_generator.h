@@ -10,7 +10,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <geometry_msgs/PoseStamped.h>
 #include <Eigen/Core>
@@ -35,7 +35,7 @@ namespace quad_gap {
             TrajectoryGenerator(){};
             ~TrajectoryGenerator(){};
 
-            TrajectoryGenerator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
+            TrajectoryGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -54,7 +54,7 @@ namespace quad_gap {
             virtual geometry_msgs::PoseArray generateTrajectory(quad_gap::Gap, geometry_msgs::PoseStamped) = 0;
             virtual std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<quad_gap::Gap>) = 0;
         protected:
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
             RobotGeoProc robot_geo_proc_;
     };
 
@@ -64,7 +64,7 @@ namespace quad_gap {
             GapTrajGenerator(){};
             ~GapTrajGenerator(){};
 
-            GapTrajGenerator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) :
+            GapTrajGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) :
                 TrajectoryGenerator(nh, cfg, robot_geo_proc)
             { };
 

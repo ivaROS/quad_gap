@@ -72,7 +72,8 @@ add_library(quad_gap
   src/quad_gap.cpp
   src/gap_detection/GapDetector.cpp
   
-  src/potentialgap_config.cpp
+  src/config/QuadGapConfig.cpp
+  
   src/visualization.cpp
   src/global_plan_management/GlobalPlanManager.cpp
   src/trajectory_evaluation/trajectory_scoring.cpp

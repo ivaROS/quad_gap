@@ -1,11 +1,11 @@
 #include <quad_gap/visualization.h>
 
 namespace quad_gap{
-    GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const PotentialGapConfig& cfg) {
+    GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg) {
         initialize(nh, cfg);
     }
 
-    void GapVisualizer::initialize(ros::NodeHandle& nh, const PotentialGapConfig& cfg) {
+    void GapVisualizer::initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg) {
         cfg_ = &cfg;
         gaparc_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_arcs", 1000);
         gapside_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_sides", 100);
@@ -337,7 +337,7 @@ namespace quad_gap{
         gapside_publisher.publish(vis_arr);
     }
 
-    TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg)
+    TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg)
     {
         cfg_ = &cfg;
         goal_selector_traj_vis = nh.advertise<geometry_msgs::PoseArray>("goal_select_traj", 1000);
@@ -478,7 +478,7 @@ namespace quad_gap{
         all_traj_viz.publish(vis_traj_arr);
     }
 
-    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg)
+    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg)
     {
         cfg_ = &cfg;
         goal_pub = nh.advertise<visualization_msgs::Marker>("goals", 1000);

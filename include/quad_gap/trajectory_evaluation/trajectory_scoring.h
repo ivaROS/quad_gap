@@ -3,7 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/potentialgap_config.h>
+#include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
 #include <numeric>
@@ -29,8 +29,8 @@ namespace quad_gap{
         TrajectoryEvaluator(){};
         ~TrajectoryEvaluator(){};
 
-        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
-        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoStorage& robot_geo_storage);
+        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoStorage& robot_geo_storage);
         TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
         {
             cfg_ = other.cfg_;
@@ -55,7 +55,7 @@ namespace quad_gap{
         std::vector<double> scoreTrajectory(geometry_msgs::PoseArray traj);
         
         private:
-            const PotentialGapConfig* cfg_;
+            const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> msg;
             std::vector<quad_gap::Gap> gaps;
             geometry_msgs::PoseStamped local_goal;

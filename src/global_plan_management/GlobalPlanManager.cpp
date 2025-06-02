@@ -3,7 +3,7 @@
 namespace quad_gap 
 {
     GlobalPlanManager::GlobalPlanManager(ros::NodeHandle& nh,
-    const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
+    const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
         cfg_ = &cfg;
         robot_geo_proc_ = robot_geo_proc;
     }
