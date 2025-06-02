@@ -35,7 +35,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <tf2_utils/transform_manager.h>
+// #include <tf2_utils/transform_manager.h>
 
 #include <omp.h>
 
@@ -45,13 +45,13 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
 
-#include <turtlebot_trajectory_testing/turtlebot_trajectory_tester.h>
-#include <pips_trajectory_testing/pips_trajectory_tester.h>
-#include <pips_trajectory_msgs/trajectory_points.h>
-#include <pips_trajectory_testing/pips_cc_wrapper.h>
-#include <pips_trajectory_testing/depth_image_cc_wrapper.h>
-#include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
-#include <pips_egocircle/egocircle_cc_wrapper.h>
+// #include <turtlebot_trajectory_testing/turtlebot_trajectory_tester.h>
+// #include <pips_trajectory_testing/pips_trajectory_tester.h>
+// #include <pips_trajectory_msgs/trajectory_points.h>
+// #include <pips_trajectory_testing/pips_cc_wrapper.h>
+// #include <pips_trajectory_testing/depth_image_cc_wrapper.h>
+// #include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
+// #include <pips_egocircle/egocircle_cc_wrapper.h>
 
 #include <quad_gap/CollisionCheckerConfig.h>
 
@@ -62,38 +62,38 @@
 
 namespace quad_gap
 {
-    struct CollisionResults
-    {
-        int collision_idx_ = -1;
-        pips_trajectory_msgs::trajectory_points local_traj_;
+    // struct CollisionResults
+    // {
+    //     int collision_idx_ = -1;
+    //     pips_trajectory_msgs::trajectory_points local_traj_;
         
-        CollisionResults()
-        {
-            collision_idx_ = -1;
-        }
+    //     CollisionResults()
+    //     {
+    //         collision_idx_ = -1;
+    //     }
 
-        CollisionResults(int collision_idx, pips_trajectory_msgs::trajectory_points local_traj)
-        {
-            collision_idx_ = collision_idx;
-            local_traj_ = local_traj;
-        }
-    };
+    //     CollisionResults(int collision_idx, pips_trajectory_msgs::trajectory_points local_traj)
+    //     {
+    //         collision_idx_ = collision_idx;
+    //         local_traj_ = local_traj;
+    //     }
+    // };
 
     class Planner
     {
     public:
-        typedef TurtlebotGenAndTest::trajectory_ptr trajectory_ptr;
-        typedef TurtlebotGenAndTest::traj_func_type traj_func_type;
-        typedef TurtlebotGenAndTest::traj_func_ptr traj_func_ptr;
-        typedef TurtlebotGenAndTest::trajectory_points trajectory_points;
-        typedef TurtlebotGenAndTest::TrajBridge TrajBridge;
-        typedef std::shared_ptr<TurtlebotGenAndTest> GenAndTest_ptr;
+        // typedef TurtlebotGenAndTest::trajectory_ptr trajectory_ptr;
+        // typedef TurtlebotGenAndTest::traj_func_type traj_func_type;
+        // typedef TurtlebotGenAndTest::traj_func_ptr traj_func_ptr;
+        // typedef TurtlebotGenAndTest::trajectory_points trajectory_points;
+        // typedef TurtlebotGenAndTest::TrajBridge TrajBridge;
+        // typedef std::shared_ptr<TurtlebotGenAndTest> GenAndTest_ptr;
 
-        std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> cc_wrapper_;
-        GenAndTest_ptr traj_tester_;
+        // std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> cc_wrapper_;
+        // GenAndTest_ptr traj_tester_;
 
-        bool collision_checker_enable_ = false;
-        int cc_type_ = -1;
+        // bool collision_checker_enable_ = false;
+        // int cc_type_ = -1;
 
         using Mutex = boost::mutex;
         using Lock = Mutex::scoped_lock;
@@ -325,7 +325,7 @@ namespace quad_gap
 
         geometry_msgs::PoseArray getOrientDecayedPath(geometry_msgs::PoseArray);
 
-        CollisionResults checkCollision(const geometry_msgs::PoseArray path);
+        // CollisionResults checkCollision(const geometry_msgs::PoseArray path);
 
         /**
          * Setter and Getter of Current Trajectory, this is performed in the compareToOldTraj function
@@ -367,20 +367,20 @@ namespace quad_gap
          */
         bool recordAndCheckVel(geometry_msgs::Twist cmd_vel);
         
-        void setCCWrapper(const std::shared_ptr<pips_trajectory_testing::PipsCCWrapper>& cc_wrapper)
-        {
-            cc_wrapper_ = cc_wrapper;
-        }
+        // void setCCWrapper(const std::shared_ptr<pips_trajectory_testing::PipsCCWrapper>& cc_wrapper)
+        // {
+        //     cc_wrapper_ = cc_wrapper;
+        // }
 
-        std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> getCCWrapper()
-        {
-            return cc_wrapper_;
-        }
+        // std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> getCCWrapper()
+        // {
+        //     return cc_wrapper_;
+        // }
 
-        bool ccEnabled()
-        {
-            return collision_checker_enable_;
-        }
+        // bool ccEnabled()
+        // {
+        //     return collision_checker_enable_;
+        // }
     };
 }
 

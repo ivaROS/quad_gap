@@ -13,14 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   # benchmarking_tools
-  pips_trajectory_msgs
+  # pips_trajectory_msgs
   dynamic_reconfigure
   message_generation
-  pips
-  pips_trajectory_testing
-  turtlebot_trajectory_testing
-  pips_egocylindrical
-  pips_egocircle
+  mbf_costmap_core
+  # pips
+  # pips_trajectory_testing
+  # turtlebot_trajectory_testing
+  # pips_egocylindrical
+  # pips_egocircle
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
@@ -61,7 +62,7 @@ catkin_package(
     quad_gap 
     yaml-cpp
   CATKIN_DEPENDS 
-    base_local_planner dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs pips_trajectory_msgs message_runtime pips_egocircle
+    base_local_planner dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs message_runtime #  pips_trajectory_msgs pips_egocircle
 )
 
 add_library(quad_gap
