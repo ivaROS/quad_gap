@@ -21,7 +21,7 @@
 #include <quad_gap/helper.h>
 #include <quad_gap/gap.h>
 #include <quad_gap/trajectory_follower.h>
-#include <quad_gap/gap_utils.h>
+#include <quad_gap/GapDetector.h>
 
 #include <quad_gap/potentialgap_config.h>
 #include <quad_gap/visualization.h>
@@ -151,7 +151,7 @@ namespace quad_gap
         std::vector<quad_gap::Gap> safe_gaps_central;
         std::vector<quad_gap::Gap> safe_gaps;
 
-        quad_gap::GapUtils *finder;
+        quad_gap::GapDetector *finder;
         quad_gap::GapVisualizer *gapvisualizer;
         quad_gap::GoalSelector *goalselector;
         quad_gap::TrajectoryVisualizer *trajvisualizer;

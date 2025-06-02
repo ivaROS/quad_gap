@@ -8,23 +8,24 @@
 #include <quad_gap/potentialgap_config.h>
 #include <quad_gap/robot_geo_parser.h>
 
-namespace quad_gap {
-    class GapUtils 
+namespace quad_gap 
+{
+    class GapDetector 
     {
         public: 
-        GapUtils();
+        GapDetector();
 
-        ~GapUtils();
+        ~GapDetector();
 
-        GapUtils(const PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+        GapDetector(const PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
 
-        GapUtils& operator=(GapUtils other) 
+        GapDetector& operator=(GapDetector other) 
         {
             cfg_ = other.cfg_;
             robot_geo_proc_ = other.robot_geo_proc_;
         };
 
-        GapUtils(const GapUtils &t) 
+        GapDetector(const GapDetector &t) 
         {
             cfg_ = t.cfg_;
             robot_geo_proc_ = t.robot_geo_proc_;
@@ -32,8 +33,7 @@ namespace quad_gap {
 
         void hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<quad_gap::Gap>&);
 
-        void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>,
-        std::vector<quad_gap::Gap>&);
+        void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<quad_gap::Gap>&);
 
         void setMergeThreshold(float);
         void setIdxThreshold(int);

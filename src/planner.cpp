@@ -188,7 +188,7 @@ namespace quad_gap
 
         tfSub_ = nh.subscribe("/tf", 10, &Planner::tfCB, this);
 
-        finder = new quad_gap::GapUtils(cfg, robot_geo_proc_);
+        finder = new quad_gap::GapDetector(cfg, robot_geo_proc_);
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
         goalselector = new quad_gap::GoalSelector(nh, cfg, robot_geo_proc_);
         trajvisualizer = new quad_gap::TrajectoryVisualizer(nh, cfg);

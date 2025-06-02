@@ -1,16 +1,16 @@
-#include <quad_gap/gap_utils.h>
+#include <quad_gap/GapDetector.h>
 
 namespace quad_gap {
-    GapUtils::GapUtils() {}
+    GapDetector::GapDetector() {}
 
-    GapUtils::~GapUtils() {}
+    GapDetector::~GapDetector() {}
 
-    GapUtils::GapUtils(const PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
+    GapDetector::GapDetector(const PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
         cfg_ = & cfg;
         robot_geo_proc_ = robot_geo_proc;
     }
 
-    void GapUtils::hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
+    void GapDetector::hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
         std::vector<quad_gap::Gap> & observed_gaps)
     {
         observed_gaps.clear();
@@ -120,7 +120,7 @@ namespace quad_gap {
         }
     }
 
-    void GapUtils::mergeGapsOneGo(
+    void GapDetector::mergeGapsOneGo(
         boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
         std::vector<quad_gap::Gap>& observed_gaps)
     {
