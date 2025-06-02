@@ -20,7 +20,6 @@
 #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/helper.h>
 #include <quad_gap/gap.h>
-#include <quad_gap/trajectory_follower.h>
 #include <quad_gap/gap_detection/GapDetector.h>
 
 #include <quad_gap/config/QuadGapConfig.h>

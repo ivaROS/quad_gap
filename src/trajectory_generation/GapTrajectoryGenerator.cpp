@@ -1,7 +1,9 @@
 #include <quad_gap/trajectory_generation/GapTrajectoryGenerator.h>
 
-namespace quad_gap{
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(quad_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) {
+namespace quad_gap
+{
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(quad_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) 
+    {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
