@@ -20,8 +20,10 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
 
-namespace quad_gap {
-    class TrajectoryController {
+namespace quad_gap 
+{
+    class TrajectoryController 
+    {
         public:
 
             TrajectoryController(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);

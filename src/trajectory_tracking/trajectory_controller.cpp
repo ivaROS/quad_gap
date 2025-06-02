@@ -1,4 +1,4 @@
-#include <quad_gap/trajectory_controller.h>
+#include <quad_gap/trajectory_tracking/trajectory_controller.h>
 
 namespace quad_gap
 {

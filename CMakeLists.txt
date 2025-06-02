@@ -78,7 +78,7 @@ add_library(quad_gap
   src/trajectory_evaluation/trajectory_scoring.cpp
   src/trajectory_generation/GapTrajectoryGenerator.cpp
   src/trajectory_generation/GapManipulator.cpp
-  src/trajectory_controller.cpp
+  src/trajectory_tracking/trajectory_controller.cpp
   ) 
 
 add_dependencies(quad_gap ${PROJECT_NAME}_gencfg)
