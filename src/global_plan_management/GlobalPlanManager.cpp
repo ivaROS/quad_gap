@@ -1,13 +1,14 @@
-#include <quad_gap/goal_selector.h>
+#include <quad_gap/global_plan_management/GlobalPlanManager.h>
 
-namespace quad_gap {
-    GoalSelector::GoalSelector(ros::NodeHandle& nh,
+namespace quad_gap 
+{
+    GlobalPlanManager::GlobalPlanManager(ros::NodeHandle& nh,
     const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc) {
         cfg_ = &cfg;
         robot_geo_proc_ = robot_geo_proc;
     }
 
-    bool GoalSelector::setGoal(
+    bool GlobalPlanManager::setGoal(
         const std::vector<geometry_msgs::PoseStamped> &plan) {
         // Incoming plan is in map frame
         boost::mutex::scoped_lock lock(goal_select_mutex);
@@ -18,12 +19,12 @@ namespace quad_gap {
         return true;
     }
 
-    void GoalSelector::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) {
+    void GlobalPlanManager::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) {
         boost::mutex::scoped_lock lock(lscan_mutex);
         sharedPtr_laser = msg;
     }
 
-    void GoalSelector::updateLocalGoal(geometry_msgs::TransformStamped map2rbt) {
+    void GlobalPlanManager::updateLocalGoal(geometry_msgs::TransformStamped map2rbt) {
         if (global_plan.size() < 2) {
             // No Global Goal
             return;
@@ -39,9 +40,9 @@ namespace quad_gap {
         if (local_gplan.size() < 1) return;
 
         auto result_rev = std::find_if(local_gplan.rbegin(), local_gplan.rend(), 
-            std::bind1st(std::mem_fun(&GoalSelector::VisibleOrPossiblyObstructed), this));
+            std::bind1st(std::mem_fun(&GlobalPlanManager::VisibleOrPossiblyObstructed), this));
         auto result_fwd = std::find_if(local_gplan.begin(), local_gplan.end(), 
-            std::bind1st(std::mem_fun(&GoalSelector::NoTVisibleOrPossiblyObstructed), this));
+            std::bind1st(std::mem_fun(&GlobalPlanManager::NoTVisibleOrPossiblyObstructed), this));
 
         if (cfg_->planning.far_feasible) {
             if (result_rev == local_gplan.rend()) result_rev = std::prev(result_rev); 
@@ -52,7 +53,7 @@ namespace quad_gap {
         }
     }
 
-    bool GoalSelector::NoTVisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
+    bool GlobalPlanManager::NoTVisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
         // If all poses are within the egocircle, this will return the end of the plan.
         int laserScanIdx = PoseIndexInSensorMsg(pose);
         // float epsilon2 = float(cfg_->gap_manip.epsilon2);
@@ -65,7 +66,7 @@ namespace quad_gap {
         return check;
     }
 
-    bool GoalSelector::VisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
+    bool GlobalPlanManager::VisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
         int laserScanIdx = PoseIndexInSensorMsg(pose);
         float epsilon2 = float(cfg_->gap_manip.epsilon2);
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
@@ -79,17 +80,17 @@ namespace quad_gap {
         return check;
     }
 
-    int GoalSelector::PoseIndexInSensorMsg(geometry_msgs::PoseStamped pose) {
+    int GlobalPlanManager::PoseIndexInSensorMsg(geometry_msgs::PoseStamped pose) {
         auto orientation = getPoseOrientation(pose);
         auto index = float(orientation + M_PI) / (sharedPtr_laser.get()->angle_increment);
         return int(std::floor(index));
     }
 
-    double GoalSelector::getPoseOrientation(geometry_msgs::PoseStamped pose) {
+    double GlobalPlanManager::getPoseOrientation(geometry_msgs::PoseStamped pose) {
         return  std::atan2(pose.pose.position.y + 1e-3, pose.pose.position.x + 1e-3);
     }
 
-    std::vector<geometry_msgs::PoseStamped> GoalSelector::getRelevantGlobalPlan(geometry_msgs::TransformStamped map2rbt) {
+    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getRelevantGlobalPlan(geometry_msgs::TransformStamped map2rbt) {
         // Global Plan is now in robot frame
         // Do magic with egocircle
         boost::mutex::scoped_lock gplock(gplan_mutex);
@@ -117,7 +118,7 @@ namespace quad_gap {
         // TODO: may need to improve
         auto start_pose = std::min_element(distance.begin(), distance.end());
         auto end_pose = std::find_if(start_pose, distance.end(),
-            std::bind1st(std::mem_fun(&GoalSelector::isNotWithin), this));
+            std::bind1st(std::mem_fun(&GlobalPlanManager::isNotWithin), this));
 
         if (start_pose == distance.end()) {
             ROS_FATAL_STREAM("No Global Plan pose within Robot scan");
@@ -137,22 +138,22 @@ namespace quad_gap {
         return local_gplan;
     }
 
-    double GoalSelector::dist2rbt(geometry_msgs::PoseStamped pose) {
+    double GlobalPlanManager::dist2rbt(geometry_msgs::PoseStamped pose) {
         return sqrt(pow(pose.pose.position.x, 2) + pow(pose.pose.position.y, 2));
     }
 
-    bool GoalSelector::isNotWithin(const double dist) {
+    bool GlobalPlanManager::isNotWithin(const double dist) {
         return dist > threshold;
     }
 
-    geometry_msgs::PoseStamped GoalSelector::getCurrentLocalGoal(geometry_msgs::TransformStamped rbt2odom) {
+    geometry_msgs::PoseStamped GlobalPlanManager::getCurrentLocalGoal(geometry_msgs::TransformStamped rbt2odom) {
         geometry_msgs::PoseStamped result;
         tf2::doTransform(local_goal, result, rbt2odom);
         // This should return something in odom frame
         return result;
     }
 
-    std::vector<geometry_msgs::PoseStamped> GoalSelector::getRawGlobalPlan() {
+    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getRawGlobalPlan() {
         return global_plan;
     }
 

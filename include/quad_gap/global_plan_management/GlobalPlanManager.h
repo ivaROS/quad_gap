@@ -21,18 +21,19 @@
 
 namespace quad_gap
 {
-    class GoalSelector{
+    class GlobalPlanManager
+    {
         public: 
-            GoalSelector() {};
-            ~GoalSelector() {};
+            GlobalPlanManager() {};
+            ~GlobalPlanManager() {};
 
-            GoalSelector(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
-            GoalSelector& operator=(GoalSelector other) 
+            GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+            GlobalPlanManager& operator=(GlobalPlanManager other) 
             {
                 cfg_ = other.cfg_;
                 robot_geo_proc_ = other.robot_geo_proc_;
             };
-            GoalSelector(const GoalSelector &t) 
+            GlobalPlanManager(const GlobalPlanManager &t) 
             {
                 cfg_ = t.cfg_;
                 robot_geo_proc_ = t.robot_geo_proc_;

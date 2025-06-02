@@ -25,7 +25,7 @@
 
 #include <quad_gap/potentialgap_config.h>
 #include <quad_gap/visualization.h>
-#include <quad_gap/goal_selector.h>
+#include <quad_gap/global_plan_management/GlobalPlanManager.h>
 #include <quad_gap/trajectory_scoring.h>
 #include <quad_gap/gap_manip.h>
 #include <quad_gap/trajectory_controller.h>
@@ -153,7 +153,7 @@ namespace quad_gap
 
         quad_gap::GapDetector *finder;
         quad_gap::GapVisualizer *gapvisualizer;
-        quad_gap::GoalSelector *goalselector;
+        quad_gap::GlobalPlanManager *goalselector;
         quad_gap::TrajectoryVisualizer *trajvisualizer;
         quad_gap::GoalVisualizer *goalvisualizer;
         quad_gap::TrajectoryArbiter *trajArbiter;
