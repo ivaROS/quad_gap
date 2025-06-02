@@ -21,7 +21,7 @@
 #include <quad_gap/helper.h>
 #include <quad_gap/gap.h>
 #include <quad_gap/trajectory_follower.h>
-#include <quad_gap/GapDetector.h>
+#include <quad_gap/gap_detection/GapDetector.h>
 
 #include <quad_gap/potentialgap_config.h>
 #include <quad_gap/visualization.h>

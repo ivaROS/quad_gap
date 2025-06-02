@@ -1,4 +1,4 @@
-#include <quad_gap/GapDetector.h>
+#include <quad_gap/gap_detection/GapDetector.h>
 
 namespace quad_gap {
     GapDetector::GapDetector() {}
