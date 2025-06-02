@@ -18,7 +18,7 @@
 #include <std_msgs/Header.h>
 #include "nav_msgs/Odometry.h"
 #include "quad_gap/TrajPlan.h"
-#include <quad_gap/helper.h>
+#include <quad_gap/trajectory_generation/helper.h>
 #include <quad_gap/gap.h>
 #include <quad_gap/trajectory_follower.h>
 #include <quad_gap/gap_detection/GapDetector.h>
@@ -27,7 +27,7 @@
 #include <quad_gap/visualization.h>
 #include <quad_gap/global_plan_management/GlobalPlanManager.h>
 #include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
-#include <quad_gap/gap_manip.h>
+#include <quad_gap/trajectory_generation/gap_manip.h>
 #include <quad_gap/trajectory_controller.h>
 
 #include <tf2_ros/transform_listener.h>

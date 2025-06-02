@@ -1,4 +1,4 @@
-#include <quad_gap/gap_trajectory_generator.h>
+#include <quad_gap/trajectory_generation/gap_trajectory_generator.h>
 
 namespace quad_gap{
     geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(quad_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) {

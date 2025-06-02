@@ -12,8 +12,10 @@
 #include <boost/shared_ptr.hpp>
 #include <quad_gap/robot_geo_parser.h>
 
-namespace quad_gap {
-    class GapManipulator {
+namespace quad_gap 
+{
+    class GapManipulator 
+    {
         public: 
             GapManipulator(){};
             ~GapManipulator(){};
@@ -40,18 +42,19 @@ namespace quad_gap {
             void reduceGap(quad_gap::Gap&, geometry_msgs::PoseStamped);
             void convertAxialGap(quad_gap::Gap&);
             void radialExtendGap(quad_gap::Gap&);
-        private:
-            boost::shared_ptr<sensor_msgs::LaserScan const> msg;
-            const QuadGapConfig* cfg_;
-            int num_of_scan;
-            boost::mutex egolock;
+        
+            private:
+                boost::shared_ptr<sensor_msgs::LaserScan const> msg;
+                const QuadGapConfig* cfg_;
+                int num_of_scan;
+                boost::mutex egolock;
 
-            Eigen::Vector2f car2pol(Eigen::Vector2f);
-            Eigen::Vector2f pol2car(Eigen::Vector2f);
-            Eigen::Vector2f pTheta(float, float, Eigen::Vector2f, Eigen::Vector2f);
-            bool checkGoalVisibility(geometry_msgs::PoseStamped);
+                Eigen::Vector2f car2pol(Eigen::Vector2f);
+                Eigen::Vector2f pol2car(Eigen::Vector2f);
+                Eigen::Vector2f pTheta(float, float, Eigen::Vector2f, Eigen::Vector2f);
+                bool checkGoalVisibility(geometry_msgs::PoseStamped);
 
-            RobotGeoProc robot_geo_proc_;
+                RobotGeoProc robot_geo_proc_;
 
 
     };

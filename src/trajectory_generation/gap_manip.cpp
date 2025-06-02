@@ -1,4 +1,4 @@
-#include <quad_gap/gap_manip.h>
+#include <quad_gap/trajectory_generation/gap_manip.h>
 
 namespace quad_gap {
     void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {

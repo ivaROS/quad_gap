@@ -73,12 +73,12 @@ add_library(quad_gap
   src/gap_detection/GapDetector.cpp
   
   src/config/QuadGapConfig.cpp
-  
+
   src/visualization.cpp
   src/global_plan_management/GlobalPlanManager.cpp
   src/trajectory_evaluation/trajectory_scoring.cpp
-  src/gap_trajectory_generator.cpp
-  src/gap_manip.cpp
+  src/trajectory_generation/gap_trajectory_generator.cpp
+  src/trajectory_generation/gap_manip.cpp
   src/trajectory_controller.cpp
   ) 
 

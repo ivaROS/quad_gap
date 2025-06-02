@@ -14,7 +14,7 @@
 #include <tf/tf.h>
 #include <quad_gap/gap.h>
 #include "quad_gap/TrajPlan.h"
-#include <quad_gap/gap_trajectory_generator.h>
+#include <quad_gap/trajectory_generation/gap_trajectory_generator.h>
 #include <visualization_msgs/Marker.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
