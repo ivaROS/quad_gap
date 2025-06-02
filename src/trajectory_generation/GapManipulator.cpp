@@ -1,13 +1,15 @@
-#include <quad_gap/trajectory_generation/gap_manip.h>
+#include <quad_gap/trajectory_generation/GapManipulator.h>
 
 namespace quad_gap {
-    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
+    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) 
+    {
         boost::mutex::scoped_lock lock(egolock);
         msg = msg_;
         num_of_scan = (int)(msg.get()->ranges.size());
     }
 
-    void GapManipulator::setGapWaypoint(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal){
+    void GapManipulator::setGapWaypoint(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal)
+    {
         // TODO: assume there is no idx that will pass 0
         auto half_num_scan = gap.half_scan;
         float x1, x2, y1, y2;

@@ -28,9 +28,11 @@
 #include <quad_gap/bezier.h>
 #include <quad_gap/robot_geo_parser.h>
 
-namespace quad_gap {
+namespace quad_gap 
+{
 
-    class TrajectoryGenerator {
+    class TrajectoryGenerator 
+    {
         public:
             TrajectoryGenerator(){};
             ~TrajectoryGenerator(){};
@@ -58,7 +60,8 @@ namespace quad_gap {
             RobotGeoProc robot_geo_proc_;
     };
 
-    class GapTrajGenerator : public TrajectoryGenerator {
+    class GapTrajGenerator : public TrajectoryGenerator 
+    {
         using TrajectoryGenerator::TrajectoryGenerator;
         public:
             GapTrajGenerator(){};

@@ -27,7 +27,7 @@
 #include <quad_gap/visualization.h>
 #include <quad_gap/global_plan_management/GlobalPlanManager.h>
 #include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
-#include <quad_gap/trajectory_generation/gap_manip.h>
+#include <quad_gap/trajectory_generation/GapManipulator.h>
 #include <quad_gap/trajectory_controller.h>
 
 #include <tf2_ros/transform_listener.h>
