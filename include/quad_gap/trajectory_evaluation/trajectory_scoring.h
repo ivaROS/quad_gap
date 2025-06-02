@@ -24,19 +24,19 @@
 #include <quad_gap/robot_geo_parser.h>
 
 namespace quad_gap{
-    class TrajectoryArbiter{
+    class TrajectoryEvaluator{
         public:
-        TrajectoryArbiter(){};
-        ~TrajectoryArbiter(){};
+        TrajectoryEvaluator(){};
+        ~TrajectoryEvaluator(){};
 
-        TrajectoryArbiter(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
-        // TrajectoryArbiter(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoStorage& robot_geo_storage);
-        TrajectoryArbiter& operator=(TrajectoryArbiter other) 
+        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoStorage& robot_geo_storage);
+        TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
         {
             cfg_ = other.cfg_;
             robot_geo_proc_ = other.robot_geo_proc_;
         }
-        TrajectoryArbiter(const TrajectoryArbiter &t) 
+        TrajectoryEvaluator(const TrajectoryEvaluator &t) 
         {
             cfg_ = t.cfg_;
             robot_geo_proc_ = t.robot_geo_proc_;

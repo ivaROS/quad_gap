@@ -192,7 +192,7 @@ namespace quad_gap
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
         goalselector = new quad_gap::GlobalPlanManager(nh, cfg, robot_geo_proc_);
         trajvisualizer = new quad_gap::TrajectoryVisualizer(nh, cfg);
-        trajArbiter = new quad_gap::TrajectoryArbiter(nh, cfg, robot_geo_proc_);
+        trajArbiter = new quad_gap::TrajectoryEvaluator(nh, cfg, robot_geo_proc_);
         gapTrajSyn = new quad_gap::GapTrajGenerator(nh, cfg, robot_geo_proc_);
         goalvisualizer = new quad_gap::GoalVisualizer(nh, cfg);
         gapManip = new quad_gap::GapManipulator(nh, cfg, robot_geo_proc_);

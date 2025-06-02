@@ -1,7 +1,7 @@
-#include <quad_gap/trajectory_scoring.h>
+#include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
 
 namespace quad_gap {
-    TrajectoryArbiter::TrajectoryArbiter(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc)
+    TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::PotentialGapConfig& cfg, RobotGeoProc& robot_geo_proc)
     {
         cfg_ = & cfg;
         r_inscr = cfg_->rbt.r_inscr;
@@ -12,23 +12,23 @@ namespace quad_gap {
         robot_geo_proc_ = robot_geo_proc;
     }
 
-    void TrajectoryArbiter::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
+    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
         boost::mutex::scoped_lock lock(egocircle_mutex);
         msg = msg_;
     }
-    void TrajectoryArbiter::updateGapContainer(const std::vector<quad_gap::Gap> observed_gaps) {
+    void TrajectoryEvaluator::updateGapContainer(const std::vector<quad_gap::Gap> observed_gaps) {
         boost::mutex::scoped_lock lock(gap_mutex);
         gaps.clear();
         gaps = observed_gaps;
     }
 
-    void TrajectoryArbiter::updateLocalGoal(geometry_msgs::PoseStamped lg, geometry_msgs::TransformStamped odom2rbt) {
+    void TrajectoryEvaluator::updateLocalGoal(geometry_msgs::PoseStamped lg, geometry_msgs::TransformStamped odom2rbt) {
         boost::mutex::scoped_lock lock(gplan_mutex);
         tf2::doTransform(lg, local_goal, odom2rbt);
     }
 
     // Does things in rbt frame
-    std::vector<double> TrajectoryArbiter::scoreGaps()
+    std::vector<double> TrajectoryEvaluator::scoreGaps()
     {
         boost::mutex::scoped_lock planlock(gplan_mutex);
         boost::mutex::scoped_lock egolock(egocircle_mutex);
@@ -60,14 +60,14 @@ namespace quad_gap {
     }
 
     // Again, in rbt frame
-    std::vector<double> TrajectoryArbiter::scoreTrajectories (
+    std::vector<double> TrajectoryEvaluator::scoreTrajectories (
         std::vector<geometry_msgs::PoseArray> sample_traj) {
         // This will be in robot frame
         
         return std::vector<double>(sample_traj.size());
     }
 
-    std::vector<double> TrajectoryArbiter::scoreTrajectory(geometry_msgs::PoseArray traj) {
+    std::vector<double> TrajectoryEvaluator::scoreTrajectory(geometry_msgs::PoseArray traj) {
         // Requires LOCAL FRAME
         // Should be no racing condition
         std::vector<double> cost_val(traj.poses.size());
@@ -88,7 +88,7 @@ namespace quad_gap {
         return cost_val;
     }
 
-    double TrajectoryArbiter::terminalGoalCost(geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::terminalGoalCost(geometry_msgs::Pose pose) {
         boost::mutex::scoped_lock planlock(gplan_mutex);
         // ROS_INFO_STREAM(pose);
         double dx = pose.position.x - local_goal.pose.position.x;
@@ -96,13 +96,13 @@ namespace quad_gap {
         return sqrt(pow(dx, 2) + pow(dy, 2));
     }
 
-    double TrajectoryArbiter::dist2Pose(float theta, float dist, geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::dist2Pose(float theta, float dist, geometry_msgs::Pose pose) {
         float x = dist * std::cos(theta);
         float y = dist * std::sin(theta);
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
-    double TrajectoryArbiter::scorePose(geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::scorePose(geometry_msgs::Pose pose) {
         boost::mutex::scoped_lock lock(egocircle_mutex);
         sensor_msgs::LaserScan stored_scan = *msg.get();
 
@@ -167,13 +167,13 @@ namespace quad_gap {
         return chapterScore(*iter, rmax_offset_val);
     }
 
-    double TrajectoryArbiter::chapterScore(double d, double rmax_offset_val) {
+    double TrajectoryEvaluator::chapterScore(double d, double rmax_offset_val) {
         if (d <= 0) return -std::numeric_limits<double>::infinity();
         if (d > rmax_offset_val) return 0;
         return cobs * std::exp(- w * (d));
     }
 
-    // int TrajectoryArbiter::searchIdx(geometry_msgs::Pose pose) {
+    // int TrajectoryEvaluator::searchIdx(geometry_msgs::Pose pose) {
     //     if (!msg) return 1;
     //     double r = sqrt(pow(pose.position.x, 2) + pow(pose.position.y, 2));
     //     double eval = double(cfg_->rbt.r_inscr) / r;
@@ -183,7 +183,7 @@ namespace quad_gap {
     //     return searchIdx;
     // }
 
-    quad_gap::Gap TrajectoryArbiter::returnAndScoreGaps() {
+    quad_gap::Gap TrajectoryEvaluator::returnAndScoreGaps() {
         boost::mutex::scoped_lock gaplock(gap_mutex);
         std::vector<double> cost = scoreGaps();
         auto decision_iter = std::min_element(cost.begin(), cost.end());
