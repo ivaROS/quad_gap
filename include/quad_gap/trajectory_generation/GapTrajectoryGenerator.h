@@ -6,7 +6,7 @@
 // #include <traj_generator.h>
 // #include <turtlebot_trajectory_generator/near_identity.h>
 #include <geometry_msgs/PoseArray.h>
-#include <quad_gap/trajectory_generation/helper.h>
+#include <quad_gap/trajectory_generation/TrajectorySynthesisMethods.h>
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/utils/Gap.h>

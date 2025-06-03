@@ -12,7 +12,6 @@
 #include <navfn/navfn_ros.h>
 #include <boost/shared_ptr.hpp>
 #include <quad_gap/utils/Gap.h>
-#include <quad_gap/trajectory_generation/helper.h>
 #include <geometry_msgs/PoseArray.h>
 
 #include <tf2_ros/transform_listener.h>
