@@ -2,7 +2,7 @@
 
 #include <ros/ros.h>
 #include <math.h>
-#include <quad_gap/gap.h>
+#include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
@@ -21,7 +21,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <quad_gap/robot_geo_parser.h>
+#include <quad_gap/utils/robot_geo_parser.h>
 
 namespace quad_gap{
     class TrajectoryEvaluator{

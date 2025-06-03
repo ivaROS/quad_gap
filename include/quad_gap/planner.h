@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <quad_gap/gap.h>
+#include <quad_gap/utils/Gap.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -19,7 +19,7 @@
 #include "nav_msgs/Odometry.h"
 #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/helper.h>
-#include <quad_gap/gap.h>
+#include <quad_gap/utils/Gap.h>
 #include <quad_gap/gap_detection/GapDetector.h>
 
 #include <quad_gap/config/QuadGapConfig.h>
@@ -54,7 +54,7 @@
 
 #include <quad_gap/CollisionCheckerConfig.h>
 
-#include <quad_gap/robot_geo_parser.h>
+#include <quad_gap/utils/robot_geo_parser.h>
 
 #ifndef PLANNER_H
 #define PLANNER_H

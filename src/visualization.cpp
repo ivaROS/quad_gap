@@ -1,11 +1,14 @@
 #include <quad_gap/visualization.h>
 
-namespace quad_gap{
-    GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg) {
+namespace quad_gap
+{
+    GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
+    {
         initialize(nh, cfg);
     }
 
-    void GapVisualizer::initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg) {
+    void GapVisualizer::initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
+    {
         cfg_ = &cfg;
         gaparc_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_arcs", 1000);
         gapside_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_sides", 100);

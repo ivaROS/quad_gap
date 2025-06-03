@@ -12,7 +12,7 @@
 #include "nav_msgs/Odometry.h"
 #include <sensor_msgs/LaserScan.h>
 #include <tf/tf.h>
-#include <quad_gap/gap.h>
+#include <quad_gap/utils/Gap.h>
 #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/GapTrajectoryGenerator.h>
 #include <visualization_msgs/Marker.h>

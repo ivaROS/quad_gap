@@ -1,4 +1,4 @@
-#include <quad_gap/robot_geo_parser.h>
+#include <quad_gap/utils/robot_geo_parser.h>
 
 namespace quad_gap{
     RobotGeoStorage::RobotGeoStorage(std::string config_file)

@@ -9,7 +9,7 @@
 #include <quad_gap/trajectory_generation/helper.h>
 #include <ros/ros.h>
 #include <math.h>
-#include <quad_gap/gap.h>
+#include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <geometry_msgs/PoseStamped.h>
@@ -25,8 +25,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <boost/shared_ptr.hpp>
 #include <nav_msgs/Odometry.h>
-#include <quad_gap/bezier.h>
-#include <quad_gap/robot_geo_parser.h>
+#include <quad_gap/trajectory_generation/Bezier.h>
+#include <quad_gap/utils/robot_geo_parser.h>
 
 namespace quad_gap 
 {
