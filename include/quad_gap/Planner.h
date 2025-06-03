@@ -27,7 +27,7 @@
 #include <quad_gap/visualization/GoalVisualizer.h>
 #include <quad_gap/visualization/GapVisualizer.h>
 #include <quad_gap/global_plan_management/GlobalPlanManager.h>
-#include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
+#include <quad_gap/trajectory_evaluation/TrajectoryEvaluator.h>
 #include <quad_gap/trajectory_generation/GapManipulator.h>
 #include <quad_gap/trajectory_tracking/trajectory_controller.h>
 

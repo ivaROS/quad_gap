@@ -18,9 +18,6 @@
 // using namespace boost::numeric::odeint;
 namespace pl = std::placeholders;
 
-#define JANKY_PID false
-#define NEAR_IDENTITY true
-
 PLUGINLIB_EXPORT_CLASS(quad_gap::QuadGapPlanner, nav_core::BaseLocalPlanner)
 
 namespace quad_gap 

@@ -1,4 +1,4 @@
-#include <quad_gap/trajectory_evaluation/trajectory_scoring.h>
+#include <quad_gap/trajectory_evaluation/TrajectoryEvaluator.h>
 
 namespace quad_gap {
     TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc)
