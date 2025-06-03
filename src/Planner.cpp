@@ -327,28 +327,15 @@ namespace quad_gap
         return boost::make_shared<sensor_msgs::LaserScan const>(transformed_laser);
     }
 
-    // void Planner::inflatedlaserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
-    // {
-    //     // sharedPtr_inflatedlaser = msg;
-    //     sharedPtr_inflatedlaser = transformLaserToRbt(msg);
-    //     // TODO: didn't transform to robot frame, may have problem if using inflated egocircle.
-    // }
-
     void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
         ROS_INFO_STREAM_NAMED("Planner", "[laserScanCB()]");
 
-        sharedPtr_laser = msg;
-        sharedPtr_laser = transformLaserToRbt(msg);
-        transformed_laser_pub.publish(sharedPtr_laser);
+        scan_ = msg;
+        scan_ = transformLaserToRbt(msg);
+        transformed_laser_pub.publish(scan_);
 
-        boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = sharedPtr_laser;
-
-        // if (cfg.planning.planning_inflated && sharedPtr_inflatedlaser) {
-        //     // msg = sharedPtr_inflatedlaser;
-        //     // TODO: not sure if the transformed inflated egocircle is right
-        //     tmp_msg = sharedPtr_inflatedlaser;
-        // }
+        boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = scan_;
 
         // ROS_INFO_STREAM(msg.get()->ranges.size());
 
@@ -364,13 +351,6 @@ namespace quad_gap
         {
             ROS_FATAL_STREAM("mergeGapsOneGo");
         }
-
-        // boost::shared_ptr<sensor_msgs::LaserScan const> tmp;
-        // if (sharedPtr_inflatedlaser) {
-        //     tmp = sharedPtr_inflatedlaser;
-        // } else {
-        //     tmp = msg;
-        // }
 
         // If no global plan, the local goal finding won't execute.
         goalselector->updateEgoCircle(tmp_msg);
@@ -922,12 +902,7 @@ namespace quad_gap
         ctrl_target_pose.pose.pose = orig_ref.poses.at(ctrl_idx);
         ctrl_target_pose.twist.twist = orig_ref.twist.at(ctrl_idx);
 
-        sensor_msgs::LaserScan stored_scan_msgs;
-        // if (cfg.planning.projection_inflated) {
-        //     stored_scan_msgs = *sharedPtr_inflatedlaser.get();
-        // } else {
-        stored_scan_msgs = *sharedPtr_laser.get();
-        // }
+        sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
 
         // geometry_msgs::PoseStamped rbt_in_cam_lc = rbt_in_cam;
         auto cmd_vel = trajController->controlLaw(curr_pose, ctrl_target_pose, stored_scan_msgs, curr_pose_local);

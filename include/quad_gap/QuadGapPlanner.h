@@ -127,9 +127,8 @@ namespace quad_gap
             std::string planner_name;
             ros::NodeHandle nh, pnh;
 
-            ros::Subscriber laser_sub, inflated_laser_sub;
+            ros::Subscriber laser_sub;
             ros::Subscriber pose_sub;
-            ros::Subscriber feasi_laser_sub;
 
             bool initialized = false;
 
