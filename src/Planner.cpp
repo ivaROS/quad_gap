@@ -1,4 +1,4 @@
-#include <quad_gap/planner.h>
+#include <quad_gap/Planner.h>
 #include "tf/transform_datatypes.h"
 #include <tf/LinearMath/Matrix3x3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>

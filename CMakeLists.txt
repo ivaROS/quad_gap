@@ -67,8 +67,8 @@ catkin_package(
 
 add_library(quad_gap
   src/utils/robot_geo_parser.cpp
-  src/planner.cpp
-  src/quad_gap.cpp
+  src/Planner.cpp
+  src/QuadGapPlanner.cpp
   src/gap_detection/GapDetector.cpp
   
   src/config/QuadGapConfig.cpp

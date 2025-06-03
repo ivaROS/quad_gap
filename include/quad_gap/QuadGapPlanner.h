@@ -22,13 +22,13 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <boost/numeric/odeint.hpp>
 
-#include <quad_gap/planner.h>
+#include <quad_gap/Planner.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <quad_gap/qgConfig.h>
 
-namespace quad_gap {
-
+namespace quad_gap 
+{
     class QuadGapPlanner : public nav_core::BaseLocalPlanner , public mbf_costmap_core::CostmapController
     {
         public: 

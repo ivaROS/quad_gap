@@ -58,9 +58,6 @@
 
 #include <quad_gap/utils/robot_geo_parser.h>
 
-#ifndef PLANNER_H
-#define PLANNER_H
-
 namespace quad_gap
 {
     // struct CollisionResults
@@ -384,5 +381,3 @@ namespace quad_gap
         // }
     };
 }
-
-#endif
