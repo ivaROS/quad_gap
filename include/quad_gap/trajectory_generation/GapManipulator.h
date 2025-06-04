@@ -10,7 +10,8 @@
 #include <Eigen/Geometry>
 #include <sensor_msgs/LaserScan.h>
 #include <boost/shared_ptr.hpp>
-#include <quad_gap/utils/robot_geo_parser.h>
+
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap 
 {
@@ -20,7 +21,7 @@ namespace quad_gap
             GapManipulator(){};
             ~GapManipulator(){};
 
-            GapManipulator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
+            GapManipulator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -54,7 +55,7 @@ namespace quad_gap
                 Eigen::Vector2f pTheta(float, float, Eigen::Vector2f, Eigen::Vector2f);
                 bool checkGoalVisibility(geometry_msgs::PoseStamped);
 
-                RobotGeoProc robot_geo_proc_;
+                RobotGeometryProcessor robot_geo_proc_;
 
 
     };

@@ -66,9 +66,6 @@ catkin_package(
 )
 
 add_library(quad_gap
-  src/utils/robot_geo_parser.cpp
-  src/Planner.cpp
-  src/QuadGapPlanner.cpp
   src/gap_detection/GapDetector.cpp
   
   src/config/QuadGapConfig.cpp
@@ -76,11 +73,18 @@ add_library(quad_gap
   src/visualization/GapVisualizer.cpp
   src/visualization/GoalVisualizer.cpp
   src/visualization/TrajectoryVisualizer.cpp
+
   src/global_plan_management/GlobalPlanManager.cpp
+  
   src/trajectory_evaluation/TrajectoryEvaluator.cpp
+  
   src/trajectory_generation/GapTrajectoryGenerator.cpp
   src/trajectory_generation/GapManipulator.cpp
+  
   src/trajectory_tracking/TrajectoryController.cpp
+
+  src/Planner.cpp
+  src/QuadGapPlanner.cpp  
   ) 
 
 add_dependencies(quad_gap ${PROJECT_NAME}_gencfg)

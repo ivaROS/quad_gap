@@ -64,9 +64,9 @@ namespace quad_gap
         unh.setParam("use_geo_storage", use_geo_storage_);
         
         if(use_geo_storage_)
-            robot_geo_storage_ = RobotGeoStorage(file_name);
+            robot_geo_storage_ = RobotGeometryStorage(file_name);
         else
-            robot_geo_proc_ = RobotGeoProc(robot, decay_factor);
+            robot_geo_proc_ = RobotGeometryProcessor(robot, decay_factor);
 
         robot_path_orient_linear_decay_ = true;
         virtual_path_decay_enable_ = true;
@@ -84,8 +84,8 @@ namespace quad_gap
         unh.setParam("use_bezier", use_bezier_);
         
         // Debug robot geometry storage and process
-        // robot_geo_storage_ = RobotGeoStorage(file_name);
-        // robot_geo_proc_ = RobotGeoProc(robot);
+        // robot_geo_storage_ = RobotGeometryStorage(file_name);
+        // robot_geo_proc_ = RobotGeometryProcessor(robot);
 
         // Eigen::Vector2d orientation_vec(1, 0);
         // Eigen::Vector2d pt_vec(1,0);

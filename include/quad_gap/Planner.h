@@ -55,7 +55,8 @@
 
 #include <quad_gap/CollisionCheckerConfig.h>
 
-#include <quad_gap/utils/robot_geo_parser.h>
+#include <quad_gap/utils/RobotGeometryStorage.h>
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap
 {
@@ -369,8 +370,8 @@ namespace quad_gap
             bool goal_set = false;
             // Box modification
             bool use_geo_storage_;
-            RobotGeoStorage robot_geo_storage_;
-            RobotGeoProc robot_geo_proc_;
+            RobotGeometryStorage robot_geo_storage_;
+            RobotGeometryProcessor robot_geo_proc_;
             bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
             double speed_factor_;
 

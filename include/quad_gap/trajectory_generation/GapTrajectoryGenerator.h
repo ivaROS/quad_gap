@@ -26,7 +26,8 @@
 #include <boost/shared_ptr.hpp>
 #include <nav_msgs/Odometry.h>
 #include <quad_gap/trajectory_generation/Bezier.h>
-#include <quad_gap/utils/robot_geo_parser.h>
+
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap 
 {
@@ -37,7 +38,7 @@ namespace quad_gap
             TrajectoryGenerator(){};
             ~TrajectoryGenerator(){};
 
-            TrajectoryGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) 
+            TrajectoryGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -57,7 +58,7 @@ namespace quad_gap
             virtual std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<quad_gap::Gap>) = 0;
         protected:
             const QuadGapConfig* cfg_;
-            RobotGeoProc robot_geo_proc_;
+            RobotGeometryProcessor robot_geo_proc_;
     };
 
     class GapTrajGenerator : public TrajectoryGenerator 
@@ -67,7 +68,7 @@ namespace quad_gap
             GapTrajGenerator(){};
             ~GapTrajGenerator(){};
 
-            GapTrajGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc) :
+            GapTrajGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) :
                 TrajectoryGenerator(nh, cfg, robot_geo_proc)
             { };
 

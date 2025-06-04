@@ -17,7 +17,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/LaserScan.h>
 #include <boost/shared_ptr.hpp>
-#include <quad_gap/utils/robot_geo_parser.h>
+
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap
 {
@@ -27,7 +28,7 @@ namespace quad_gap
             GlobalPlanManager() {};
             ~GlobalPlanManager() {};
 
-            GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+            GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
             GlobalPlanManager& operator=(GlobalPlanManager other) 
             {
                 cfg_ = other.cfg_;
@@ -51,7 +52,7 @@ namespace quad_gap
 
         private:
             const QuadGapConfig* cfg_;
-            RobotGeoProc robot_geo_proc_;
+            RobotGeometryProcessor robot_geo_proc_;
             boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser;
             std::vector<geometry_msgs::PoseStamped> global_plan;
             std::vector<geometry_msgs::PoseStamped> mod_plan;

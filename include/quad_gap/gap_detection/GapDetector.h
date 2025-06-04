@@ -11,7 +11,8 @@
 // QUADGAP
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
-#include <quad_gap/utils/robot_geo_parser.h>
+
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap 
 {
@@ -22,7 +23,7 @@ namespace quad_gap
 
             ~GapDetector();
 
-            GapDetector(const QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
+            GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
 
             GapDetector& operator=(GapDetector other) 
             {
@@ -40,7 +41,7 @@ namespace quad_gap
 
             void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<quad_gap::Gap>&);
 
-            RobotGeoProc robot_geo_proc_;
+            RobotGeometryProcessor robot_geo_proc_;
 
         private:
             const QuadGapConfig* cfg_;

@@ -21,7 +21,9 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <quad_gap/utils/robot_geo_parser.h>
+
+#include <quad_gap/utils/RobotGeometryStorage.h>
+#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap{
     class TrajectoryEvaluator{
@@ -29,8 +31,8 @@ namespace quad_gap{
         TrajectoryEvaluator(){};
         ~TrajectoryEvaluator(){};
 
-        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoProc& robot_geo_proc);
-        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeoStorage& robot_geo_storage);
+        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
+        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
         TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
         {
             cfg_ = other.cfg_;
@@ -70,6 +72,6 @@ namespace quad_gap{
             int search_idx = -1;
 
             double r_inscr, rmax, cobs, w, terminal_weight;
-            RobotGeoProc robot_geo_proc_;
+            RobotGeometryProcessor robot_geo_proc_;
     };
 }
