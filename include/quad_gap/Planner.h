@@ -374,7 +374,6 @@ namespace quad_gap
 
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
 
-            bool goal_set = false;
             // Box modification
             bool use_geo_storage_;
             RobotGeometryStorage robot_geo_storage_;

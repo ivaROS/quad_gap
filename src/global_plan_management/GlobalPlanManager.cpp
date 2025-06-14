@@ -2,160 +2,137 @@
 
 namespace quad_gap 
 {
-    GlobalPlanManager::GlobalPlanManager(ros::NodeHandle& nh,
-    const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) {
-        cfg_ = &cfg;
-        robot_geo_proc_ = robot_geo_proc;
-    }
-
-    bool GlobalPlanManager::setGoal(
-        const std::vector<geometry_msgs::PoseStamped> &plan) {
+    void GlobalPlanManager::updateGlobalPathMapFrame(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame) 
+    {
         // Incoming plan is in map frame
-        boost::mutex::scoped_lock lock(goal_select_mutex);
-        boost::mutex::scoped_lock gplock(gplan_mutex);
-        global_plan.clear();
-        global_plan = plan;
-        // transform plan to robot frame such as base_link
-        return true;
+        boost::mutex::scoped_lock lock(goalSelectMutex_);
+        boost::mutex::scoped_lock gplock(globalPlanMutex_);
+
+        globalPlanMapFrame_ = globalPlanMapFrame;
+        return;
     }
 
-    void GlobalPlanManager::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) {
-        boost::mutex::scoped_lock lock(lscan_mutex);
-        sharedPtr_laser = msg;
+    void GlobalPlanManager::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan) 
+    {
+        boost::mutex::scoped_lock lock(scanMutex_);
+        scan_ = scan;
     }
 
-    void GlobalPlanManager::updateLocalGoal(geometry_msgs::TransformStamped map2rbt) {
-        if (global_plan.size() < 2) {
-            // No Global Goal
+    void GlobalPlanManager::generateGlobalPathLocalWaypoint(const geometry_msgs::TransformStamped & map2rbt) 
+    {
+        boost::mutex::scoped_lock glock(goalSelectMutex_);
+        boost::mutex::scoped_lock llock(scanMutex_);
+        
+        if (globalPlanMapFrame_.size() < 2) // No Global Path
             return;
-        }
 
-        if ((*sharedPtr_laser.get()).ranges.size() < 500) {
-            ROS_FATAL_STREAM("Scan range incorrect goalselector");
-        }
+        // ROS_INFO_STREAM("running generateGlobalPathLocalWaypoint");
+        // getting snippet of global trajectory in robot frame (snippet is whatever part of global trajectory is within laser scan)
+        std::vector<geometry_msgs::PoseStamped> globalPlanSnippetRobotFrame = getVisibleGlobalPlanSnippetRobotFrame(map2rbt);
+        
+        if (globalPlanSnippetRobotFrame.size() < 1) // relevant global plan snippet
+            return;
 
-        boost::mutex::scoped_lock glock(goal_select_mutex);
-        boost::mutex::scoped_lock llock(lscan_mutex);
-        auto local_gplan = getRelevantGlobalPlan(map2rbt);
-        if (local_gplan.size() < 1) return;
-
-        auto result_rev = std::find_if(local_gplan.rbegin(), local_gplan.rend(), 
-            std::bind1st(std::mem_fun(&GlobalPlanManager::VisibleOrPossiblyObstructed), this));
-        auto result_fwd = std::find_if(local_gplan.begin(), local_gplan.end(), 
-            std::bind1st(std::mem_fun(&GlobalPlanManager::NoTVisibleOrPossiblyObstructed), this));
-
-        if (cfg_->planning.far_feasible) {
-            if (result_rev == local_gplan.rend()) result_rev = std::prev(result_rev); 
-            local_goal = *result_rev;
-        } else {
-            result_fwd = result_fwd == local_gplan.end() ? result_fwd - 1 : result_fwd;
-            local_goal = local_gplan.at(result_fwd - local_gplan.begin());
-        }
+        globalPathLocalWaypointRobotFrame_ = globalPlanSnippetRobotFrame.back();
     }
 
-    bool GlobalPlanManager::NoTVisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
-        // If all poses are within the egocircle, this will return the end of the plan.
-        int laserScanIdx = PoseIndexInSensorMsg(pose);
-        // float epsilon2 = float(cfg_->gap_manip.epsilon2);
-        sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
-        Eigen::Vector2d pose_vec(pose.pose.position.x, pose.pose.position.y);
-        Eigen::Vector2d orient_vec(1, 0);
-        double buffer_length = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, pose_vec, pose_vec.norm());
-        bool check = dist2rbt(pose) >= (double (stored_scan_msgs.ranges.at(laserScanIdx)) - buffer_length);
-        // bool check = dist2rbt(pose) >= (double (stored_scan_msgs.ranges.at(laserScanIdx)));
-        return check;
-    }
+    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getVisibleGlobalPlanSnippetRobotFrame(const geometry_msgs::TransformStamped & map2rbt) 
+    {
+        // ROS_INFO_STREAM("getVisibleGlobalPlanSnippetRobotFrame");
+        boost::mutex::scoped_lock gplock(globalPlanMutex_);
+        std::vector<geometry_msgs::PoseStamped> globalPlan = globalPlanMapFrame_;
+        // where is globalPlanMapFrame_ coming from?
+        // globalPlan = globalPlanMapFrame_;
 
-    bool GlobalPlanManager::VisibleOrPossiblyObstructed(geometry_msgs::PoseStamped pose) {
-        int laserScanIdx = PoseIndexInSensorMsg(pose);
-        float epsilon2 = float(cfg_->gap_manip.epsilon2);
-        sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
-        Eigen::Vector2d pose_vec(pose.pose.position.x, pose.pose.position.y);
-        Eigen::Vector2d orient_vec(1, 0);
-        double buffer_length = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, pose_vec, pose_vec.norm());
-        bool check = dist2rbt(pose) < (double (stored_scan_msgs.ranges.at(laserScanIdx)) - buffer_length) || 
-            dist2rbt(pose) > (double (stored_scan_msgs.ranges.at(laserScanIdx)) + epsilon2 * 2);
-        // bool check = dist2rbt(pose) < (double (stored_scan_msgs.ranges.at(laserScanIdx))) || 
-        //     dist2rbt(pose) > (double (stored_scan_msgs.ranges.at(laserScanIdx)) + epsilon2 * 2);
-        return check;
-    }
+        // if (globalPlan.size() == 0) {
+        //     ROS_FATAL_STREAM("Global Plan Length = 0");
+        // }
 
-    int GlobalPlanManager::PoseIndexInSensorMsg(geometry_msgs::PoseStamped pose) {
-        auto orientation = getPoseOrientation(pose);
-        auto index = float(orientation + M_PI) / (sharedPtr_laser.get()->angle_increment);
-        return int(std::floor(index));
-    }
+        // transforming plan into robot frame
+        for (int i = 0; i < globalPlan.size(); i++)
+            tf2::doTransform(globalPlan.at(i), globalPlan.at(i), map2rbt);
 
-    double GlobalPlanManager::getPoseOrientation(geometry_msgs::PoseStamped pose) {
-        return  std::atan2(pose.pose.position.y + 1e-3, pose.pose.position.x + 1e-3);
-    }
+        // ROS_INFO_STREAM("mod plan size: " << globalPlan.size());
+        std::vector<float> planPoseNorms(globalPlan.size());
+        std::vector<float> scanDistsAtPlanIndices(globalPlan.size());
+        std::vector<float> scanMinusPlanPoseNormDiffs(globalPlan.size());
 
-    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getRelevantGlobalPlan(geometry_msgs::TransformStamped map2rbt) {
-        // Global Plan is now in robot frame
-        // Do magic with egocircle
-        boost::mutex::scoped_lock gplock(gplan_mutex);
-        mod_plan.clear();
-        mod_plan = global_plan;
-
-
-        if (mod_plan.size() == 0) {
-            ROS_FATAL_STREAM("Global Plan Length = 0");
+        for (int i = 0; i < planPoseNorms.size(); i++) 
+        {
+            planPoseNorms.at(i) = poseNorm(globalPlan.at(i)); // calculating distance to robot at each step of plan
+            scanDistsAtPlanIndices.at(i) = calculateScanRangesAtPlanIndices(globalPlan.at(i));
+            scanMinusPlanPoseNormDiffs.at(i) = (scanDistsAtPlanIndices.at(i) - (0.5 * cfg_->rbt.r_inscr)) - planPoseNorms.at(i);
         }
 
-        for (int i = 0; i < mod_plan.size(); i++) {
-            tf2::doTransform(mod_plan.at(i), mod_plan.at(i), map2rbt);
-        }
+        // Find closest pose to robot to start the global plan snippet
+        auto closestPlanPose = std::min_element(planPoseNorms.begin(), planPoseNorms.end());
+        int closestPlanPoseIdx = std::distance(planPoseNorms.begin(), closestPlanPose);
+        // ROS_INFO_STREAM("closestPlanPoseIdx: " << closestPlanPoseIdx);
 
-        std::vector<double> distance(mod_plan.size());
-        for (int i = 0; i < distance.size(); i++) {
-            distance.at(i) = dist2rbt(mod_plan.at(i));
-        }
+        // find_if returns iterator for which the predicate (second input) is true within range.
 
-        sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
-        threshold = (double) *std::max_element(stored_scan_msgs.ranges.begin(), stored_scan_msgs.ranges.end());
+        // firstNotVisibleGlobalPlanPose is the first point within the global plan that lies beyond the current scan.
+        auto firstNotVisibleGlobalPlanPose = std::find_if(scanMinusPlanPoseNormDiffs.begin() + closestPlanPoseIdx, 
+                                                          scanMinusPlanPoseNormDiffs.end(),
+                                                          std::bind1st(std::mem_fun(&GlobalPlanManager::isNegative), this));
 
-        // Find closest pose to robot
-        // TODO: may need to improve
-        auto start_pose = std::min_element(distance.begin(), distance.end());
-        auto end_pose = std::find_if(start_pose, distance.end(),
-            std::bind1st(std::mem_fun(&GlobalPlanManager::isNotWithin), this));
-
-        if (start_pose == distance.end()) {
-            ROS_FATAL_STREAM("No Global Plan pose within Robot scan");
-            return std::vector<geometry_msgs::PoseStamped>(0);
-        } else if (mod_plan.size() == 0) {
-            ROS_WARN_STREAM("No Global Plan Received or Size 0");
+        if (closestPlanPose == scanMinusPlanPoseNormDiffs.end()) 
+        {
+            ROS_ERROR_STREAM("No Global Plan pose within Robot scan");
             return std::vector<geometry_msgs::PoseStamped>(0);
         }
 
-        int start_idx = std::distance(distance.begin(), start_pose);
-        int end_idx = std::distance(distance.begin(), end_pose);
+        int firstNotVisibleGlobalPlanPoseIdx = std::distance(scanMinusPlanPoseNormDiffs.begin(), firstNotVisibleGlobalPlanPose);
 
-        auto start_gplan = mod_plan.begin() + start_idx;
-        auto end_gplan = mod_plan.begin() + end_idx;
-
-        std::vector<geometry_msgs::PoseStamped> local_gplan(start_gplan, end_gplan);
-        return local_gplan;
+        std::vector<geometry_msgs::PoseStamped> visibleGlobalPlanSnippetRobotFrame(globalPlan.begin() + closestPlanPoseIdx, 
+                                                                                   globalPlan.begin() + firstNotVisibleGlobalPlanPoseIdx);
+        return visibleGlobalPlanSnippetRobotFrame;
     }
 
-    double GlobalPlanManager::dist2rbt(geometry_msgs::PoseStamped pose) {
+    int GlobalPlanManager::poseIdxInScan(const geometry_msgs::PoseStamped & pose) 
+    {
+        float orientation = getPoseOrientation(pose);
+        int index = theta2idx(orientation);
+        return index;
+    }
+
+    float GlobalPlanManager::getPoseOrientation(const geometry_msgs::PoseStamped & pose) 
+    {
+        return std::atan2(pose.pose.position.y + 1e-3, pose.pose.position.x + 1e-3);
+    }
+
+    float GlobalPlanManager::poseNorm(const geometry_msgs::PoseStamped & pose) 
+    {
         return sqrt(pow(pose.pose.position.x, 2) + pow(pose.pose.position.y, 2));
     }
 
-    bool GlobalPlanManager::isNotWithin(const double dist) {
-        return dist > threshold;
+    float GlobalPlanManager::calculateScanRangesAtPlanIndices(const geometry_msgs::PoseStamped & pose) 
+    {
+        sensor_msgs::LaserScan scan = *scan_.get();
+
+        int poseIdx = poseIdxInScan(pose);
+
+        float scanRangeAtPoseIdx = scan.ranges.at(poseIdx);
+
+        return scanRangeAtPoseIdx;
     }
 
-    geometry_msgs::PoseStamped GlobalPlanManager::getCurrentLocalGoal(geometry_msgs::TransformStamped rbt2odom) {
-        geometry_msgs::PoseStamped result;
-        tf2::doTransform(local_goal, result, rbt2odom);
-        // This should return something in odom frame
-        return result;
+    bool GlobalPlanManager::isNegative(const float dist) 
+    {
+        return dist <= 0.0;
     }
 
-    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getRawGlobalPlan() {
-        return global_plan;
+    // This should return something in odom frame
+    geometry_msgs::PoseStamped GlobalPlanManager::getGlobalPathLocalWaypointOdomFrame(const geometry_msgs::TransformStamped & rbt2odom) 
+    {
+        geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame;
+        tf2::doTransform(globalPathLocalWaypointRobotFrame_, globalPathLocalWaypointOdomFrame, rbt2odom);
+        
+        return globalPathLocalWaypointOdomFrame;
     }
 
-
+    std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getGlobalPathOdomFrame() 
+    {
+        return globalPlanMapFrame_;
+    }
 }

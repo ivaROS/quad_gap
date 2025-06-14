@@ -182,7 +182,7 @@ namespace quad_gap
 
         gapDetector_ = new quad_gap::GapDetector(cfg, robot_geo_proc_);
         gapVisualizer_ = new quad_gap::GapVisualizer(nh, cfg);
-        globalPlanManager_ = new quad_gap::GlobalPlanManager(nh, cfg, robot_geo_proc_);
+        globalPlanManager_ = new quad_gap::GlobalPlanManager(cfg, robot_geo_proc_);
         trajVisualizer_ = new quad_gap::TrajectoryVisualizer(nh, cfg);
         trajEvaluator_ = new quad_gap::TrajectoryEvaluator(nh, cfg, robot_geo_proc_);
         gapTrajGenerator_ = new quad_gap::GapTrajGenerator(nh, cfg, robot_geo_proc_);
@@ -309,7 +309,7 @@ namespace quad_gap
             idx = idx < msg->ranges.size() ? idx : (msg->ranges.size() - 1);
             idx = idx >= 0 ? idx : 0;
 
-            if(transformed_range < transformed_laser.ranges[idx])
+            if (transformed_range < transformed_laser.ranges[idx])
                 transformed_laser.ranges[idx] = transformed_range;
         }
 
@@ -372,8 +372,22 @@ namespace quad_gap
 
         if (hasGlobalGoal_)
         {
+            // THEIRS
+            // geometry_msgs::PoseStamped local_goal;
+
+            // if (goal_set)
+            // {
+                // globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
+                // local_goal = globalPlanManager_->getCurrentLocalGoal(rbt2odom_);
+                // goalVisualizer_->localGoal(local_goal);
+            
+                // trajEvaluator_->updateLocalGoal(local_goal, odom2rbt_);
+            // }
+
+
+            // OURS
             // // update global path local waypoint according to new scan
-            // globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
+            globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
             // geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame = globalPlanManager_->getGlobalPathLocalWaypointOdomFrame(rbt2odom__);
             // goalVisualizer_->drawGlobalPathLocalWaypoint(globalPathLocalWaypointOdomFrame);
             // goalVisualizer_->drawGlobalGoal(globalGoalOdomFrame_);
@@ -387,17 +401,6 @@ namespace quad_gap
         // If no global plan, the local goal finding won't execute.
         globalPlanManager_->updateEgoCircle(scan_);
         trajEvaluator_->updateEgoCircle(scan_);
-
-        geometry_msgs::PoseStamped local_goal;
-
-        if (goal_set)
-        {
-            globalPlanManager_->updateLocalGoal(map2rbt_);
-            local_goal = globalPlanManager_->getCurrentLocalGoal(rbt2odom_);
-            goalVisualizer_->localGoal(local_goal);
-        
-            trajEvaluator_->updateLocalGoal(local_goal, odom2rbt_);
-        }
 
         gapManipulator_->updateEgoCircle(scan_);
         trajController_->updateEgoCircle(scan_);
@@ -598,7 +601,7 @@ namespace quad_gap
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
-        geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->rbtFrameLocalGoal();
+        geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
         try 
         {
             for (size_t i = 0; i < manip_set.size(); i++)
@@ -992,9 +995,6 @@ namespace quad_gap
 
     geometry_msgs::PoseArray Planner::getPlanTrajectory() 
     {
-        // updateTF();
-
-
         if (!initialized_ || !hasLaserScan_ || !hasGlobalGoal_)
         {
             ROS_WARN_STREAM_NAMED("Planner", "Not ready to plan, initialized: " << initialized_ << ", laser scan: " << hasLaserScan_ << ", global goal: " << hasGlobalGoal_);
