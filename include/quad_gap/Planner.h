@@ -282,20 +282,21 @@ namespace quad_gap
         private:
             boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
-            geometry_msgs::TransformStamped map2rbt;        // Transform
-            geometry_msgs::TransformStamped rbt2map;
-            geometry_msgs::TransformStamped odom2rbt;
-            geometry_msgs::TransformStamped rbt2odom;
-            geometry_msgs::TransformStamped map2odom;
-            geometry_msgs::TransformStamped cam2odom;
-            geometry_msgs::TransformStamped odom2cam;
-            geometry_msgs::TransformStamped rbt2cam;
-            geometry_msgs::TransformStamped cam2rbt;
+            // Transforms
+            geometry_msgs::TransformStamped map2rbt_;
+            geometry_msgs::TransformStamped rbt2map_;
+            geometry_msgs::TransformStamped odom2rbt_;
+            geometry_msgs::TransformStamped rbt2odom_;
+            geometry_msgs::TransformStamped map2odom_;
+            geometry_msgs::TransformStamped cam2odom_;
+            geometry_msgs::TransformStamped odom2cam_;
+            geometry_msgs::TransformStamped rbt2cam_;
+            geometry_msgs::TransformStamped cam2rbt_;
 
-            geometry_msgs::PoseStamped goal_rbt_frame;
-            geometry_msgs::PoseStamped curr_pose_odom;
-            geometry_msgs::PoseStamped rbt_in_rbt;
-            geometry_msgs::PoseStamped rbt_in_cam;
+            // Robot poses
+            geometry_msgs::PoseStamped rbtPoseRbtFrame_;
+            geometry_msgs::PoseStamped rbtPoseCamFrame_;
+            geometry_msgs::PoseStamped rbtPoseOdomFrame_;
             
             std::shared_ptr<tf2_ros::Buffer> tfBuffer;
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
@@ -304,10 +305,6 @@ namespace quad_gap
             ros::NodeHandle nh, pnh;
             ros::Publisher local_traj_pub;
             ros::Publisher trajectory_pub;
-            ros::Publisher gap_vis_pub;
-            ros::Publisher selected_gap_vis_pub;
-            ros::Publisher ni_traj_pub;
-            ros::Publisher ni_traj_pub_other;
 
             ros::Publisher transformed_laser_pub;
             ros::Publisher virtual_orient_traj_pub;
@@ -321,14 +318,13 @@ namespace quad_gap
             geometry_msgs::PoseStamped globalGoalRobotFrame_; /**< Global goal in robot frame */
             geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame_; /**< Global path local waypoint in odometry frame */
 
-
-            // double goal_orientation;
             geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
             geometry_msgs::PoseStamped final_goal_odom;
 
             // Gaps:
             std::vector<Gap> observed_gaps;
 
+            // Helper modules
             GapDetector *gapDetector_;
             GapVisualizer *gapVisualizer_;
             GlobalPlanManager *globalPlanManager_;
@@ -349,9 +345,6 @@ namespace quad_gap
 
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
             int ctrl_idx = 0;
-
-            geometry_msgs::PoseStamped rbtPoseOdomFrame_;
-            // nav_msgs::Odometry sharedPtr_odom;
 
             geometry_msgs::TwistStamped rbtVelRbtFrame_;
 

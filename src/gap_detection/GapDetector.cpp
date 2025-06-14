@@ -27,8 +27,8 @@ namespace quad_gap {
         }
     }
 
-    void GapDetector::hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
-        std::vector<quad_gap::Gap> & observed_gaps)
+    void GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
+                                    std::vector<quad_gap::Gap> & observed_gaps)
     {
         observed_gaps.clear();
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
@@ -137,7 +137,7 @@ namespace quad_gap {
         }
     }
 
-    void GapDetector::mergeGapsOneGo(
+    void GapDetector::gapSimplification(
         boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
         std::vector<quad_gap::Gap>& observed_gaps)
     {

@@ -49,9 +49,9 @@ namespace quad_gap
             */
             void preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan);
 
-            void hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
+            void gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
 
-            void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
+            void gapSimplification(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
 
             RobotGeometryProcessor robot_geo_proc_;
 
