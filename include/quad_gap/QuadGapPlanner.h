@@ -126,9 +126,6 @@ namespace quad_gap
             std::string planner_name;
             ros::NodeHandle nh, pnh;
 
-            ros::Subscriber laser_sub;
-            ros::Subscriber pose_sub;
-
             bool initialized = false;
 
             boost::shared_ptr<dynamic_reconfigure::Server<quad_gap::qgConfig> > dynamic_recfg_server;

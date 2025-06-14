@@ -187,6 +187,9 @@ namespace quad_gap
         _initialized = true;
 
         tfSub_ = nh.subscribe("/tf", 10, &Planner::tfCB, this);
+        laser_sub = nh.subscribe(cfg.scan_topic, 100, &Planner::laserScanCB, this);
+        
+        pose_sub = nh.subscribe("/odom",10, &Planner::poseCB, this);        
 
         finder = new quad_gap::GapDetector(cfg, robot_geo_proc_);
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);

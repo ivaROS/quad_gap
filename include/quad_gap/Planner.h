@@ -364,6 +364,8 @@ namespace quad_gap
             boost::circular_buffer<double> log_vel_comp;
 
             ros::Subscriber tfSub_; /**< Subscriber to TF tree */
+            ros::Subscriber laser_sub;
+            ros::Subscriber pose_sub;            
 
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
 

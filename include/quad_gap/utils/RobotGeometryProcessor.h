@@ -39,20 +39,21 @@ namespace quad_gap
                 
                 Eigen::Vector2d o_vec = orientation_vec;
                 Eigen::Vector2d p_vec = pt_direct;
-                if(o_vec.norm() != 1)
+
+                if (o_vec.norm() != 1)
                     o_vec = o_vec / o_vec.norm();
                 
-                if(p_vec.norm() != 1)
+                if (p_vec.norm() != 1)
                     p_vec = p_vec / p_vec.norm();
 
                 double er;
                 double vec_dot_product = o_vec.dot(p_vec);
 
-                if(vec_dot_product > (robot_.length / robot_.diagonal_length) && vec_dot_product <= 1)
+                if (vec_dot_product > (robot_.length / robot_.diagonal_length) && vec_dot_product <= 1)
                 {
                     er = robot_.length / 2 / vec_dot_product;
                 }
-                else if(vec_dot_product <= (robot_.length / robot_.diagonal_length) && vec_dot_product > -(robot_.length / robot_.diagonal_length))
+                else if (vec_dot_product <= (robot_.length / robot_.diagonal_length) && vec_dot_product > -(robot_.length / robot_.diagonal_length))
                 {
                     er = robot_.width / 2 / (sqrt(1 - vec_dot_product * vec_dot_product));
                 }
@@ -65,15 +66,15 @@ namespace quad_gap
 
             double getEquivalentPL(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& motion_vec)
             {
-                if(robot_.shape == RobotShape::circle)
+                if (robot_.shape == RobotShape::circle)
                     return 2 * robot_.radius;
 
                 Eigen::Vector2d o_vec = orientation_vec;
                 Eigen::Vector2d m_vec = motion_vec;
-                if(o_vec.norm() != 1)
+                if (o_vec.norm() != 1)
                     o_vec = o_vec / o_vec.norm();
                 
-                if(m_vec.norm() != 1)
+                if (m_vec.norm() != 1)
                     m_vec = m_vec / m_vec.norm();
 
                 double m_ang = atan2(m_vec[1], m_vec[0]);

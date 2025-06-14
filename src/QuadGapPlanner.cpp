@@ -31,8 +31,6 @@ namespace quad_gap
 
         ros::NodeHandle pnh("~/" + planner_name);
 
-        laser_sub = pnh.subscribe("/scan", 100, &Planner::laserScanCB, &planner);
-        pose_sub = pnh.subscribe("/odom",10, &Planner::poseCB, &planner);
         initialized = true;
 
         // // Setup dynamic reconfigure
