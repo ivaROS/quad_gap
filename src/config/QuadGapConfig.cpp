@@ -63,7 +63,7 @@ namespace quad_gap
             nh.param("global_plan_change_tolerance", waypoint.global_plan_change_tolerance, waypoint.global_plan_change_tolerance);
 
             // Goal Param
-            nh.param("goal_tolerance", goal.goal_tolerance, goal.goal_tolerance);
+            nh.param("lin_goal_tolerance", goal.lin_goal_tolerance, goal.lin_goal_tolerance);
             nh.param("waypoint_tolerance", goal.waypoint_tolerance, goal.waypoint_tolerance);
 
             // General Planning Mode Params
@@ -147,7 +147,7 @@ namespace quad_gap
         waypoint.global_plan_change_tolerance = cfg.global_plan_change_tolerance;
 
         // Goal Param
-        goal.goal_tolerance = cfg.goal_tolerance;
+        goal.lin_goal_tolerance = cfg.lin_goal_tolerance;
         goal.waypoint_tolerance = cfg.waypoint_tolerance;
 
         // General Planning Mode Params

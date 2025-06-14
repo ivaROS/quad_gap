@@ -2,7 +2,7 @@ QuadGapPlanner:
     min_resoln: 1
     gap_diff: 0.1
     global_plan_lookup_increment: 30
-    goal_tolerance: 0.5
+    lin_goal_tolerance: 0.5
     global_plan_change_tolerance: 0.1
     follow_the_gap_visparsing: True
     close_gap_visparsing: True

@@ -271,37 +271,38 @@ namespace quad_gap
     // float globalGoalOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
     // float rbtPoseOrientation = quaternionToYaw(rbtPoseInOdomFrame_.pose.orientation);
     // float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
-    // reachedGlobalGoal_ = globalGoalDist < cfg.goal.goal_tolerance &&
+    // reachedGlobalGoal_ = globalGoalDist < cfg.goal.lin_goal_tolerance &&
     //                      globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
     
     // if (reachedGlobalGoal_)
     //     ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
     // // else
     // //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-    // //                                      ", Goal tolerance: " << cfg.goal.goal_tolerance);
+    // //                                      ", Goal tolerance: " << cfg.goal.lin_goal_tolerance);
 
     // return reachedGlobalGoal_;
     // }
 
     bool Planner::isGoalReached()
     {
-        current_pose_ = rbtPoseOdomFrame_;
-        double dx = final_goal_odom.pose.position.x - current_pose_.position.x;
-        double dy = final_goal_odom.pose.position.y - current_pose_.position.y;
+        // Linear distance
+        double dx = globalGoalOdomFrame_.pose.position.x - rbtPoseOdomFrame_.position.x;
+        double dy = globalGoalOdomFrame_.pose.position.y - rbtPoseOdomFrame_.position.y;
         float globalGoalDist = sqrt(pow(dx, 2) + pow(dy, 2));
 
-        float globalGoalOrientation = quaternionToYaw(final_goal_odom.pose.orientation);
-        float rbtPoseOrientation = quaternionToYaw(final_goal_odom.pose.orientation);
+        // Angular distance
+        float globalGoalOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
+        float rbtPoseOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
         float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
 
-        reachedGlobalGoal_ = globalGoalDist < cfg.goal.goal_tolerance &&
+        reachedGlobalGoal_ = globalGoalDist < cfg.goal.lin_goal_tolerance &&
                              globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
         
         if (reachedGlobalGoal_)
             ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
         // else
         //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-        //                                      ", Goal tolerance: " << cfg.goal.goal_tolerance);
+        //                                      ", Goal tolerance: " << cfg.goal.lin_goal_tolerance);
 
         return reachedGlobalGoal_;
     }    
@@ -492,10 +493,7 @@ namespace quad_gap
         //     global_plan = globalPlanMapFrame;
         // }
         
-        // final_goal_odom = *std::prev(global_plan.end());
         geometry_msgs::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.end());
-
-        // tf2::doTransform(final_goal_odom, final_goal_odom, map2odom);
 
         // // Store New Global Plan to Goal Selector
         // goalselector->setPlan(global_plan);

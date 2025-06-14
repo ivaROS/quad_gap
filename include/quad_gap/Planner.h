@@ -321,7 +321,6 @@ namespace quad_gap
 
 
             // double goal_orientation;
-            geometry_msgs::Pose current_pose_;
             geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
             geometry_msgs::PoseStamped final_goal_odom;
 
