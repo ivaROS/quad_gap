@@ -388,10 +388,10 @@ namespace quad_gap
             // OURS
             // // update global path local waypoint according to new scan
             globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
-            // geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame = globalPlanManager_->getGlobalPathLocalWaypointOdomFrame(rbt2odom__);
-            // goalVisualizer_->drawGlobalPathLocalWaypoint(globalPathLocalWaypointOdomFrame);
-            // goalVisualizer_->drawGlobalGoal(globalGoalOdomFrame_);
-            // trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame, odom2rbt__);
+            geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame = globalPlanManager_->getGlobalPathLocalWaypointOdomFrame(rbt2odom_);
+            goalVisualizer_->drawGlobalPathLocalWaypoint(globalPathLocalWaypointOdomFrame);
+            goalVisualizer_->drawGlobalGoal(globalGoalOdomFrame_);
+            trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame, odom2rbt_);
         }  
 
     }
@@ -505,52 +505,28 @@ namespace quad_gap
         
         geometry_msgs::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.end());
 
-        // // Store New Global Plan to Goal Selector
-        // globalPlanManager_->setPlan(global_plan);
+        // Store New Global Plan to Goal Selector
+        globalPlanManager_->updateGlobalPathMapFrame(globalPlanMapFrame);
         
-        // trajVisualizer_->rawGlobalPlan(globalPlanManager_->getRawGlobalPlan());
+        trajVisualizer_->rawGlobalPlan(globalPlanManager_->getGlobalPathOdomFrame());
 
-        // // Find Local Goal
-        // globalPlanManager_->updateLocalGoal(map2rbt_);
-        // // return local goal (odom) frame
-        // auto new_local_waypoint = globalPlanManager_->getCurrentLocalGoal(rbt2odom_);
+        // Find Local Goal
+        globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
+        // return local goal (odom) frame
+        geometry_msgs::PoseStamped newglobalPathLocalWaypointOdomFrame = globalPlanManager_->getGlobalPathLocalWaypointOdomFrame(rbt2odom_);
 
-        // {
-        //     // Plan New
-        //     double waydx = local_waypoint_odom.pose.position.x - new_local_waypoint.pose.position.x;
-        //     double waydy = local_waypoint_odom.pose.position.y - new_local_waypoint.pose.position.y;
-        //     bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) > cfg.goal.waypoint_tolerance;
-        //     if (wayres) {
-        //         local_waypoint_odom = new_local_waypoint;
-        //     }
-        // }
+        // Plan New
+        float diffX = globalPathLocalWaypointOdomFrame_.pose.position.x - newglobalPathLocalWaypointOdomFrame.pose.position.x;
+        float diffY = globalPathLocalWaypointOdomFrame_.pose.position.y - newglobalPathLocalWaypointOdomFrame.pose.position.y;
+        
+        if (sqrt(pow(diffX, 2) + pow(diffY, 2)) > cfg.goal.waypoint_tolerance)
+            globalPathLocalWaypointOdomFrame_ = newglobalPathLocalWaypointOdomFrame;
 
-        // // Set new local goal to trajectory arbiter
-        // trajEvaluator_->updateLocalGoal(local_waypoint_odom, odom2rbt_);
+        // Set new local goal to trajectory arbiter
+        trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame_, odom2rbt_);
 
-        // // Visualization only
-        // try 
-        // { 
-        //     auto traj = globalPlanManager_->getRelevantGlobalPlan(map2rbt_);
-        //     geometry_msgs::PoseArray pub_traj;
-
-        //     if (traj.size() > 0) 
-        //     {
-        //         // Should be safe with this check
-        //         pub_traj.header = traj.at(0).header;
-        //     }
-            
-        //     for (auto trajpose : traj) 
-        //     {
-        //         pub_traj.poses.push_back(trajpose.pose);
-        //     }
-        //     local_traj_pub.publish(pub_traj);
-        // } catch (...) 
-        // {
-        //     ROS_FATAL_STREAM("getRelevantGlobalPlan");
-        // }
-
-        // goal_set = true;
+        std::vector<geometry_msgs::PoseStamped> visibleGlobalPlanSnippetRobotFrame = globalPlanManager_->getVisibleGlobalPlanSnippetRobotFrame(map2rbt_);
+        trajVisualizer_->drawRelevantGlobalPlanSnippet(visibleGlobalPlanSnippetRobotFrame);
 
         hasGlobalGoal_ = true;
         setReachedGlobalGoal(false);

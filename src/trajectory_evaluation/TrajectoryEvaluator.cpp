@@ -13,7 +13,7 @@ namespace quad_gap {
     }
 
     void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
-        boost::mutex::scoped_lock lock(egocircle_mutex);
+        boost::mutex::scoped_lock lock(scanMutex_);
         msg = msg_;
     }
     void TrajectoryEvaluator::updateGapContainer(const std::vector<quad_gap::Gap> observed_gaps) {
@@ -22,16 +22,18 @@ namespace quad_gap {
         gaps = observed_gaps;
     }
 
-    void TrajectoryEvaluator::updateLocalGoal(geometry_msgs::PoseStamped lg, geometry_msgs::TransformStamped odom2rbt) {
-        boost::mutex::scoped_lock lock(gplan_mutex);
-        tf2::doTransform(lg, local_goal, odom2rbt);
+    void TrajectoryEvaluator::transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
+                                                const geometry_msgs::TransformStamped & odom2rbt) 
+    {
+        boost::mutex::scoped_lock lock(globalPlanMutex_);
+        tf2::doTransform(globalPathLocalWaypointOdomFrame, globalPathLocalWaypointRobotFrame_, odom2rbt);
     }
 
     // Does things in rbt frame
     std::vector<double> TrajectoryEvaluator::scoreGaps()
     {
-        boost::mutex::scoped_lock planlock(gplan_mutex);
-        boost::mutex::scoped_lock egolock(egocircle_mutex);
+        boost::mutex::scoped_lock planlock(globalPlanMutex_);
+        boost::mutex::scoped_lock egolock(scanMutex_);
         if (gaps.size() < 1) {
             ROS_WARN_STREAM("Observed num of gap: 0");
             return std::vector<double>(0);
@@ -39,10 +41,10 @@ namespace quad_gap {
 
         // How fix this
         int num_of_scan = msg.get()->ranges.size();
-        double goal_orientation = std::atan2(local_goal.pose.position.y, local_goal.pose.position.x);
+        double goal_orientation = std::atan2(globalPathLocalWaypointRobotFrame_.pose.position.y, globalPathLocalWaypointRobotFrame_.pose.position.x);
         int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
         ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
-        ROS_DEBUG_STREAM(local_goal.pose.position);
+        ROS_DEBUG_STREAM(globalPathLocalWaypointRobotFrame_.pose.position);
         auto costFn = [](quad_gap::Gap g, int goal_idx) -> double
         {
             int leftdist = std::abs(g._left_idx - goal_idx);
@@ -89,10 +91,10 @@ namespace quad_gap {
     }
 
     double TrajectoryEvaluator::terminalGoalCost(geometry_msgs::Pose pose) {
-        boost::mutex::scoped_lock planlock(gplan_mutex);
+        boost::mutex::scoped_lock planlock(globalPlanMutex_);
         // ROS_INFO_STREAM(pose);
-        double dx = pose.position.x - local_goal.pose.position.x;
-        double dy = pose.position.y - local_goal.pose.position.y;
+        double dx = pose.position.x - globalPathLocalWaypointRobotFrame_.pose.position.x;
+        double dy = pose.position.y - globalPathLocalWaypointRobotFrame_.pose.position.y;
         return sqrt(pow(dx, 2) + pow(dy, 2));
     }
 
@@ -103,7 +105,7 @@ namespace quad_gap {
     }
 
     double TrajectoryEvaluator::scorePose(geometry_msgs::Pose pose) {
-        boost::mutex::scoped_lock lock(egocircle_mutex);
+        boost::mutex::scoped_lock lock(scanMutex_);
         sensor_msgs::LaserScan stored_scan = *msg.get();
 
         // double pose_ori = std::atan2(pose.position.y + 1e-3, pose.position.x + 1e-3);

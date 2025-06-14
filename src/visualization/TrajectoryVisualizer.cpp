@@ -8,6 +8,8 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::
         goal_selector_traj_vis = nh.advertise<geometry_msgs::PoseArray>("goal_select_traj", 1000);
         trajectory_score = nh.advertise<visualization_msgs::MarkerArray>("traj_score", 1000);
         all_traj_viz = nh.advertise<visualization_msgs::MarkerArray>("all_traj_vis", 1000);
+        globalPlanSnippetPublisher = nh.advertise<visualization_msgs::MarkerArray>("relevant_global_plan_snippet", 10);
+
     }
 
     void TrajectoryVisualizer::rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & plan) {
@@ -141,6 +143,59 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::
             }
         }
         all_traj_viz.publish(vis_traj_arr);
+    }
+
+
+    void TrajectoryVisualizer::drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::PoseStamped> & globalPlanSnippet) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(globalPlanSnippetPublisher);
+
+        if (globalPlanSnippet.empty())             // Should be safe with this check
+        {
+            ROS_WARN_STREAM("Goal Selector Returned Trajectory Size " << globalPlanSnippet.size() << " < 1");
+            return;
+        }    
+        
+        if (globalPlanSnippet.at(0).header.frame_id.empty())
+        {
+            ROS_WARN_STREAM("[drawRelevantGlobalPlanSnippet] Trajectory frame_id is empty");
+            return;
+        }
+
+        visualization_msgs::MarkerArray globalPlanSnippetMarkerArray;
+        visualization_msgs::Marker globalPlanSnippetMarker;
+
+        // The above makes this safe
+        globalPlanSnippetMarker.header.frame_id = globalPlanSnippet.at(0).header.frame_id;
+        globalPlanSnippetMarker.header.stamp = globalPlanSnippet.at(0).header.stamp;
+        globalPlanSnippetMarker.ns = "globalPlanSnippet";
+        globalPlanSnippetMarker.type = visualization_msgs::Marker::ARROW;
+        globalPlanSnippetMarker.action = visualization_msgs::Marker::ADD;
+        globalPlanSnippetMarker.scale.x = 0.1;
+        globalPlanSnippetMarker.scale.y = 0.04; // 0.01;
+        globalPlanSnippetMarker.scale.z = 0.0001;
+        globalPlanSnippetMarker.color.a = 1;
+        globalPlanSnippetMarker.color.r = 1.0;
+        globalPlanSnippetMarker.lifetime = ros::Duration(0);
+
+        for (const geometry_msgs::PoseStamped & poseStamped : globalPlanSnippet) 
+        {
+            globalPlanSnippetMarker.id = int (globalPlanSnippetMarkerArray.markers.size());
+            globalPlanSnippetMarker.pose = poseStamped.pose;
+            globalPlanSnippetMarkerArray.markers.push_back(globalPlanSnippetMarker);
+        }
+
+        globalPlanSnippetPublisher.publish(globalPlanSnippetMarkerArray);
+
+        // geometry_msgs::PoseArray globalPlanSnippetPoseArray;
+
+        // globalPlanSnippetPoseArray.header = globalPlanSnippet.at(0).header;
+
+        // for (const geometry_msgs::PoseStamped & pose : globalPlanSnippet) 
+        //     globalPlanSnippetPoseArray.poses.push_back(pose.pose);
+
+        // globalPlanSnippetPublisher.publish(globalPlanSnippetPoseArray);
     }
 
 }
