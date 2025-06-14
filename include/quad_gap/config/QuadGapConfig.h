@@ -89,7 +89,8 @@ namespace quad_gap
             struct Goal 
             {
                 double goal_tolerance = 0.2;
-                double waypoint_tolerance = 0.1;             
+                double waypoint_tolerance = 0.1;     
+                double yaw_goal_tolerance = 0.1;        
             } goal;
 
             struct Trajectory 

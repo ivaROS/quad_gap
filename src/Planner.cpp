@@ -187,9 +187,8 @@ namespace quad_gap
         _initialized = true;
 
         tfSub_ = nh.subscribe("/tf", 10, &Planner::tfCB, this);
-        laser_sub = nh.subscribe(cfg.scan_topic, 100, &Planner::laserScanCB, this);
-        
-        pose_sub = nh.subscribe("/odom",10, &Planner::poseCB, this);        
+        laserSub_ = nh.subscribe(cfg.scan_topic, 100, &Planner::laserScanCB, this);
+        poseSub_ = nh.subscribe(cfg.odom_topic, 10, &Planner::poseCB, this);        
 
         finder = new quad_gap::GapDetector(cfg, robot_geo_proc_);
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
@@ -263,27 +262,50 @@ namespace quad_gap
         return _initialized;
     }
 
+    // bool Planner::isGoalReached()
+    // {
+    //     current_pose_ = sharedPtr_pose;
+    //     double dx = final_goal_odom.pose.position.x - current_pose_.position.x;
+    //     double dy = final_goal_odom.pose.position.y - current_pose_.position.y;
+    //     bool result = sqrt(pow(dx, 2) + pow(dy, 2)) < cfg.goal.goal_tolerance;
+    //     if (result)
+    //     {
+    //         ROS_INFO_STREAM("[Reset] Goal Reached");
+    //         return true;
+    //     }
+
+    //     double waydx = local_waypoint_odom.pose.position.x - current_pose_.position.x;
+    //     double waydy = local_waypoint_odom.pose.position.y - current_pose_.position.y;
+    //     bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) < cfg.goal.waypoint_tolerance;
+    //     if (wayres) {
+    //         ROS_INFO_STREAM("[Reset] Waypoint reached, getting new one");
+    //         // global_plan_location += global_plan_lookup_increment;
+    //     }
+    //     return false;
+    // }
+
     bool Planner::isGoalReached()
     {
         current_pose_ = sharedPtr_pose;
         double dx = final_goal_odom.pose.position.x - current_pose_.position.x;
         double dy = final_goal_odom.pose.position.y - current_pose_.position.y;
-        bool result = sqrt(pow(dx, 2) + pow(dy, 2)) < cfg.goal.goal_tolerance;
-        if (result)
-        {
-            ROS_INFO_STREAM("[Reset] Goal Reached");
-            return true;
-        }
+        float globalGoalDist = sqrt(pow(dx, 2) + pow(dy, 2));
 
-        double waydx = local_waypoint_odom.pose.position.x - current_pose_.position.x;
-        double waydy = local_waypoint_odom.pose.position.y - current_pose_.position.y;
-        bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) < cfg.goal.waypoint_tolerance;
-        if (wayres) {
-            ROS_INFO_STREAM("[Reset] Waypoint reached, getting new one");
-            // global_plan_location += global_plan_lookup_increment;
-        }
-        return false;
-    }
+        float globalGoalOrientation = quaternionToYaw(final_goal_odom.pose.orientation);
+        float rbtPoseOrientation = quaternionToYaw(final_goal_odom.pose.orientation);
+        float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
+
+        reachedGlobalGoal_ = globalGoalDist < cfg.goal.goal_tolerance &&
+                             globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
+        
+        if (reachedGlobalGoal_)
+            ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
+        // else
+        //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
+        //                                      ", Goal tolerance: " << cfg_.goal.goal_tolerance);
+
+        return reachedGlobalGoal_;
+    }    
 
     boost::shared_ptr<sensor_msgs::LaserScan const> Planner::transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
@@ -302,7 +324,7 @@ namespace quad_gap
         std::vector<float> ranges(msg->ranges.size(), msg->range_max);
         transformed_laser.ranges = ranges;
 
-        for(size_t i = 0; i < msg->ranges.size(); i++)
+        for (size_t i = 0; i < msg->ranges.size(); i++)
         {
             double orig_range = msg->ranges[i];
             double orig_ang = i * msg->angle_increment + msg->angle_min;
@@ -405,9 +427,9 @@ namespace quad_gap
         }
     }
 
-    bool Planner::setGoal(const std::vector<geometry_msgs::PoseStamped> &plan)
+    bool Planner::setPlan(const std::vector<geometry_msgs::PoseStamped> &plan)
     {
-        ROS_INFO_STREAM_NAMED("Planner", "[setGoal()]");
+        ROS_INFO_STREAM_NAMED("Planner", "[setPlan()]");
 
         if (plan.size() == 0) 
             return true;
@@ -439,7 +461,7 @@ namespace quad_gap
         // tf2::doTransform(final_goal_odom, final_goal_odom, map2odom);
 
         // // Store New Global Plan to Goal Selector
-        // goalselector->setGoal(global_plan);
+        // goalselector->setPlan(global_plan);
         
         // trajvisualizer->rawGlobalPlan(goalselector->getRawGlobalPlan());
 

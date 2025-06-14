@@ -19,8 +19,8 @@
 #include "nav_msgs/Odometry.h"
 #include "quad_gap/TrajPlan.h"
 #include <quad_gap/utils/Gap.h>
+#include <quad_gap/utils/Utils.h>
 #include <quad_gap/gap_detection/GapDetector.h>
-
 #include <quad_gap/config/QuadGapConfig.h>
 #include <quad_gap/visualization/TrajectoryVisualizer.h>
 #include <quad_gap/visualization/GoalVisualizer.h>
@@ -134,7 +134,7 @@ namespace quad_gap
             * @param plan, vector of PoseStamped
             * @return boolean type on whether successfully registered goal
             */
-            bool setGoal(const std::vector<geometry_msgs::PoseStamped> &plan);
+            bool setPlan(const std::vector<geometry_msgs::PoseStamped> &plan);
 
             /**
             * update all tf transform at the beginning of every planning cycle
@@ -275,6 +275,12 @@ namespace quad_gap
 
             void configCB(quad_gap::CollisionCheckerConfig &config, uint32_t level);
 
+            /**
+            * \brief Function to check if global goal has been reached
+            * \param status whether or not global goal has been reached 
+            */
+            void setReachedGlobalGoal(const bool & status) { reachedGlobalGoal_ = status; }
+
         private:
             geometry_msgs::TransformStamped map2rbt;        // Transform
             geometry_msgs::TransformStamped rbt2map;
@@ -306,7 +312,14 @@ namespace quad_gap
             ros::Publisher transformed_laser_pub;
             ros::Publisher virtual_orient_traj_pub;
 
+            bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */
+
             // Goals and stuff
+            geometry_msgs::PoseStamped globalGoalOdomFrame_; /**< Global goal in odometry frame */
+            geometry_msgs::PoseStamped globalGoalRobotFrame_; /**< Global goal in robot frame */
+            geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame_; /**< Global path local waypoint in odometry frame */
+
+
             // double goal_orientation;
             geometry_msgs::Pose current_pose_;
             geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
@@ -364,8 +377,9 @@ namespace quad_gap
             boost::circular_buffer<double> log_vel_comp;
 
             ros::Subscriber tfSub_; /**< Subscriber to TF tree */
-            ros::Subscriber laser_sub;
-            ros::Subscriber pose_sub;            
+            ros::Subscriber laserSub_; /**< Subscriber to robot laser */
+            ros::Subscriber poseSub_; /**< Subscriber to robot pose */
+            ros::Subscriber accSub_; /**< Subscriber to robot acceleration */
 
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
 
