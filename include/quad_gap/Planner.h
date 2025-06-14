@@ -359,7 +359,7 @@ namespace quad_gap
 
             bool replan = true;
             
-            QuadGapConfig cfg;
+            QuadGapConfig cfg_;
 
             boost::mutex gapset_mutex;
 

@@ -24,7 +24,7 @@ namespace quad_gap
         pnh = ros::NodeHandle(unh.getNamespace() + "/cc");
 
         // Config Setup
-        cfg.loadRosParamFromNodeHandle(name);
+        cfg_.loadRosParamFromNodeHandle(name);
 
         // Load precomputed robot geo
         std::string file_name = "/home/shiyu/workspaces/cheetah_ws/src/quadruped_nav_benchmark/config/robot_geometry/box_1_geometry.yaml";
@@ -177,30 +177,30 @@ namespace quad_gap
         initialized_ = true;
 
         tfSub_ = nh.subscribe("/tf", 10, &Planner::tfCB, this);
-        laserSub_ = nh.subscribe(cfg.scan_topic, 100, &Planner::laserScanCB, this);
-        poseSub_ = nh.subscribe(cfg.odom_topic, 10, &Planner::poseCB, this);        
+        laserSub_ = nh.subscribe(cfg_.scan_topic, 100, &Planner::laserScanCB, this);
+        poseSub_ = nh.subscribe(cfg_.odom_topic, 10, &Planner::poseCB, this);        
 
-        gapDetector_ = new quad_gap::GapDetector(cfg, robot_geo_proc_);
-        gapVisualizer_ = new quad_gap::GapVisualizer(nh, cfg);
-        globalPlanManager_ = new quad_gap::GlobalPlanManager(cfg, robot_geo_proc_);
-        trajVisualizer_ = new quad_gap::TrajectoryVisualizer(nh, cfg);
-        trajEvaluator_ = new quad_gap::TrajectoryEvaluator(nh, cfg, robot_geo_proc_);
-        gapTrajGenerator_ = new quad_gap::GapTrajGenerator(nh, cfg, robot_geo_proc_);
-        goalVisualizer_ = new quad_gap::GoalVisualizer(nh, cfg);
-        gapManipulator_ = new quad_gap::GapManipulator(nh, cfg, robot_geo_proc_);
-        trajController_ = new quad_gap::TrajectoryController(nh, cfg);
+        gapDetector_ = new quad_gap::GapDetector(cfg_, robot_geo_proc_);
+        gapVisualizer_ = new quad_gap::GapVisualizer(nh, cfg_);
+        globalPlanManager_ = new quad_gap::GlobalPlanManager(cfg_, robot_geo_proc_);
+        trajVisualizer_ = new quad_gap::TrajectoryVisualizer(nh, cfg_);
+        trajEvaluator_ = new quad_gap::TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
+        gapTrajGenerator_ = new quad_gap::GapTrajGenerator(nh, cfg_, robot_geo_proc_);
+        goalVisualizer_ = new quad_gap::GoalVisualizer(nh, cfg_);
+        gapManipulator_ = new quad_gap::GapManipulator(nh, cfg_, robot_geo_proc_);
+        trajController_ = new quad_gap::TrajectoryController(nh, cfg_);
 
         map2rbt_.transform.rotation.w = 1;
         rbt2map_.transform.rotation.w = 1;
         odom2rbt_.transform.rotation.w = 1;
         rbt2odom_.transform.rotation.w = 1;
         rbtPoseRbtFrame_.pose.orientation.w = 1;
-        rbtPoseRbtFrame_.header.frame_id = cfg.robot_frame_id;
+        rbtPoseRbtFrame_.header.frame_id = cfg_.robot_frame_id;
 
         reconfigure_server_ = std::make_shared<ReconfigureServer>(pnh);
         reconfigure_server_->setCallback(boost::bind(&Planner::configCB, this, _1, _2));
 
-        log_vel_comp.set_capacity(cfg.planning.halt_size);
+        log_vel_comp.set_capacity(cfg_.planning.halt_size);
         return true;
     }
 
@@ -259,14 +259,14 @@ namespace quad_gap
         float rbtPoseOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
         float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
         
-        reachedGlobalGoal_ = globalGoalLinDist < cfg.goal.lin_goal_tolerance &&
-                             globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
+        reachedGlobalGoal_ = globalGoalLinDist < cfg_.goal.lin_goal_tolerance &&
+                             globalGoalAngDist < cfg_.goal.yaw_goal_tolerance;
         
         if (reachedGlobalGoal_)
             ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
         // else
         //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-        //                                      ", Goal tolerance: " << cfg.goal.lin_goal_tolerance);
+        //                                      ", Goal tolerance: " << cfg_.goal.lin_goal_tolerance);
 
         return reachedGlobalGoal_;
     }    
@@ -275,7 +275,7 @@ namespace quad_gap
     {
         sensor_msgs::LaserScan transformed_laser = *msg;
         // transformed_laser.header = msg->header;
-        // transformed_laser.header.frame_id = cfg.robot_frame_id;
+        // transformed_laser.header.frame_id = cfg_.robot_frame_id;
         // transformed_laser.angle_min = msg->angle_min;
         // transformed_laser.angle_max = msg->angle_max;
         // transformed_laser.angle_increment = msg->angle_increment;
@@ -299,9 +299,9 @@ namespace quad_gap
             orig_pt.point.x = orig_range * cos(orig_ang);
             orig_pt.point.y = orig_range * sin(orig_ang);
             
-            geometry_msgs::TransformStamped trans = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.sensor_frame_id, ros::Time(0));
+            geometry_msgs::TransformStamped trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
             tf2::doTransform(orig_pt, transformed_pt, trans);
-            // ROS_INFO_STREAM(cfg.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
+            // ROS_INFO_STREAM(cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
 
             double transformed_range = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
             double transformed_ang = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
@@ -337,7 +337,7 @@ namespace quad_gap
 
         float minScanDist = *std::min_element(scan_->ranges.begin(), scan_->ranges.end());
 
-        if (minScanDist < cfg.rbt.r_inscr)
+        if (minScanDist < cfg_.rbt.r_inscr)
         {
             ROS_INFO_STREAM_NAMED("Scan", "       in collision!");
             colliding_ = true;
@@ -347,7 +347,7 @@ namespace quad_gap
             colliding_ = false;
         }
 
-        cfg.updateParamFromScan(scan_);
+        cfg_.updateParamFromScan(scan_);
 
         ///////////////////////////////
         //////// GAP DETECTION ////////
@@ -419,11 +419,11 @@ namespace quad_gap
         //////////////////////////       
 
         // Transform the msg to odom frame
-        if (rbtOdomMsg->header.frame_id != cfg.odom_frame_id)
+        if (rbtOdomMsg->header.frame_id != cfg_.odom_frame_id)
         {
-            ROS_WARN_STREAM("Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg odom frame:" << cfg.odom_frame_id);
+            ROS_WARN_STREAM("Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg_ odom frame:" << cfg_.odom_frame_id);
 
-            geometry_msgs::TransformStamped origFrame2OdomFrame = tfBuffer->lookupTransform(cfg.odom_frame_id, 
+            geometry_msgs::TransformStamped origFrame2OdomFrame = tfBuffer->lookupTransform(cfg_.odom_frame_id, 
                                                                                             rbtOdomMsg->header.frame_id, 
                                                                                             ros::Time(0));
 
@@ -443,16 +443,16 @@ namespace quad_gap
         //       VELOCITY        //
         ///////////////////////////
 
-        // if (rbtOdomMsg->child_frame_id != cfg.robot_frame_id)
+        // if (rbtOdomMsg->child_frame_id != cfg_.robot_frame_id)
         // {
 
-        ROS_WARN_STREAM("Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg rbt frame:" << cfg.robot_frame_id);
+        ROS_WARN_STREAM("Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg_ rbt frame:" << cfg_.robot_frame_id);
 
         geometry_msgs::Vector3Stamped velIn, velOut;
         velIn.header = rbtOdomMsg->header; // TODO: make sure this is correct frame
         velIn.vector = rbtOdomMsg->twist.twist.linear;
 
-        geometry_msgs::TransformStamped origFrame2RbtFrame = tfBuffer->lookupTransform(cfg.robot_frame_id,
+        geometry_msgs::TransformStamped origFrame2RbtFrame = tfBuffer->lookupTransform(cfg_.robot_frame_id,
                                                                                         // rbtOdomMsg->child_frame_id, 
                                                                                         rbtOdomMsg->header.frame_id, 
                                                                                         ros::Time(0)); 
@@ -485,16 +485,16 @@ namespace quad_gap
 
         // plan should be in global frame
         // std::vector<geometry_msgs::PoseStamped> global_plan;
-        // if(globalPlanMapFrame[0].header.frame_id != cfg.map_frame_id)
+        // if(globalPlanMapFrame[0].header.frame_id != cfg_.map_frame_id)
         // {
-        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg.map_frame_id, globalPlanMapFrame[0].header.frame_id, ros::Time(0));
+        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg_.map_frame_id, globalPlanMapFrame[0].header.frame_id, ros::Time(0));
         //     for(size_t i = 0; i < globalPlanMapFrame.size(); i++)
         //     {
         //         geometry_msgs::PoseStamped plan_pose = globalPlanMapFrame[i];
         //         geometry_msgs::PoseStamped out_pose;
         //         tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
         //         out_pose.header.stamp = plan_pose.header.stamp;
-        //         out_pose.header.frame_id = cfg.map_frame_id;
+        //         out_pose.header.frame_id = cfg_.map_frame_id;
         //         global_plan.push_back(out_pose);
         //     }
         // }
@@ -519,7 +519,7 @@ namespace quad_gap
         float diffX = globalPathLocalWaypointOdomFrame_.pose.position.x - newglobalPathLocalWaypointOdomFrame.pose.position.x;
         float diffY = globalPathLocalWaypointOdomFrame_.pose.position.y - newglobalPathLocalWaypointOdomFrame.pose.position.y;
         
-        if (sqrt(pow(diffX, 2) + pow(diffY, 2)) > cfg.goal.waypoint_tolerance)
+        if (sqrt(pow(diffX, 2) + pow(diffY, 2)) > cfg_.goal.waypoint_tolerance)
             globalPathLocalWaypointOdomFrame_ = newglobalPathLocalWaypointOdomFrame;
 
         // Set new local goal to trajectory arbiter
@@ -540,15 +540,15 @@ namespace quad_gap
 
         try 
         {
-            map2rbt_  = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.map_frame_id, ros::Time(0));
-            rbt2map_  = tfBuffer->lookupTransform(cfg.map_frame_id, cfg.robot_frame_id, ros::Time(0));
-            odom2rbt_ = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.odom_frame_id, ros::Time(0));
-            rbt2odom_ = tfBuffer->lookupTransform(cfg.odom_frame_id, cfg.robot_frame_id, ros::Time(0));
-            cam2odom_ = tfBuffer->lookupTransform(cfg.odom_frame_id, cfg.sensor_frame_id, ros::Time(0));
-            odom2cam_ = tfBuffer->lookupTransform(cfg.sensor_frame_id, cfg.odom_frame_id, ros::Time(0));
-            map2odom_ = tfBuffer->lookupTransform(cfg.odom_frame_id, cfg.map_frame_id, ros::Time(0));
-            rbt2cam_ = tfBuffer->lookupTransform(cfg.sensor_frame_id, cfg.robot_frame_id, ros::Time(0));
-            cam2rbt_ = tfBuffer->lookupTransform(cfg.robot_frame_id, cfg.sensor_frame_id, ros::Time(0));
+            map2rbt_  = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.map_frame_id, ros::Time(0));
+            rbt2map_  = tfBuffer->lookupTransform(cfg_.map_frame_id, cfg_.robot_frame_id, ros::Time(0));
+            odom2rbt_ = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.odom_frame_id, ros::Time(0));
+            rbt2odom_ = tfBuffer->lookupTransform(cfg_.odom_frame_id, cfg_.robot_frame_id, ros::Time(0));
+            cam2odom_ = tfBuffer->lookupTransform(cfg_.odom_frame_id, cfg_.sensor_frame_id, ros::Time(0));
+            odom2cam_ = tfBuffer->lookupTransform(cfg_.sensor_frame_id, cfg_.odom_frame_id, ros::Time(0));
+            map2odom_ = tfBuffer->lookupTransform(cfg_.odom_frame_id, cfg_.map_frame_id, ros::Time(0));
+            rbt2cam_ = tfBuffer->lookupTransform(cfg_.sensor_frame_id, cfg_.robot_frame_id, ros::Time(0));
+            cam2rbt_ = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
 
             tf2::doTransform(rbtPoseRbtFrame_, rbtPoseCamFrame_, rbt2cam_);
         
@@ -606,7 +606,7 @@ namespace quad_gap
         std::vector<std::vector<double>> ret_traj_scores(vec.size());
 
         geometry_msgs::PoseStamped rbt_local_pose;
-        rbt_local_pose.header.frame_id = cfg.robot_frame_id;
+        rbt_local_pose.header.frame_id = cfg_.robot_frame_id;
         rbt_local_pose.header.stamp = rbt2odom_.header.stamp;
         rbt_local_pose.pose.orientation.w = 1;
         ROS_INFO_STREAM("Gap number: " << vec.size());
@@ -644,7 +644,7 @@ namespace quad_gap
     geometry_msgs::PoseArray Planner::getOrientDecayedPath(geometry_msgs::PoseArray orig_path)
     {
         // The original path should be in robot frame
-        assert(orig_path.header.frame_id == cfg.robot_frame_id);
+        assert(orig_path.header.frame_id == cfg_.robot_frame_id);
         geometry_msgs::PoseArray decayed_path;
 
         if(orig_path.poses.size() <= 1)
@@ -683,10 +683,10 @@ namespace quad_gap
                     double y_diff = curr_pose.position.y - prev_pose.position.y;
                     double dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
                     length += dist;
-                    // double avg_speed = sqrt(pow(cfg.control.vx_absmax, 2) + pow(cfg.control.vy_absmax, 2)) / speed_factor_;
+                    // double avg_speed = sqrt(pow(cfg_.control.vx_absmax, 2) + pow(cfg_.control.vy_absmax, 2)) / speed_factor_;
                     double avg_speed = 0.2;
                     double t = length / avg_speed;
-                    double avg_ang = cfg.control.ang_absmax / speed_factor_;
+                    double avg_ang = cfg_.control.ang_absmax / speed_factor_;
 
                     Eigen::Quaterniond q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
                     auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
@@ -738,7 +738,7 @@ namespace quad_gap
         try {
             if (omp_get_dynamic()) omp_set_dynamic(0);
             for (size_t i = 0; i < result_score.size(); i++) {
-                int counts = std::min(cfg.planning.num_feasi_check, int(score.at(i).size()));
+                int counts = std::min(cfg_.planning.num_feasi_check, int(score.at(i).size()));
                 result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin() + counts, double(0));
                 result_score.at(i) = prr.at(i).poses.size() == 0 ? -std::numeric_limits<double>::infinity() : result_score.at(i);
                 ROS_DEBUG_STREAM("Score: " << result_score.at(i));
@@ -769,12 +769,12 @@ namespace quad_gap
         try {
             // Both Args are in Odom frame
             auto incom_rbt = gapTrajGenerator_->transformBackTrajectory(incoming, odom2rbt_);
-            incom_rbt.header.frame_id = cfg.robot_frame_id;
+            incom_rbt.header.frame_id = cfg_.robot_frame_id;
             auto virtual_score_path = getOrientDecayedPath(incom_rbt);
             auto incom_score = trajEvaluator_->scoreTrajectory(virtual_score_path);
-            // int counts = std::min(cfg.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
+            // int counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
             
-            int counts = std::min(cfg.planning.num_feasi_check, (int) incom_score.size());
+            int counts = std::min(cfg_.planning.num_feasi_check, (int) incom_score.size());
             auto incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
 
             if (curr_traj.poses.size() == 0) {
@@ -794,7 +794,7 @@ namespace quad_gap
             } 
 
             auto curr_rbt = gapTrajGenerator_->transformBackTrajectory(curr_traj, odom2rbt_);
-            curr_rbt.header.frame_id = cfg.robot_frame_id;
+            curr_rbt.header.frame_id = cfg_.robot_frame_id;
             int start_position = egoTrajPosition(curr_rbt);
             geometry_msgs::PoseArray reduced_curr_rbt = curr_rbt;
             reduced_curr_rbt.poses = std::vector<geometry_msgs::Pose>(curr_rbt.poses.begin() + start_position, curr_rbt.poses.end());
@@ -806,7 +806,7 @@ namespace quad_gap
             }
             auto virtual_curr_score_path = getOrientDecayedPath(reduced_curr_rbt);
             auto curr_score = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
-            counts = std::min(cfg.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
+            counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
             auto curr_subscore = std::accumulate(curr_score.begin(), curr_score.begin() + counts, double(0));
             incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
 
@@ -851,11 +851,11 @@ namespace quad_gap
     //     geometry_msgs::Pose curr_pose;
     //     curr_pose.orientation.w = 1;
     //     auto orig_ref = trajController_->trajGen(path_rbt);
-    //     orig_ref.header.frame_id = cfg.robot_frame_id;
+    //     orig_ref.header.frame_id = cfg_.robot_frame_id;
     //     ctrl_idx = trajController_->targetPoseIdx(curr_pose, orig_ref);
 
     //     pips_trajectory_msgs::trajectory_points local_traj;
-    //     local_traj.header.frame_id = cfg.robot_frame_id;
+    //     local_traj.header.frame_id = cfg_.robot_frame_id;
     //     for(int i = ctrl_idx; i < orig_ref.poses.size(); i++)
     //     {
     //         pips_trajectory_msgs::trajectory_point pt;
@@ -938,10 +938,10 @@ namespace quad_gap
 
         // Know Current Pose
         geometry_msgs::PoseStamped currPoseStRobotFrame;
-        currPoseStRobotFrame.header.frame_id = cfg.robot_frame_id;
+        currPoseStRobotFrame.header.frame_id = cfg_.robot_frame_id;
         currPoseStRobotFrame.pose.orientation.w = 1;
         geometry_msgs::PoseStamped currPoseStampedOdomFrame;
-        currPoseStampedOdomFrame.header.frame_id = cfg.odom_frame_id;
+        currPoseStampedOdomFrame.header.frame_id = cfg_.odom_frame_id;
         tf2::doTransform(currPoseStRobotFrame, currPoseStampedOdomFrame, rbt2odom_);
         geometry_msgs::Pose currPoseOdomFrame = currPoseStampedOdomFrame.pose;
 
@@ -961,12 +961,12 @@ namespace quad_gap
 
     void Planner::rcfgCallback(quad_gap::qgConfig &config, uint32_t level)
     {
-        cfg.reconfigure(config);
+        cfg_.reconfigure(config);
         
         // set_capacity destroys everything if different from original size, 
         // resize only if the new size is greater
         log_vel_comp.clear();
-        log_vel_comp.set_capacity(cfg.planning.halt_size);
+        log_vel_comp.set_capacity(cfg_.planning.halt_size);
     }
 
     geometry_msgs::PoseArray Planner::getPlanTrajectory() 
@@ -1063,7 +1063,7 @@ namespace quad_gap
 
         // Both Args are in Odom frame
         auto curr_rbt = gapTrajGenerator_->transformBackTrajectory(curr_traj, odom2rbt_);
-        curr_rbt.header.frame_id = cfg.robot_frame_id;
+        curr_rbt.header.frame_id = cfg_.robot_frame_id;
 
         int start_position = egoTrajPosition(curr_rbt);
         geometry_msgs::PoseArray reduced_curr_rbt = curr_rbt;
@@ -1080,11 +1080,11 @@ namespace quad_gap
         log_vel_comp.push_back(val);
         double cum_vel_sum = std::accumulate(log_vel_comp.begin(), log_vel_comp.end(), double(0));
         bool ret_val = cum_vel_sum > 1.0 || !log_vel_comp.full();
-        if (!ret_val && !cfg.man.man_ctrl) {
+        if (!ret_val && !cfg_.man.man_ctrl) {
             ROS_FATAL_STREAM("--------------------------Planning Failed--------------------------");
             reset();
         }
-        return ret_val || cfg.man.man_ctrl;
+        return ret_val || cfg_.man.man_ctrl;
     }
 
 }
