@@ -29,6 +29,8 @@ namespace quad_gap
             {
                 cfg_ = other.cfg_;
                 robot_geo_proc_ = other.robot_geo_proc_;
+
+                return *this;
             };
 
             GapDetector(const GapDetector &t) 

@@ -33,11 +33,15 @@ namespace quad_gap{
 
         TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
         // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
+        
         TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
         {
             cfg_ = other.cfg_;
             robot_geo_proc_ = other.robot_geo_proc_;
+        
+            return *this;
         }
+        
         TrajectoryEvaluator(const TrajectoryEvaluator &t) 
         {
             cfg_ = t.cfg_;

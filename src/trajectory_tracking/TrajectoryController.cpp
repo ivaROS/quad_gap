@@ -215,7 +215,8 @@ namespace quad_gap
         Eigen::Vector2d v_err(v_lin_x_fb, v_lin_y_fb);
 
 
-        if (inflated_egocircle.ranges.size() < 500) {
+        if (inflated_egocircle.ranges.size() < 500) 
+        {
             ROS_FATAL_STREAM("Scan range incorrect controlLaw");
         }
 

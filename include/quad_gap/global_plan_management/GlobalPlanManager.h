@@ -29,11 +29,15 @@ namespace quad_gap
             ~GlobalPlanManager() {};
 
             GlobalPlanManager(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
+            
             GlobalPlanManager& operator=(GlobalPlanManager other) 
             {
                 cfg_ = other.cfg_;
                 robot_geo_proc_ = other.robot_geo_proc_;
+            
+                return *this;
             };
+            
             GlobalPlanManager(const GlobalPlanManager &t) 
             {
                 cfg_ = t.cfg_;

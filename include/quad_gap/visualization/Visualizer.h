@@ -23,7 +23,15 @@ namespace quad_gap
             ~Visualizer() {};
 
             Visualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
-            Visualizer& operator=(Visualizer other) {cfg_ = other.cfg_;};
+            
+            Visualizer& operator=(Visualizer other)
+            {
+                cfg_ = other.cfg_;
+                
+                return *this;
+            };
+            
+            
             Visualizer(const Visualizer &t) {cfg_ = t.cfg_;};
 
         protected:

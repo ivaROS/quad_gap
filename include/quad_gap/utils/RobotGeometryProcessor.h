@@ -339,13 +339,16 @@ namespace quad_gap
 
             double getRobotMaxRadius()
             {
-                if(robot_.shape == RobotShape::circle)
+                if (robot_.shape == RobotShape::circle)
                 {
                     return robot_.radius;
                 }
                 else if(robot_.shape == RobotShape::box)
                 {
                     return robot_.diagonal_length / 2;
+                } else
+                {
+                    throw std::runtime_error("[getRobotMaxRadius()]: robot shape not recognized!");
                 }
             }
 
@@ -358,6 +361,9 @@ namespace quad_gap
                 else if(robot_.shape == RobotShape::box)
                 {
                     return robot_.width / 2;
+                } else
+                {
+                    throw std::runtime_error("[getRobotMinRadius()]: robot shape not recognized!");
                 }
             }
 
@@ -370,18 +376,24 @@ namespace quad_gap
                 else if(robot_.shape == RobotShape::box)
                 {
                     return robot_.length / 2;
+                } else
+                {
+                    throw std::runtime_error("[getRobotHalfLength()]: robot shape not recognized!");
                 }
             }
 
             double getRobotHalfWidth()
             {
-                if(robot_.shape == RobotShape::circle)
+                if (robot_.shape == RobotShape::circle)
                 {
                     return robot_.radius;
                 }
                 else if(robot_.shape == RobotShape::box)
                 {
                     return robot_.width / 2;
+                } else
+                {
+                    throw std::runtime_error("[getRobotHalfWidth()]: robot shape not recognized!");
                 }
             }
 

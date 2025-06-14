@@ -43,11 +43,15 @@ namespace quad_gap
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
             };
+
             TrajectoryGenerator& operator=(TrajectoryGenerator & other) 
             {
                 cfg_ = other.cfg_;
                 robot_geo_proc_ = other.robot_geo_proc_;
+            
+                return *this;
             };
+            
             TrajectoryGenerator(const TrajectoryGenerator &t) 
             {
                 cfg_ = t.cfg_;
@@ -76,6 +80,8 @@ namespace quad_gap
             {
                 cfg_ = other.cfg_;
                 robot_geo_proc_ = other.robot_geo_proc_;
+
+                return *this;
             };
 
             GapTrajGenerator(const GapTrajGenerator &t) :
