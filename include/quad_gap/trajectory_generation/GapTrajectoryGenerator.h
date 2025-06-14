@@ -6,6 +6,7 @@
 // #include <traj_generator.h>
 // #include <turtlebot_trajectory_generator/near_identity.h>
 #include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <quad_gap/trajectory_generation/TrajectorySynthesisMethods.h>
 #include <ros/ros.h>
 #include <math.h>
@@ -90,8 +91,8 @@ namespace quad_gap
 
             void updateTF(geometry_msgs::TransformStamped tf) {planning2odom = tf;};
             geometry_msgs::PoseArray generateTrajectory(quad_gap::Gap, geometry_msgs::PoseStamped);
-            bool findBezierControlPts(quad_gap::Gap, Bezier::Bezier<2>&, nav_msgs::Odometry, geometry_msgs::TransformStamped);
-            geometry_msgs::PoseArray generateBezierTrajectory(quad_gap::Gap, nav_msgs::Odometry, geometry_msgs::TransformStamped);
+            bool findBezierControlPts(quad_gap::Gap, Bezier::Bezier<2>&, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
+            geometry_msgs::PoseArray generateBezierTrajectory(quad_gap::Gap, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
             std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<quad_gap::Gap>);
             geometry_msgs::PoseArray transformBackTrajectory(geometry_msgs::PoseArray, geometry_msgs::TransformStamped);
             geometry_msgs::PoseArray forwardPassTrajectory(geometry_msgs::PoseArray);

@@ -264,29 +264,28 @@ namespace quad_gap
 
     // bool Planner::isGoalReached()
     // {
-    //     current_pose_ = sharedPtr_pose;
-    //     double dx = final_goal_odom.pose.position.x - current_pose_.position.x;
-    //     double dy = final_goal_odom.pose.position.y - current_pose_.position.y;
-    //     bool result = sqrt(pow(dx, 2) + pow(dy, 2)) < cfg.goal.goal_tolerance;
-    //     if (result)
-    //     {
-    //         ROS_INFO_STREAM("[Reset] Goal Reached");
-    //         return true;
-    //     }
+    // float globalGoalXDiff = globalGoalOdomFrame_.pose.position.x - rbtPoseInOdomFrame_.pose.position.x;
+    // float globalGoalYDiff = globalGoalOdomFrame_.pose.position.y - rbtPoseInOdomFrame_.pose.position.y;
+    // float globalGoalDist = sqrt(pow(globalGoalXDiff, 2) + pow(globalGoalYDiff, 2));
 
-    //     double waydx = local_waypoint_odom.pose.position.x - current_pose_.position.x;
-    //     double waydy = local_waypoint_odom.pose.position.y - current_pose_.position.y;
-    //     bool wayres = sqrt(pow(waydx, 2) + pow(waydy, 2)) < cfg.goal.waypoint_tolerance;
-    //     if (wayres) {
-    //         ROS_INFO_STREAM("[Reset] Waypoint reached, getting new one");
-    //         // global_plan_location += global_plan_lookup_increment;
-    //     }
-    //     return false;
+    // float globalGoalOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
+    // float rbtPoseOrientation = quaternionToYaw(rbtPoseInOdomFrame_.pose.orientation);
+    // float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
+    // reachedGlobalGoal_ = globalGoalDist < cfg.goal.goal_tolerance &&
+    //                      globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
+    
+    // if (reachedGlobalGoal_)
+    //     ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
+    // // else
+    // //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
+    // //                                      ", Goal tolerance: " << cfg.goal.goal_tolerance);
+
+    // return reachedGlobalGoal_;
     // }
 
     bool Planner::isGoalReached()
     {
-        current_pose_ = sharedPtr_pose;
+        current_pose_ = rbtPoseOdomFrame_;
         double dx = final_goal_odom.pose.position.x - current_pose_.position.x;
         double dy = final_goal_odom.pose.position.y - current_pose_.position.y;
         float globalGoalDist = sqrt(pow(dx, 2) + pow(dy, 2));
@@ -302,7 +301,7 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
         // else
         //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-        //                                      ", Goal tolerance: " << cfg_.goal.goal_tolerance);
+        //                                      ", Goal tolerance: " << cfg.goal.goal_tolerance);
 
         return reachedGlobalGoal_;
     }    
@@ -397,7 +396,7 @@ namespace quad_gap
 
     }
 
-    void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& msg)
+    void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& rbtOdomMsg)
     {
         ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
         ROS_INFO_STREAM("[poseCB()]");
@@ -405,46 +404,82 @@ namespace quad_gap
         if (!haveTFs_)
             return;
 
+        //////////////////////////
+        //         POSE         //
+        //////////////////////////       
+
         // Transform the msg to odom frame
-        if (msg->header.frame_id != cfg.odom_frame_id)
+        if (rbtOdomMsg->header.frame_id != cfg.odom_frame_id)
         {
-            geometry_msgs::TransformStamped robot_pose_odom_trans = tfBuffer->lookupTransform(cfg.odom_frame_id, msg->header.frame_id, ros::Time(0));
+            ROS_WARN_STREAM("Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg odom frame:" << cfg.odom_frame_id);
 
-            geometry_msgs::PoseStamped in_pose, out_pose;
-            in_pose.header = msg->header;
-            in_pose.pose = msg->pose.pose;
+            geometry_msgs::TransformStamped origFrame2OdomFrame = tfBuffer->lookupTransform(cfg.odom_frame_id, 
+                                                                                            rbtOdomMsg->header.frame_id, 
+                                                                                            ros::Time(0));
 
-            tf2::doTransform(in_pose, out_pose, robot_pose_odom_trans);
-            sharedPtr_pose = out_pose.pose;
-            sharedPtr_odom = *msg;
-            sharedPtr_odom.pose.pose = out_pose.pose;
-            sharedPtr_odom.header.frame_id = cfg.odom_frame_id;
-        }
-        else
+            geometry_msgs::PoseStamped poseIn, poseOut;
+            poseIn.header = rbtOdomMsg->header;
+            poseIn.pose = rbtOdomMsg->pose.pose;
+
+            tf2::doTransform(poseIn, poseOut, origFrame2OdomFrame);
+            rbtPoseOdomFrame_ = poseOut.pose;
+        } else
         {
-            sharedPtr_pose = msg->pose.pose;
-            sharedPtr_odom = *msg;
+            rbtPoseOdomFrame_ = rbtOdomMsg->pose.pose;
         }
+
+        ///////////////////////////
+        //       VELOCITY        //
+        ///////////////////////////
+
+        // if (rbtOdomMsg->child_frame_id != cfg.robot_frame_id)
+        // {
+
+        ROS_WARN_STREAM("Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg rbt frame:" << cfg.robot_frame_id);
+
+        geometry_msgs::Vector3Stamped velIn, velOut;
+        velIn.header = rbtOdomMsg->header; // TODO: make sure this is correct frame
+        velIn.vector = rbtOdomMsg->twist.twist.linear;
+
+        geometry_msgs::TransformStamped origFrame2RbtFrame = tfBuffer->lookupTransform(cfg.robot_frame_id,
+                                                                                        // rbtOdomMsg->child_frame_id, 
+                                                                                        rbtOdomMsg->header.frame_id, 
+                                                                                        ros::Time(0)); 
+                                                                                    
+        tf2::doTransform(velIn, velOut, origFrame2RbtFrame);
+
+        rbtVelRbtFrame_.header = velOut.header;
+        rbtVelRbtFrame_.twist.linear = velOut.vector;
+        rbtVelRbtFrame_.twist.angular = rbtOdomMsg->twist.twist.angular; // z is same between frames
+
+        // } else
+        // {
+
+        // }
     }
 
-    bool Planner::setPlan(const std::vector<geometry_msgs::PoseStamped> &plan)
+    bool Planner::setPlan(const std::vector<geometry_msgs::PoseStamped> &globalPlanMapFrame)
     {
         ROS_INFO_STREAM_NAMED("Planner", "[setPlan()]");
 
-        if (plan.size() == 0) 
+        if (globalPlanMapFrame.size() == 0) 
             return true;
 
         if (!haveTFs_)
             return false;        
 
+        ////////////////////////////////////
+        // CHECK IF GLOBAL PLAN MAP FRAME //
+        ////////////////////////////////////
+
         // plan should be in global frame
         // std::vector<geometry_msgs::PoseStamped> global_plan;
-        // if(plan[0].header.frame_id != cfg.map_frame_id)
+        // if(globalPlanMapFrame[0].header.frame_id != cfg.map_frame_id)
         // {
-        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg.map_frame_id, plan[0].header.frame_id, ros::Time(0));
-        //     for(size_t i = 0; i < plan.size(); i++)
+        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg.map_frame_id, globalPlanMapFrame[0].header.frame_id, ros::Time(0));
+        //     for(size_t i = 0; i < globalPlanMapFrame.size(); i++)
         //     {
-        //         geometry_msgs::PoseStamped plan_pose = plan[i];
+        //         geometry_msgs::PoseStamped plan_pose = globalPlanMapFrame[i];
         //         geometry_msgs::PoseStamped out_pose;
         //         tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
         //         out_pose.header.stamp = plan_pose.header.stamp;
@@ -454,10 +489,12 @@ namespace quad_gap
         // }
         // else
         // {
-        //     global_plan = plan;
+        //     global_plan = globalPlanMapFrame;
         // }
         
         // final_goal_odom = *std::prev(global_plan.end());
+        geometry_msgs::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.end());
+
         // tf2::doTransform(final_goal_odom, final_goal_odom, map2odom);
 
         // // Store New Global Plan to Goal Selector
@@ -591,7 +628,7 @@ namespace quad_gap
                 geometry_msgs::PoseArray tmp;
                 if(use_bezier_)
                 {
-                    tmp = gapTrajSyn->generateBezierTrajectory(vec.at(i), sharedPtr_odom, odom2rbt);
+                    tmp = gapTrajSyn->generateBezierTrajectory(vec.at(i), rbtVelRbtFrame_, odom2rbt);
                 }
                 else
                 {

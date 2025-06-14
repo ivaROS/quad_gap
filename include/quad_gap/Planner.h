@@ -355,8 +355,11 @@ namespace quad_gap
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
             int ctrl_idx = 0;
 
-            geometry_msgs::Pose sharedPtr_pose;
-            nav_msgs::Odometry sharedPtr_odom;
+            geometry_msgs::Pose rbtPoseOdomFrame_;
+            // nav_msgs::Odometry sharedPtr_odom;
+
+            geometry_msgs::TwistStamped rbtVelRbtFrame_;
+
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
 
             ros::WallTime last_time;

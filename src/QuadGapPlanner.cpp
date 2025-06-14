@@ -128,15 +128,12 @@ namespace quad_gap
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::isGoalReached()]");
 
-        // return false;
         return planner.isGoalReached();
     }
 
     bool QuadGapPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame)
     {
         // ROS_INFO_STREAM("[QuadGapPlanner::setPlan()]");
-
-        // return 1;
 
         if (!planner.initialized())
         {
@@ -146,7 +143,6 @@ namespace quad_gap
             return planner.setPlan(globalPlanMapFrame);
         }
 
-        
         // 0: fail, 1: success
         // return 1;
     }

@@ -79,7 +79,10 @@ namespace quad_gap
         return traj_set;
     }
 
-    bool GapTrajGenerator::findBezierControlPts(quad_gap::Gap selectedGap, Bezier::Bezier<2>& bezier_curve, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
+    bool GapTrajGenerator::findBezierControlPts(quad_gap::Gap selectedGap, 
+                                                Bezier::Bezier<2>& bezier_curve, 
+                                                geometry_msgs::TwistStamped rbtVelRbtFrame, 
+                                                geometry_msgs::TransformStamped odom2rbt)
     {
         // Find the intersections of triangle and circle
         float x1, x2, y1, y2;
@@ -110,7 +113,7 @@ namespace quad_gap
         Eigen::Vector2f goal_vec(goal_x, goal_y);
 
         Eigen::Vector2f rbt_orient_vec(1, 0);
-        float x_speed = curr_odom.twist.twist.linear.x;
+        float x_speed = rbtVelRbtFrame.twist.linear.x;
         float ideal_min_cp_length = x_speed / 2; // For quadratic bezier curve, the ideally length B'(0) = 2 (P_1 - P_0) 
 
         // Find the closet gap side to orientation. By default, l side is closer.
@@ -654,7 +657,9 @@ namespace quad_gap
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(quad_gap::Gap selectedGap, nav_msgs::Odometry curr_odom, geometry_msgs::TransformStamped odom2rbt)
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(quad_gap::Gap selectedGap, 
+                                                                        geometry_msgs::TwistStamped rbtVelRbtFrame, 
+                                                                        geometry_msgs::TransformStamped odom2rbt)
     {
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
@@ -668,7 +673,7 @@ namespace quad_gap
         }
 
         Bezier::Bezier<2> qudraBezier;
-        bool success = findBezierControlPts(selectedGap, qudraBezier, curr_odom, odom2rbt);
+        bool success = findBezierControlPts(selectedGap, qudraBezier, rbtVelRbtFrame, odom2rbt);
         
         if(!success)
         {
