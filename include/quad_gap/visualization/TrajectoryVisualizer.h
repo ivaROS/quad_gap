@@ -8,7 +8,7 @@ namespace quad_gap
     {
             using Visualizer::Visualizer;
         public: 
-            TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
+            TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
             void rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & );
             void trajScore(geometry_msgs::PoseArray, std::vector<double>);
             void pubAllTraj(std::vector<geometry_msgs::PoseArray> prr);

@@ -8,12 +8,6 @@
 
 namespace quad_gap
 {
-    Planner::Planner()
-    {
-        // Do something? maybe set names
-        ros::NodeHandle nh("planner_node");
-    }
-
     Planner::~Planner() {}
 
     bool Planner::initialize(const std::string & name)
@@ -54,7 +48,7 @@ namespace quad_gap
         unh.setParam("avg_rot_speed", avg_rot_speed);
 
         RobotShape robot_shape = static_cast<RobotShape>(shape_id);
-        if(robot_shape == RobotShape::circle)
+        if (robot_shape == RobotShape::circle)
             width = 0;
 
         Robot robot(robot_shape, length, width, avg_lin_speed, avg_rot_speed);
@@ -63,7 +57,7 @@ namespace quad_gap
         unh.getParam("use_geo_storage", use_geo_storage_);
         unh.setParam("use_geo_storage", use_geo_storage_);
         
-        if(use_geo_storage_)
+        if (use_geo_storage_)
             robot_geo_storage_ = RobotGeometryStorage(file_name);
         else
             robot_geo_proc_ = RobotGeometryProcessor(robot, decay_factor);
@@ -190,7 +184,7 @@ namespace quad_gap
         laserSub_ = nh.subscribe(cfg.scan_topic, 100, &Planner::laserScanCB, this);
         poseSub_ = nh.subscribe(cfg.odom_topic, 10, &Planner::poseCB, this);        
 
-        finder = new quad_gap::GapDetector(cfg, robot_geo_proc_);
+        gapDetector_ = new quad_gap::GapDetector(cfg, robot_geo_proc_);
         gapvisualizer = new quad_gap::GapVisualizer(nh, cfg);
         goalselector = new quad_gap::GlobalPlanManager(nh, cfg, robot_geo_proc_);
         trajvisualizer = new quad_gap::TrajectoryVisualizer(nh, cfg);
@@ -262,40 +256,19 @@ namespace quad_gap
         return _initialized;
     }
 
-    // bool Planner::isGoalReached()
-    // {
-    // float globalGoalXDiff = globalGoalOdomFrame_.pose.position.x - rbtPoseInOdomFrame_.pose.position.x;
-    // float globalGoalYDiff = globalGoalOdomFrame_.pose.position.y - rbtPoseInOdomFrame_.pose.position.y;
-    // float globalGoalDist = sqrt(pow(globalGoalXDiff, 2) + pow(globalGoalYDiff, 2));
-
-    // float globalGoalOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
-    // float rbtPoseOrientation = quaternionToYaw(rbtPoseInOdomFrame_.pose.orientation);
-    // float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
-    // reachedGlobalGoal_ = globalGoalDist < cfg.goal.lin_goal_tolerance &&
-    //                      globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
-    
-    // if (reachedGlobalGoal_)
-    //     ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
-    // // else
-    // //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-    // //                                      ", Goal tolerance: " << cfg.goal.lin_goal_tolerance);
-
-    // return reachedGlobalGoal_;
-    // }
-
     bool Planner::isGoalReached()
     {
         // Linear distance
-        double dx = globalGoalOdomFrame_.pose.position.x - rbtPoseOdomFrame_.position.x;
-        double dy = globalGoalOdomFrame_.pose.position.y - rbtPoseOdomFrame_.position.y;
-        float globalGoalDist = sqrt(pow(dx, 2) + pow(dy, 2));
+        float globalGoalXDiff = globalGoalOdomFrame_.pose.position.x - rbtPoseOdomFrame_.pose.position.x;
+        float globalGoalYDiff = globalGoalOdomFrame_.pose.position.y - rbtPoseOdomFrame_.pose.position.y;
+        float globalGoalLinDist = sqrt(pow(globalGoalXDiff, 2) + pow(globalGoalYDiff, 2));
 
         // Angular distance
         float globalGoalOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
         float rbtPoseOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
         float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
-
-        reachedGlobalGoal_ = globalGoalDist < cfg.goal.lin_goal_tolerance &&
+        
+        reachedGlobalGoal_ = globalGoalLinDist < cfg.goal.lin_goal_tolerance &&
                              globalGoalAngDist < cfg.goal.yaw_goal_tolerance;
         
         if (reachedGlobalGoal_)
@@ -354,22 +327,22 @@ namespace quad_gap
 
     void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
+        boost::mutex::scoped_lock gapset(gapset_mutex);
+
         ROS_INFO_STREAM_NAMED("Planner", "[laserScanCB()]");
 
-        scan_ = msg;
-        scan_ = transformLaserToRbt(msg);
-        transformed_laser_pub.publish(scan_);
-
-        boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = scan_;
+        // boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = scan_;
 
         // ROS_INFO_STREAM(msg.get()->ranges.size());
 
         try 
         {
-            boost::mutex::scoped_lock gapset(gapset_mutex);
-            finder->hybridScanGap(msg, observed_gaps);
+            scan_ = transformLaserToRbt(msg);
+            transformed_laser_pub.publish(scan_);
+
+            gapDetector_->hybridScanGap(msg, observed_gaps);
             gapvisualizer->drawGaps(observed_gaps, std::string("raw"));
-            finder->mergeGapsOneGo(msg, observed_gaps);
+            gapDetector_->mergeGapsOneGo(msg, observed_gaps);
             gapvisualizer->drawGaps(observed_gaps, std::string("fin"));
             // ROS_INFO_STREAM("observed_gaps count:" << observed_gaps.size());
         } catch (...) 
@@ -378,8 +351,8 @@ namespace quad_gap
         }
 
         // If no global plan, the local goal finding won't execute.
-        goalselector->updateEgoCircle(tmp_msg);
-        trajArbiter->updateEgoCircle(tmp_msg);
+        goalselector->updateEgoCircle(scan_);
+        trajArbiter->updateEgoCircle(scan_);
 
         geometry_msgs::PoseStamped local_goal;
 
@@ -392,8 +365,8 @@ namespace quad_gap
             trajArbiter->updateLocalGoal(local_goal, odom2rbt);
         }
 
-        gapManip->updateEgoCircle(tmp_msg);
-        trajController->updateEgoCircle(tmp_msg);
+        gapManip->updateEgoCircle(scan_);
+        trajController->updateEgoCircle(scan_);
 
     }
 
@@ -423,10 +396,11 @@ namespace quad_gap
             poseIn.pose = rbtOdomMsg->pose.pose;
 
             tf2::doTransform(poseIn, poseOut, origFrame2OdomFrame);
-            rbtPoseOdomFrame_ = poseOut.pose;
+            rbtPoseOdomFrame_ = poseOut;
         } else
         {
-            rbtPoseOdomFrame_ = rbtOdomMsg->pose.pose;
+            rbtPoseOdomFrame_.header = rbtOdomMsg->header;
+            rbtPoseOdomFrame_.pose = rbtOdomMsg->pose.pose;
         }
 
         ///////////////////////////

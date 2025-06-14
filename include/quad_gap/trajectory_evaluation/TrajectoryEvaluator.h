@@ -31,8 +31,8 @@ namespace quad_gap{
         TrajectoryEvaluator(){};
         ~TrajectoryEvaluator(){};
 
-        TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
-        // TrajectoryEvaluator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
+        TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
+        // TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
         
         TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
         {
@@ -49,11 +49,11 @@ namespace quad_gap{
         }
         
         void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const>);
-        void updateGapContainer(const std::vector<quad_gap::Gap>);
+        void updateGapContainer(const std::vector<Gap>);
         void updateLocalGoal(geometry_msgs::PoseStamped, geometry_msgs::TransformStamped);
 
         std::vector<double> scoreGaps();
-        quad_gap::Gap returnAndScoreGaps();
+        Gap returnAndScoreGaps();
         
         // Full Scoring
         std::vector<double> scoreTrajectories(std::vector<geometry_msgs::PoseArray>);
@@ -63,7 +63,7 @@ namespace quad_gap{
         private:
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> msg;
-            std::vector<quad_gap::Gap> gaps;
+            std::vector<Gap> gaps;
             geometry_msgs::PoseStamped local_goal;
             boost::mutex gap_mutex, gplan_mutex, egocircle_mutex;
 

@@ -120,13 +120,13 @@ namespace quad_gap
             void reset();
 
         private:
-            // quad_gap::qgConfig loadRosParamFromNodeHandle(const ros::NodeHandle& nh);
+            // qgConfig loadRosParamFromNodeHandle(const ros::NodeHandle& nh);
 
-            quad_gap::Planner planner;
+            Planner planner;
             std::string planner_name;
             ros::NodeHandle nh, pnh;
 
-            boost::shared_ptr<dynamic_reconfigure::Server<quad_gap::qgConfig> > dynamic_recfg_server;
-            dynamic_reconfigure::Server<quad_gap::qgConfig>::CallbackType f;
+            boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
+            dynamic_reconfigure::Server<qgConfig>::CallbackType f;
     };
 }

@@ -39,7 +39,7 @@ namespace quad_gap
             TrajectoryGenerator(){};
             ~TrajectoryGenerator(){};
 
-            TrajectoryGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
+            TrajectoryGenerator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -59,8 +59,8 @@ namespace quad_gap
                 robot_geo_proc_ = t.robot_geo_proc_;
             };
 
-            virtual geometry_msgs::PoseArray generateTrajectory(quad_gap::Gap, geometry_msgs::PoseStamped) = 0;
-            virtual std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<quad_gap::Gap>) = 0;
+            virtual geometry_msgs::PoseArray generateTrajectory(Gap, geometry_msgs::PoseStamped) = 0;
+            virtual std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>) = 0;
         protected:
             const QuadGapConfig* cfg_;
             RobotGeometryProcessor robot_geo_proc_;
@@ -73,7 +73,7 @@ namespace quad_gap
             GapTrajGenerator(){};
             ~GapTrajGenerator(){};
 
-            GapTrajGenerator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) :
+            GapTrajGenerator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) :
                 TrajectoryGenerator(nh, cfg, robot_geo_proc)
             { };
 
@@ -90,10 +90,10 @@ namespace quad_gap
             { };
 
             void updateTF(geometry_msgs::TransformStamped tf) {planning2odom = tf;};
-            geometry_msgs::PoseArray generateTrajectory(quad_gap::Gap, geometry_msgs::PoseStamped);
-            bool findBezierControlPts(quad_gap::Gap, Bezier::Bezier<2>&, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
-            geometry_msgs::PoseArray generateBezierTrajectory(quad_gap::Gap, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
-            std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<quad_gap::Gap>);
+            geometry_msgs::PoseArray generateTrajectory(Gap, geometry_msgs::PoseStamped);
+            bool findBezierControlPts(Gap, Bezier::Bezier<2>&, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
+            geometry_msgs::PoseArray generateBezierTrajectory(Gap, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
+            std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
             geometry_msgs::PoseArray transformBackTrajectory(geometry_msgs::PoseArray, geometry_msgs::TransformStamped);
             geometry_msgs::PoseArray forwardPassTrajectory(geometry_msgs::PoseArray);
 

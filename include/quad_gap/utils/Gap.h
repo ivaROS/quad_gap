@@ -131,7 +131,7 @@ namespace quad_gap
             }
 
             // Decimate Gap 
-            void segmentGap2Vec(std::vector<quad_gap::Gap>& gap, int min_resoln)
+            void segmentGap2Vec(std::vector<Gap>& gap, int min_resoln)
             {
                 int num_gaps = (_right_idx - _left_idx) / min_resoln + 1;
                 int idx_step = (_right_idx - _left_idx) / num_gaps;

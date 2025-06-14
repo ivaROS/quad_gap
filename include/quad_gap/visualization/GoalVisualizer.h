@@ -8,10 +8,10 @@ namespace quad_gap
     {
         public: 
             using Visualizer::Visualizer;
-            GoalVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
+            GoalVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
             void localGoal(geometry_msgs::PoseStamped);
-            void drawGapGoal(visualization_msgs::MarkerArray&, quad_gap::Gap);
-            void drawGapGoals(std::vector<quad_gap::Gap>);
+            void drawGapGoal(visualization_msgs::MarkerArray&, Gap);
+            void drawGapGoals(std::vector<Gap>);
         private: 
             ros::Publisher goal_pub;
             ros::Publisher gapwp_pub;

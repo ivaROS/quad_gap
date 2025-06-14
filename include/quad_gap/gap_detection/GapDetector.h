@@ -4,6 +4,9 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
+#include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+
 // ROS
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
@@ -39,13 +42,14 @@ namespace quad_gap
                 robot_geo_proc_ = t.robot_geo_proc_;
             };
 
-            void hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<quad_gap::Gap>&);
+            void hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
 
-            void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<quad_gap::Gap>&);
+            void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
 
             RobotGeometryProcessor robot_geo_proc_;
 
         private:
+
             const QuadGapConfig* cfg_;
     };
 

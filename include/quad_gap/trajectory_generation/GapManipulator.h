@@ -21,7 +21,7 @@ namespace quad_gap
             GapManipulator(){};
             ~GapManipulator(){};
 
-            GapManipulator(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
+            GapManipulator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
@@ -43,10 +43,10 @@ namespace quad_gap
 
             void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const>);
 
-            void setGapWaypoint(quad_gap::Gap&, geometry_msgs::PoseStamped);
-            void reduceGap(quad_gap::Gap&, geometry_msgs::PoseStamped);
-            void convertAxialGap(quad_gap::Gap&);
-            void radialExtendGap(quad_gap::Gap&);
+            void setGapWaypoint(Gap&, geometry_msgs::PoseStamped);
+            void reduceGap(Gap&, geometry_msgs::PoseStamped);
+            void convertAxialGap(Gap&);
+            void radialExtendGap(Gap&);
         
             private:
                 boost::shared_ptr<sensor_msgs::LaserScan const> msg;

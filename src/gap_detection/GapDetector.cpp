@@ -1,11 +1,8 @@
 #include <quad_gap/gap_detection/GapDetector.h>
 
 namespace quad_gap {
-    GapDetector::GapDetector() {}
-
-    GapDetector::~GapDetector() {}
-
-    GapDetector::GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) {
+    GapDetector::GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
+    {
         cfg_ = & cfg;
         robot_geo_proc_ = robot_geo_proc;
     }

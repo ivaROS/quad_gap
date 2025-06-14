@@ -114,8 +114,6 @@ namespace quad_gap
             void laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
             void inflatedlaserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
-            boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
-
             /**
             * call back function to pose, pose information obtained here only used when a new goal is used
             * @param msg pose msg
@@ -149,7 +147,7 @@ namespace quad_gap
             //  * @param selected_gap that will be returned by the same variable
             //  * @return selected_gap via the passed in variable
             //  */
-            // void vectorSelectGap(quad_gap::Gap & selected_gap);
+            // void vectorSelectGap(Gap & selected_gap);
 
             /**
             * Generate ctrl command to a target pose
@@ -164,20 +162,20 @@ namespace quad_gap
             * @param None, directly taken from private variable space
             * @return gap_set, simplfied radial prioritized gaps
             */
-            std::vector<quad_gap::Gap> gapManipulate();
+            std::vector<Gap> gapManipulate();
 
             /**
             * 
             *
             */
-            std::vector<std::vector<double>> initialTrajGen(std::vector<quad_gap::Gap>, std::vector<geometry_msgs::PoseArray>&, std::vector<geometry_msgs::PoseArray>& virtual_decayed);
+            std::vector<std::vector<double>> initialTrajGen(std::vector<Gap>, std::vector<geometry_msgs::PoseArray>&, std::vector<geometry_msgs::PoseArray>& virtual_decayed);
 
             /**
             * Callback function to config object
             * @param incoming config
             * @param level Level of incoming config
             */
-            void rcfgCallback(quad_gap::qgConfig &config, uint32_t level);
+            void rcfgCallback(qgConfig &config, uint32_t level);
 
             /**
             * Pick the best trajectory from the current set
@@ -270,10 +268,10 @@ namespace quad_gap
             using Lock = Mutex::scoped_lock;
             Mutex connect_mutex_;
 
-            typedef dynamic_reconfigure::Server<quad_gap::CollisionCheckerConfig> ReconfigureServer;
+            typedef dynamic_reconfigure::Server<CollisionCheckerConfig> ReconfigureServer;
             std::shared_ptr<ReconfigureServer> reconfigure_server_;
 
-            void configCB(quad_gap::CollisionCheckerConfig &config, uint32_t level);
+            void configCB(CollisionCheckerConfig &config, uint32_t level);
 
             /**
             * \brief Function to check if global goal has been reached
@@ -282,6 +280,8 @@ namespace quad_gap
             void setReachedGlobalGoal(const bool & status) { reachedGlobalGoal_ = status; }
 
         private:
+            boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+
             geometry_msgs::TransformStamped map2rbt;        // Transform
             geometry_msgs::TransformStamped rbt2map;
             geometry_msgs::TransformStamped odom2rbt;
@@ -325,24 +325,24 @@ namespace quad_gap
             geometry_msgs::PoseStamped final_goal_odom;
 
             // Gaps:
-            std::vector<quad_gap::Gap> observed_gaps;
-            std::vector<quad_gap::Gap> merged_gaps;
-            std::vector<quad_gap::Gap> selected_gap_set;
-            std::vector<quad_gap::Gap> ftg_gaps;
-            std::vector<quad_gap::Gap> safe_gaps_left;
-            std::vector<quad_gap::Gap> safe_gaps_right;
-            std::vector<quad_gap::Gap> safe_gaps_central;
-            std::vector<quad_gap::Gap> safe_gaps;
+            std::vector<Gap> observed_gaps;
+            std::vector<Gap> merged_gaps;
+            std::vector<Gap> selected_gap_set;
+            std::vector<Gap> ftg_gaps;
+            std::vector<Gap> safe_gaps_left;
+            std::vector<Gap> safe_gaps_right;
+            std::vector<Gap> safe_gaps_central;
+            std::vector<Gap> safe_gaps;
 
-            quad_gap::GapDetector *finder;
-            quad_gap::GapVisualizer *gapvisualizer;
-            quad_gap::GlobalPlanManager *goalselector;
-            quad_gap::TrajectoryVisualizer *trajvisualizer;
-            quad_gap::GoalVisualizer *goalvisualizer;
-            quad_gap::TrajectoryEvaluator *trajArbiter;
-            quad_gap::GapTrajGenerator *gapTrajSyn;
-            quad_gap::GapManipulator *gapManip;
-            quad_gap::TrajectoryController *trajController;
+            GapDetector *gapDetector_;
+            GapVisualizer *gapvisualizer;
+            GlobalPlanManager *goalselector;
+            TrajectoryVisualizer *trajvisualizer;
+            GoalVisualizer *goalvisualizer;
+            TrajectoryEvaluator *trajArbiter;
+            GapTrajGenerator *gapTrajSyn;
+            GapManipulator *gapManip;
+            TrajectoryController *trajController;
 
             // Status
             bool hasGoal = false;
@@ -354,7 +354,7 @@ namespace quad_gap
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
             int ctrl_idx = 0;
 
-            geometry_msgs::Pose rbtPoseOdomFrame_;
+            geometry_msgs::PoseStamped rbtPoseOdomFrame_;
             // nav_msgs::Odometry sharedPtr_odom;
 
             geometry_msgs::TwistStamped rbtVelRbtFrame_;
@@ -362,15 +362,15 @@ namespace quad_gap
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
 
             ros::WallTime last_time;
-            quad_gap::TrajPlan ni_ref, orig_ref;
+            TrajPlan ni_ref, orig_ref;
 
             // Dynamic Reconfigure
-            boost::shared_ptr<dynamic_reconfigure::Server<quad_gap::qgConfig> > dynamic_recfg_server;
-            dynamic_reconfigure::Server<quad_gap::qgConfig>::CallbackType f;
+            boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
+            dynamic_reconfigure::Server<qgConfig>::CallbackType f;
 
             bool replan = true;
             
-            quad_gap::QuadGapConfig cfg;
+            QuadGapConfig cfg;
 
             boost::mutex gapset_mutex;
 

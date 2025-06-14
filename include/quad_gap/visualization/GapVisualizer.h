@@ -9,12 +9,12 @@ namespace quad_gap
             using Visualizer::Visualizer;
         public: 
 
-            GapVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
-            void initialize(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg);
-            void drawGap(visualization_msgs::MarkerArray &, quad_gap::Gap g, std::string ns, std::string color = "Default");
-            void drawGaps(std::vector<quad_gap::Gap> g, std::string ns, std::string color = "Default");
-            void drawManipGap(visualization_msgs::MarkerArray &, quad_gap::Gap g, bool &);
-            void drawManipGaps(std::vector<quad_gap::Gap> vec);
+            GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            void initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            void drawGap(visualization_msgs::MarkerArray &, Gap g, std::string ns, std::string color = "Default");
+            void drawGaps(std::vector<Gap> g, std::string ns, std::string color = "Default");
+            void drawManipGap(visualization_msgs::MarkerArray &, Gap g, bool &);
+            void drawManipGaps(std::vector<Gap> vec);
 
         private:
             std::map<std::string, std::vector<std_msgs::ColorRGBA>> colormap;
