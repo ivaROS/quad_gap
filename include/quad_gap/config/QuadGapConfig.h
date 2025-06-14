@@ -6,6 +6,9 @@
 #include <Eigen/Core>
 #include <boost/thread/mutex.hpp>
 
+#include <sensor_msgs/LaserScan.h>
+#include <boost/shared_ptr.hpp>
+
 namespace quad_gap 
 {
     class QuadGapConfig 
@@ -28,6 +31,23 @@ namespace quad_gap
                 double viz_jitter = 0.1;
                 bool debug_viz = true;
             } gap_viz;
+
+            /**
+            * \brief Hyperparameters for laser scan
+            */
+            struct Scan
+            {
+                // will get overriden in updateParamFromScan
+                float angle_min = -M_PI; /**< minimum angle value in scan */
+                float angle_max = M_PI; /**< maximum angle value in scan */
+                int half_scan = 256; /**< Half of total rays in scan (integer) */
+                float half_scan_f = 256.; /**< Half of total rays in scan (float) */
+                int full_scan = 512; /**< Total ray count in scan (integer) */
+                float full_scan_f = 512.; /**< Total ray count in scan (float) */
+                float angle_increment = (2 * M_PI) / (full_scan_f - 1); /**< Angular increment between consecutive scan indices */
+                float range_min = 0.03; /**< Minimum detectable range in scan */
+                float range_max = -1e10; /**< Maximum detectable range in scan */
+            } scan;            
 
             struct GapManipulation 
             {
@@ -130,6 +150,11 @@ namespace quad_gap
             void reconfigure(qgConfig& cfg);
 
             boost::mutex & configMutex() {return config_mutex;}
+
+            /**
+            * \brief Load in hyperparameters from current laser scan
+            */
+            void updateParamFromScan(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);            
 
         private: 
             boost::mutex config_mutex; 

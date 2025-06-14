@@ -42,6 +42,13 @@ namespace quad_gap
                 robot_geo_proc_ = t.robot_geo_proc_;
             };
 
+            /**
+            * \brief Preprocess incoming laser scan to remove NaN/Inf values
+            *
+            * \param scan pointer to incoming laser scan
+            */
+            void preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan);
+
             void hybridScanGap(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
 
             void mergeGapsOneGo(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);

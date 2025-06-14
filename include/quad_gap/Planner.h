@@ -93,11 +93,10 @@ namespace quad_gap
             bool initialize(const std::string & name);
 
             /**
-            * Return initialization status
-            * @param None
-            * @return bool initialization status
+            * \brief Indicator for if planner has been initialized
+            * \return boolean for if planner has been initialized 
             */
-            bool initialized();
+            int initialized() { return initialized_; } 
 
             /**
             * Check if reached goal using euclidean dist
@@ -111,8 +110,7 @@ namespace quad_gap
             * @param msg laser scan msg
             * @return None, laser scan msg stored locally
             */
-            void laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
-            void inflatedlaserScanCB(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            void laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan> msg);
 
             /**
             * call back function to pose, pose information obtained here only used when a new goal is used
@@ -279,6 +277,8 @@ namespace quad_gap
             */
             void setReachedGlobalGoal(const bool & status) { reachedGlobalGoal_ = status; }
 
+            void updateEgoCircle();
+
         private:
             boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
@@ -313,6 +313,8 @@ namespace quad_gap
             ros::Publisher virtual_orient_traj_pub;
 
             bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */
+            bool hasLaserScan_ = false;
+            bool initialized_ = false;
 
             // Goals and stuff
             geometry_msgs::PoseStamped globalGoalOdomFrame_; /**< Global goal in odometry frame */
@@ -326,27 +328,21 @@ namespace quad_gap
 
             // Gaps:
             std::vector<Gap> observed_gaps;
-            std::vector<Gap> merged_gaps;
-            std::vector<Gap> selected_gap_set;
-            std::vector<Gap> ftg_gaps;
-            std::vector<Gap> safe_gaps_left;
-            std::vector<Gap> safe_gaps_right;
-            std::vector<Gap> safe_gaps_central;
-            std::vector<Gap> safe_gaps;
 
             GapDetector *gapDetector_;
-            GapVisualizer *gapvisualizer;
-            GlobalPlanManager *goalselector;
-            TrajectoryVisualizer *trajvisualizer;
-            GoalVisualizer *goalvisualizer;
-            TrajectoryEvaluator *trajArbiter;
-            GapTrajGenerator *gapTrajSyn;
-            GapManipulator *gapManip;
-            TrajectoryController *trajController;
+            GapVisualizer *gapVisualizer_;
+            GlobalPlanManager *globalPlanManager_;
+            TrajectoryVisualizer *trajVisualizer_;
+            GoalVisualizer *goalVisualizer_;
+            TrajectoryEvaluator *trajEvaluator_;
+            GapTrajGenerator *gapTrajGenerator_;
+            GapManipulator *gapManipulator_;
+            TrajectoryController *trajController_;
 
             // Status
-            bool hasGoal = false;
-            bool _initialized = false;
+            bool hasGlobalGoal_ = false;
+
+            bool colliding_ = false;
 
             geometry_msgs::PoseArray pose_arr;
             geometry_msgs::PoseArray pose_arr_odom;

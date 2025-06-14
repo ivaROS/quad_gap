@@ -183,6 +183,19 @@ namespace quad_gap
         rbt.r_inscr = cfg.r_inscr;
     }
 
+    void QuadGapConfig::updateParamFromScan(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)
+    {
+        sensor_msgs::LaserScan incomingScan = *scanPtr.get();
+        scan.angle_min = incomingScan.angle_min;
+        scan.angle_max = incomingScan.angle_max;
+        scan.full_scan = incomingScan.ranges.size();
+        scan.full_scan_f = float(scan.full_scan);
+        scan.half_scan = 0.5 * scan.full_scan;
+        scan.half_scan_f = float(scan.half_scan);        
+        scan.angle_increment = (2 * M_PI) / (scan.full_scan_f - 1);
 
+        scan.range_max = incomingScan.range_max; // maximum detectable range, not max range within a particular scan
+        scan.range_min = incomingScan.range_min; // minimum detectable range, not min range within a particular scan
+    }
 
 }
