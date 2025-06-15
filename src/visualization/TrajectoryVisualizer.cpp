@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg)
+TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg)
     {
         cfg_ = &cfg;
         goal_selector_traj_vis = nh.advertise<geometry_msgs::PoseArray>("goal_select_traj", 1000);

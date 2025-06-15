@@ -8,7 +8,7 @@ namespace quad_gap {
         num_of_scan = (int)(msg.get()->ranges.size());
     }
 
-    void GapManipulator::setGapWaypoint(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal)
+    void GapManipulator::setGapWaypoint(Gap& gap, geometry_msgs::PoseStamped localgoal)
     {
         // TODO: assume there is no idx that will pass 0
         auto half_num_scan = gap.half_scan;
@@ -184,7 +184,7 @@ namespace quad_gap {
     }
 
     // In place modification
-    void GapManipulator::reduceGap(quad_gap::Gap& gap, geometry_msgs::PoseStamped localgoal) {
+    void GapManipulator::reduceGap(Gap& gap, geometry_msgs::PoseStamped localgoal) {
         int lidx = gap.LIdx();
         int ridx = gap.RIdx();
         if (!msg) return; 
@@ -233,7 +233,7 @@ namespace quad_gap {
         return;
     }
 
-    void GapManipulator::convertAxialGap(quad_gap::Gap& gap) {
+    void GapManipulator::convertAxialGap(Gap& gap) {
         // Return if not axial gap or disabled
         if (!gap.isAxial() || !cfg_->gap_manip.axial_convert) {
             // ROS_INFO_STREAM("Swept gap.");
@@ -394,7 +394,7 @@ namespace quad_gap {
         gap.mode.agc = true;
     }
 
-    void GapManipulator::radialExtendGap(quad_gap::Gap& selected_gap) {
+    void GapManipulator::radialExtendGap(Gap& selected_gap) {
         if (!cfg_->gap_manip.radial_extend) {
             ROS_DEBUG_STREAM_THROTTLE(1, "Radial Extension is off");
             return;

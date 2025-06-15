@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg) 
+    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
     {
         projection_viz = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
         cfg_ = & cfg;
@@ -482,7 +482,7 @@ namespace quad_gap
     }
 
 
-    int TrajectoryController::targetPoseIdx(geometry_msgs::Pose curr_pose, quad_gap::TrajPlan ref_pose) {
+    int TrajectoryController::targetPoseIdx(geometry_msgs::Pose curr_pose, TrajPlan ref_pose) {
         // Find pose right ahead
         std::vector<double> pose_diff(ref_pose.poses.size());
         // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
@@ -503,9 +503,9 @@ namespace quad_gap
     }
 
 
-    quad_gap::TrajPlan TrajectoryController::trajGen(geometry_msgs::PoseArray orig_traj)
+    TrajPlan TrajectoryController::trajGen(geometry_msgs::PoseArray orig_traj)
     {
-        quad_gap::TrajPlan traj;
+        TrajPlan traj;
         traj.header.frame_id = cfg_->odom_frame_id;
         for(size_t i = 0; i < orig_traj.poses.size(); i++)
         {

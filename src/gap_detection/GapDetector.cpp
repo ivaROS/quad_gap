@@ -28,7 +28,7 @@ namespace quad_gap {
     }
 
     void GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
-                                    std::vector<quad_gap::Gap> & observed_gaps)
+                                    std::vector<Gap> & observed_gaps)
     {
         observed_gaps.clear();
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
@@ -58,7 +58,7 @@ namespace quad_gap {
                 // If both current and last values are not infinity, meaning this is not a swept gap
                 if (scan_dist < max_scan_dist && last_scan < max_scan_dist) 
                 {
-                    quad_gap::Gap detected_gap(frame, it - 1, last_scan, true, half_scan);
+                    Gap detected_gap(frame, it - 1, last_scan, true, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -80,7 +80,7 @@ namespace quad_gap {
                 if (prev_lgap)
                 {
                     prev_lgap = false;
-                    quad_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+                    Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -105,7 +105,7 @@ namespace quad_gap {
         // Catch the last gap
         if (prev_lgap) 
         {
-            quad_gap::Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+            Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
             detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);
@@ -139,14 +139,14 @@ namespace quad_gap {
 
     void GapDetector::gapSimplification(
         boost::shared_ptr<sensor_msgs::LaserScan const> sharedPtr_laser,
-        std::vector<quad_gap::Gap>& observed_gaps)
+        std::vector<Gap>& observed_gaps)
     {
         // int left_idx = -1;
         // int right_idx = -1;
         // float right_dist = 3;
         // float left_dist = 3; // TODO: Make this reconfigurable
         int observed_size = (int) observed_gaps.size();
-        std::vector<quad_gap::Gap> second_gap;
+        std::vector<Gap> second_gap;
 
         sensor_msgs::LaserScan stored_scan_msgs = *sharedPtr_laser.get();
         // Termination Condition

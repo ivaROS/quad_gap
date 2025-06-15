@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(quad_gap::Gap selectedGap, geometry_msgs::PoseStamped curr_pose) 
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap selectedGap, geometry_msgs::PoseStamped curr_pose) 
     {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray posearr;
@@ -74,12 +74,12 @@ namespace quad_gap
     }
 
     [[deprecated("Use single trajectory generation")]]
-    std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<quad_gap::Gap> gapset) {
+    std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<Gap> gapset) {
         std::vector<geometry_msgs::PoseArray> traj_set(gapset.size());
         return traj_set;
     }
 
-    bool GapTrajGenerator::findBezierControlPts(quad_gap::Gap selectedGap, 
+    bool GapTrajGenerator::findBezierControlPts(Gap selectedGap, 
                                                 Bezier::Bezier<2>& bezier_curve, 
                                                 geometry_msgs::TwistStamped rbtVelRbtFrame, 
                                                 geometry_msgs::TransformStamped odom2rbt)
@@ -657,7 +657,7 @@ namespace quad_gap
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(quad_gap::Gap selectedGap, 
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap selectedGap, 
                                                                         geometry_msgs::TwistStamped rbtVelRbtFrame, 
                                                                         geometry_msgs::TransformStamped odom2rbt)
     {

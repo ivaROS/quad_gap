@@ -32,8 +32,8 @@ namespace quad_gap
         ros::NodeHandle pnh("~/" + planner_name);
 
         // // Setup dynamic reconfigure
-        // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <quad_gap::qgConfig> > (pnh);
-        // f = boost::bind(&quad_gap::Planner::rcfgCallback, &planner, _1, _2);
+        // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <qgConfig> > (pnh);
+        // f = boost::bind(&Planner::rcfgCallback, &planner, _1, _2);
         // dynamic_recfg_server->setCallback(f);
     }
 

@@ -180,15 +180,15 @@ namespace quad_gap
         laserSub_ = nh.subscribe(cfg_.scan_topic, 100, &Planner::laserScanCB, this);
         poseSub_ = nh.subscribe(cfg_.odom_topic, 10, &Planner::poseCB, this);        
 
-        gapDetector_ = new quad_gap::GapDetector(cfg_, robot_geo_proc_);
-        gapVisualizer_ = new quad_gap::GapVisualizer(nh, cfg_);
-        globalPlanManager_ = new quad_gap::GlobalPlanManager(cfg_, robot_geo_proc_);
-        trajVisualizer_ = new quad_gap::TrajectoryVisualizer(nh, cfg_);
-        trajEvaluator_ = new quad_gap::TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
-        gapTrajGenerator_ = new quad_gap::GapTrajGenerator(nh, cfg_, robot_geo_proc_);
-        goalVisualizer_ = new quad_gap::GoalVisualizer(nh, cfg_);
-        gapManipulator_ = new quad_gap::GapManipulator(nh, cfg_, robot_geo_proc_);
-        trajController_ = new quad_gap::TrajectoryController(nh, cfg_);
+        gapDetector_ = new GapDetector(cfg_, robot_geo_proc_);
+        gapVisualizer_ = new GapVisualizer(nh, cfg_);
+        globalPlanManager_ = new GlobalPlanManager(cfg_, robot_geo_proc_);
+        trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
+        trajEvaluator_ = new TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
+        gapTrajGenerator_ = new GapTrajGenerator(nh, cfg_, robot_geo_proc_);
+        goalVisualizer_ = new GoalVisualizer(nh, cfg_);
+        gapManipulator_ = new GapManipulator(nh, cfg_, robot_geo_proc_);
+        trajController_ = new TrajectoryController(nh, cfg_);
 
         map2rbt_.transform.rotation.w = 1;
         rbt2map_.transform.rotation.w = 1;
@@ -204,7 +204,7 @@ namespace quad_gap
         return true;
     }
 
-    void Planner::configCB(quad_gap::CollisionCheckerConfig &config, uint32_t level)
+    void Planner::configCB(CollisionCheckerConfig &config, uint32_t level)
     {
         ROS_INFO_STREAM("CC Reconfigure Request: "); // TODO: print out the cc type and other parameter values
 
@@ -219,17 +219,17 @@ namespace quad_gap
 
         // if(config.cc_type != cc_type_)
         // {
-        //     if(config.cc_type == quad_gap::CollisionChecker_depth)
+        //     if(config.cc_type == CollisionChecker_depth)
         //     {
         //         ROS_INFO_STREAM("New cc type = depth");
         //         cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
         //     }
-        //     else if(config.cc_type == quad_gap::CollisionChecker_depth_ego)
+        //     else if(config.cc_type == CollisionChecker_depth_ego)
         //     {
         //         ROS_INFO_STREAM("New cc type = depth ego");
         //         cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
         //     }
-        //     else if(config.cc_type == quad_gap::CollisionChecker_egocircle)
+        //     else if(config.cc_type == CollisionChecker_egocircle)
         //     {
         //         ROS_INFO_STREAM("New cc type = egocircle");
         //         cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
@@ -562,17 +562,17 @@ namespace quad_gap
     }
 
     // [[deprecated("Use Proper trajectory scoring instead")]]
-    // void Planner::vectorSelectGap(quad_gap::Gap & selected_gap)
+    // void Planner::vectorSelectGap(Gap & selected_gap)
     // {
-    //     quad_gap::Gap result = trajEvaluator_->returnAndScoreGaps();
+    //     Gap result = trajEvaluator_->returnAndScoreGaps();
     //     selected_gap = result;
     //     return;
     // }
 
-    std::vector<quad_gap::Gap> Planner::gapManipulate() 
+    std::vector<Gap> Planner::gapManipulate() 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
-        std::vector<quad_gap::Gap> manip_set;
+        std::vector<Gap> manip_set;
         manip_set = observed_gaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
@@ -598,7 +598,7 @@ namespace quad_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<quad_gap::Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
+    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<geometry_msgs::PoseArray> ret_traj(vec.size());
@@ -959,7 +959,7 @@ namespace quad_gap
         return cmd_vel;
     }
 
-    void Planner::rcfgCallback(quad_gap::qgConfig &config, uint32_t level)
+    void Planner::rcfgCallback(qgConfig &config, uint32_t level)
     {
         cfg_.reconfigure(config);
         

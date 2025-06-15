@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const quad_gap::QuadGapConfig& cfg)
+    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg)
     {
         cfg_ = &cfg;
         globalGoalPublisher = nh.advertise<visualization_msgs::Marker>("global_goal", 10);
@@ -87,7 +87,7 @@ namespace quad_gap
     }
 
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, quad_gap::Gap g) {
+    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, Gap g) {
         if (!cfg_->gap_viz.debug_viz) return;
         if (!g.goal.set) {
             return;
@@ -113,7 +113,7 @@ namespace quad_gap
 
     }
 
-    void GoalVisualizer::drawGapGoals(std::vector<quad_gap::Gap> gs) {
+    void GoalVisualizer::drawGapGoals(std::vector<Gap> gs) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         for (auto & gap : gs) {

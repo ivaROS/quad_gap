@@ -64,7 +64,7 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, quad_gap::Gap g, std::string ns, std::string color) {
+    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, Gap g, std::string ns, std::string color) {
         // ROS_INFO_STREAM(g._left_idx << ", " << g._ldist << ", " << g._right_idx << ", " << g._rdist << ", " << g._frame);
         if (!cfg_->gap_viz.debug_viz) return;
 
@@ -151,7 +151,7 @@ namespace quad_gap
         vis_arr.markers.push_back(this_marker);
     }
     
-    void GapVisualizer::drawGaps(std::vector<quad_gap::Gap> g, std::string ns, std::string color) {
+    void GapVisualizer::drawGaps(std::vector<Gap> g, std::string ns, std::string color) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         for (auto & gap : g) {
@@ -160,7 +160,7 @@ namespace quad_gap
         gaparc_publisher.publish(vis_arr);
     }
 
-    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, quad_gap::Gap g, bool & circle) {
+    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, Gap g, bool & circle) {
         // if AGC: Color is Red
         // if Convex: color is Brown, viz_jitter + 0.1
         // if RadialExtension: color is green, draw additional circle
@@ -330,7 +330,7 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawManipGaps(std::vector<quad_gap::Gap> vec) {
+    void GapVisualizer::drawManipGaps(std::vector<Gap> vec) {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         bool circle = false;
