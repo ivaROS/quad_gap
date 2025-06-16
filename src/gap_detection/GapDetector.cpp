@@ -129,8 +129,8 @@ namespace quad_gap {
                 // float result = (end_side_dist - start_side_dist) * start_side_idx / (observed_gaps.size() - end_side_idx + start_side_idx) + start_side_dist;
                 int total_size = 511 - end_side_idx + start_side_idx;
                 float result = (end_side_dist - start_side_dist) * (float (start_side_idx) / float (total_size)) + start_side_dist;
-                observed_gaps[0].setLeftObs();
-                observed_gaps[observed_gaps.size() - 1].setRightObs();
+                observed_gaps[0].setRightFlippedObs();
+                observed_gaps[observed_gaps.size() - 1].setLeftFlippedObs();
                 observed_gaps[observed_gaps.size() - 1].addRightFlippedInformation(511, result);
                 observed_gaps[0].setRFlippedDist(result);
             }

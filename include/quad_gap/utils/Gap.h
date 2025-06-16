@@ -134,18 +134,17 @@ namespace quad_gap
             }
 
             // Getter and Setter for if side is an obstacle
-            void setLeftObs() {
+            void setRightFlippedObs() {
                 right_flipped_obs = false;
             }
 
-            void setRightObs() {
+            void setLeftFlippedObs() {
                 left_flipped_obs = false;
             }
 
             bool getRightFlippedObs() {
                 return right_flipped_obs;
             }
-
 
             bool getLeftFlippedObs() {
                 return left_flipped_obs;
