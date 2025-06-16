@@ -47,8 +47,8 @@ namespace quad_gap {
         ROS_DEBUG_STREAM(globalPathLocalWaypointRobotFrame_.pose.position);
         auto costFn = [](Gap g, int goal_idx) -> double
         {
-            int leftdist = std::abs(g._left_idx - goal_idx);
-            int rightdist = std::abs(g._right_idx - goal_idx);
+            int leftdist = std::abs(g._right_flipped_idx - goal_idx);
+            int rightdist = std::abs(g._left_flipped_idx - goal_idx);
             return std::min(leftdist, rightdist);
         };
 
