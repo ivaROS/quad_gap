@@ -39,7 +39,7 @@ namespace quad_gap {
         auto min_dist = *std::min_element(stored_scan_msgs.ranges.begin(), stored_scan_msgs.ranges.end());
         int gap_size = 0;
         std::string frame = stored_scan_msgs.header.frame_id;
-        int gap_lidx = 0;
+        int gap_left_idx = 0;
         float gap_left_dist = stored_scan_msgs.ranges[0];
         float last_scan = stored_scan_msgs.ranges[0];
         bool prev_lgap = gap_left_dist >= max_scan_dist;
@@ -80,7 +80,7 @@ namespace quad_gap {
                 if (prev_lgap)
                 {
                     prev_lgap = false;
-                    Gap detected_gap(frame, gap_lidx, gap_left_dist, half_scan);
+                    Gap detected_gap(frame, gap_left_idx, gap_left_dist, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -94,7 +94,7 @@ namespace quad_gap {
                 }
                 else // previously not marked a gap, not marking the gap
                 {
-                    gap_lidx = it - 1;
+                    gap_left_idx = it - 1;
                     gap_left_dist = last_scan;
                     prev_lgap = true;
                 }
@@ -105,7 +105,7 @@ namespace quad_gap {
         // Catch the last gap
         if (prev_lgap) 
         {
-            Gap detected_gap(frame, gap_lidx, gap_left_dist, half_scan);
+            Gap detected_gap(frame, gap_left_idx, gap_left_dist, half_scan);
             detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);

@@ -21,14 +21,14 @@ namespace quad_gap
 
             ~Gap() {};
 
-            void setLIdx(int lidx)
+            void setLIdx(int left_idx)
             {
-                _left_idx = lidx;
+                _left_idx = left_idx;
             }
 
-            void setRIdx(int ridx)
+            void setRIdx(int right_idx)
             {
-                _right_idx = ridx;
+                _right_idx = right_idx;
             }
 
             // Setter and Getter for LR Distance and Index
@@ -88,8 +88,8 @@ namespace quad_gap
                     }
                 }
 
-                convex.convex_lidx = _left_idx;
-                convex.convex_ridx = _right_idx;
+                convex.convex_left_idx = _left_idx;
+                convex.convex_right_idx = _right_idx;
                 convex.convex_left_dist = _left_dist;
                 convex.convex_right_dist = _right_dist;
             }
@@ -109,30 +109,30 @@ namespace quad_gap
             }
 
             void getRadialExLCartesian(float &x, float &y){
-                x = (convex_left_dist) * cos(-((float) half_scan - convex_lidx) / half_scan * M_PI);
-                y = (convex_left_dist) * sin(-((float) half_scan - convex_lidx) / half_scan * M_PI);
+                x = (convex_left_dist) * cos(-((float) half_scan - convex_left_idx) / half_scan * M_PI);
+                y = (convex_left_dist) * sin(-((float) half_scan - convex_left_idx) / half_scan * M_PI);
             }
 
             void getRadialExRCartesian(float &x, float &y){
-                x = (convex_right_dist) * cos(-((float) half_scan - convex_ridx) / half_scan * M_PI);
-                y = (convex_right_dist) * sin(-((float) half_scan - convex_ridx) / half_scan * M_PI);
+                x = (convex_right_dist) * cos(-((float) half_scan - convex_right_idx) / half_scan * M_PI);
+                y = (convex_right_dist) * sin(-((float) half_scan - convex_right_idx) / half_scan * M_PI);
             }
 
-            void setAGCIdx(int lidx, int ridx) {
-                agc_lidx = lidx;
-                agc_ridx = ridx;
-                agc_left_dist = float(lidx - _left_idx) / float(_right_idx - _left_idx) * (_right_dist - _left_dist) + _left_dist;
-                agc_right_dist = float(ridx - _left_idx) / float(_right_idx - _left_idx) * (_right_dist - _left_dist) + _left_dist;
+            void setAGCIdx(int left_idx, int right_idx) {
+                agc_left_idx = left_idx;
+                agc_right_idx = right_idx;
+                agc_left_dist = float(left_idx - _left_idx) / float(_right_idx - _left_idx) * (_right_dist - _left_dist) + _left_dist;
+                agc_right_dist = float(right_idx - _left_idx) / float(_right_idx - _left_idx) * (_right_dist - _left_dist) + _left_dist;
             }
 
             void getAGCLCartesian(float &x, float &y){
-                x = (agc_left_dist) * cos(-((float) half_scan - agc_lidx) / half_scan * M_PI);
-                y = (agc_left_dist) * sin(-((float) half_scan - agc_lidx) / half_scan * M_PI);
+                x = (agc_left_dist) * cos(-((float) half_scan - agc_left_idx) / half_scan * M_PI);
+                y = (agc_left_dist) * sin(-((float) half_scan - agc_left_idx) / half_scan * M_PI);
             }
 
             void getAGCRCartesian(float &x, float &y){
-                x = (agc_right_dist) * cos(-((float) half_scan - agc_ridx) / half_scan * M_PI);
-                y = (agc_right_dist) * sin(-((float) half_scan - agc_ridx) / half_scan * M_PI);
+                x = (agc_right_dist) * cos(-((float) half_scan - agc_right_idx) / half_scan * M_PI);
+                y = (agc_right_dist) * sin(-((float) half_scan - agc_right_idx) / half_scan * M_PI);
             }
 
             // Decimate Gap 
@@ -141,9 +141,9 @@ namespace quad_gap
                 int num_gaps = (_right_idx - _left_idx) / min_resoln + 1;
                 int idx_step = (_right_idx - _left_idx) / num_gaps;
                 float dist_step = (_right_dist - _left_dist) / num_gaps;
-                int sub_gap_lidx = _left_idx;
+                int sub_gap_left_idx = _left_idx;
                 float sub_gap_left_dist = _left_dist;
-                int sub_gap_ridx = _left_idx;
+                int sub_gap_right_idx = _left_idx;
 
                 if (num_gaps < 3) {
                     gap.push_back(*this);
@@ -151,8 +151,8 @@ namespace quad_gap
                 }
                 
                 for (int i = 0; i < num_gaps; i++) {
-                    Gap detected_gap(_frame, sub_gap_lidx, sub_gap_left_dist);
-                    // ROS_DEBUG_STREAM("lidx: " << sub_gap_lidx << "left_dist: " << sub_gap_left_dist);
+                    Gap detected_gap(_frame, sub_gap_left_idx, sub_gap_left_dist);
+                    // ROS_DEBUG_STREAM("left_idx: " << sub_gap_left_idx << "left_dist: " << sub_gap_left_dist);
                     if (i != 0) {
                         detected_gap.setLeftObs();
                     }
@@ -161,14 +161,14 @@ namespace quad_gap
                         detected_gap.setRightObs();
                     }
 
-                    sub_gap_lidx += idx_step;
+                    sub_gap_left_idx += idx_step;
                     sub_gap_left_dist += dist_step;
-                    // ROS_DEBUG_STREAM("ridx: " << sub_gap_lidx << "right_dist: " << sub_gap_left_dist);
+                    // ROS_DEBUG_STREAM("right_idx: " << sub_gap_left_idx << "right_dist: " << sub_gap_left_dist);
                     if (i == num_gaps - 1)
                     {
                         detected_gap.addRightInformation(_right_idx, _right_dist);
                     } else {
-                        detected_gap.addRightInformation(sub_gap_lidx - 1, sub_gap_left_dist);
+                        detected_gap.addRightInformation(sub_gap_left_idx - 1, sub_gap_left_dist);
                     }
                     gap.push_back(detected_gap);
                 }
@@ -262,16 +262,16 @@ namespace quad_gap
             bool wrap = false;
             bool reduced = false;
             bool convexified = false;
-            int convex_lidx;
-            int convex_ridx;
+            int convex_left_idx;
+            int convex_right_idx;
             float convex_left_dist;
             float convex_right_dist;
             float min_safe_dist = -1;
             Eigen::Vector2f qB;
             float half_scan = 256;
 
-            int agc_lidx;
-            int agc_ridx;
+            int agc_left_idx;
+            int agc_right_idx;
             float agc_left_dist;
             float agc_right_dist;
             bool no_agc_coor = false;
@@ -283,8 +283,8 @@ namespace quad_gap
             bool left_type = false;
 
             struct converted {
-                int convex_lidx = 0;
-                int convex_ridx = 511;
+                int convex_left_idx = 0;
+                int convex_right_idx = 511;
                 float convex_left_dist = 3;
                 float convex_right_dist = 3;
             } convex;
