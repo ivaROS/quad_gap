@@ -65,19 +65,19 @@ namespace quad_gap
     }
 
     void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, Gap g, std::string ns, std::string color) {
-        // ROS_INFO_STREAM(g._right_flipped_idx << ", " << g._right_flipped_dist << ", " << g._left_flipped_idx << ", " << g._left_flipped_dist << ", " << g._frame);
+        // ROS_INFO_STREAM(g._right_idx << ", " << g._right_dist << ", " << g._left_idx << ", " << g._left_dist << ", " << g._frame);
         if (!cfg_->gap_viz.debug_viz) return;
 
         int viz_offset = 0;
         double viz_jitter = cfg_->gap_viz.viz_jitter;
         if (viz_jitter > 0 && g.setRadial()){
-            viz_offset = g.isRightFlippedType() ? -2 : 2;
+            viz_offset = g.isRightType() ? -2 : 2;
         }
 
-        int num_gaps = (g._left_flipped_idx - g._right_flipped_idx) / cfg_->gap_viz.min_resoln + 1;
-        float dist_step = (g._left_flipped_dist - g._right_flipped_dist) / num_gaps;
-        int sub_gap_right_flipped_idx = g._right_flipped_idx + viz_offset;
-        float sub_gap_right_flipped_dist = g._right_flipped_dist;
+        int num_gaps = (g._left_idx - g._right_idx) / cfg_->gap_viz.min_resoln + 1;
+        float dist_step = (g._left_dist - g._right_dist) / num_gaps;
+        int sub_gap_right_idx = g._right_idx + viz_offset;
+        float sub_gap_right_dist = g._right_dist;
 
         visualization_msgs::Marker this_marker;
         this_marker.header.frame_id = g._frame;
@@ -122,12 +122,12 @@ namespace quad_gap
         for (int i = 0; i < num_gaps - 1; i++)
         {
             lines.clear();
-            linel.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            linel.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            sub_gap_right_flipped_idx += cfg_->gap_viz.min_resoln;
-            sub_gap_right_flipped_dist += dist_step;
-            liner.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            liner.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
+            linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            sub_gap_right_idx += cfg_->gap_viz.min_resoln;
+            sub_gap_right_dist += dist_step;
+            liner.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            liner.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
             lines.push_back(linel);
             lines.push_back(liner);
 
@@ -139,10 +139,10 @@ namespace quad_gap
 
         // close the last
         lines.clear();
-        linel.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-        linel.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-        liner.x = (g._left_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - g._left_flipped_idx) / g.half_scan * M_PI);
-        liner.y = (g._left_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - g._left_flipped_idx) / g.half_scan * M_PI);
+        linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+        linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+        liner.x = (g._left_dist + viz_jitter) * cos(-( (float) g.half_scan - g._left_idx) / g.half_scan * M_PI);
+        liner.y = (g._left_dist + viz_jitter) * sin(-( (float) g.half_scan - g._left_idx) / g.half_scan * M_PI);
         lines.push_back(linel);
         lines.push_back(liner);
         this_marker.points = lines;
@@ -173,7 +173,7 @@ namespace quad_gap
         float viz_jitter = (float) cfg_->gap_viz.viz_jitter;
         int viz_offset = 0;
         if (viz_jitter > 0 && g.setRadial()){
-            viz_offset = g.isRightFlippedType() ? -2 : 2;
+            viz_offset = g.isRightType() ? -2 : 2;
         }
 
         std::string ns;
@@ -190,10 +190,10 @@ namespace quad_gap
             ns = "fin_agc";
         }
         
-        int num_gaps = (g.convex.convex_left_flipped_idx - g.convex.convex_right_flipped_idx) / cfg_->gap_viz.min_resoln + 1;
-        float dist_step = (g.convex.convex_left_flipped_dist - g.convex.convex_right_flipped_dist) / num_gaps;
-        int sub_gap_right_flipped_idx = g.convex.convex_right_flipped_idx + viz_offset;
-        float sub_gap_right_flipped_dist = g.convex.convex_right_flipped_dist;
+        int num_gaps = (g.convex.convex_left_idx - g.convex.convex_right_idx) / cfg_->gap_viz.min_resoln + 1;
+        float dist_step = (g.convex.convex_left_dist - g.convex.convex_right_dist) / num_gaps;
+        int sub_gap_right_idx = g.convex.convex_right_idx + viz_offset;
+        float sub_gap_right_dist = g.convex.convex_right_dist;
 
         visualization_msgs::Marker this_marker;
         this_marker.header.frame_id = g._frame;
@@ -228,12 +228,12 @@ namespace quad_gap
         for (int i = 0; i < num_gaps - 1; i++)
         {
             lines.clear();
-            linel.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            linel.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            sub_gap_right_flipped_idx += cfg_->gap_viz.min_resoln;
-            sub_gap_right_flipped_dist += dist_step;
-            liner.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-            liner.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
+            linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            sub_gap_right_idx += cfg_->gap_viz.min_resoln;
+            sub_gap_right_dist += dist_step;
+            liner.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+            liner.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
             lines.push_back(linel);
             lines.push_back(liner);
 
@@ -244,10 +244,10 @@ namespace quad_gap
 
         // close the last
         lines.clear();
-        linel.x = (sub_gap_right_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-        linel.y = (sub_gap_right_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_flipped_idx) / g.half_scan * M_PI);
-        liner.x = (g.convex.convex_left_flipped_dist + viz_jitter) * cos(-( (float) g.half_scan - g.convex.convex_left_flipped_idx) / g.half_scan * M_PI);
-        liner.y = (g.convex.convex_left_flipped_dist + viz_jitter) * sin(-( (float) g.half_scan - g.convex.convex_left_flipped_idx) / g.half_scan * M_PI);
+        linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+        linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) g.half_scan - sub_gap_right_idx) / g.half_scan * M_PI);
+        liner.x = (g.convex.convex_left_dist + viz_jitter) * cos(-( (float) g.half_scan - g.convex.convex_left_idx) / g.half_scan * M_PI);
+        liner.y = (g.convex.convex_left_dist + viz_jitter) * sin(-( (float) g.half_scan - g.convex.convex_left_idx) / g.half_scan * M_PI);
         lines.push_back(linel);
         lines.push_back(liner);
         this_marker.points = lines;
@@ -313,17 +313,17 @@ namespace quad_gap
 
             {
                 this_marker.ns = "extent_line";
-                getline(g.convex.convex_right_flipped_idx, g.convex.convex_right_flipped_dist, g.qB, 
+                getline(g.convex.convex_right_idx, g.convex.convex_right_dist, g.qB, 
                     lines, linel, liner, this_marker, convex_color, vis_arr, g.half_scan, id++);
-                getline(g.convex.convex_left_flipped_idx, g.convex.convex_left_flipped_dist, g.qB, 
+                getline(g.convex.convex_left_idx, g.convex.convex_left_dist, g.qB, 
                     lines, linel, liner, this_marker, convex_color, vis_arr, g.half_scan, id++);
                 Eigen::Vector2f origin(0, 0);
 
 
                 this_marker.ns = "orig_line";
-                getline(g._right_flipped_idx, g._right_flipped_dist, origin, 
+                getline(g._right_idx, g._right_dist, origin, 
                     lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, g.half_scan, id++);
-                getline(g._left_flipped_idx, g._left_flipped_dist, origin, 
+                getline(g._left_idx, g._left_dist, origin, 
                     lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, g.half_scan, id++);
             }
         }

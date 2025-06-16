@@ -34,10 +34,10 @@ namespace quad_gap
 
         float x1, x2, y1, y2;
         float half_num_scan = selectedGap.half_scan;
-        x1 = (selectedGap.convex.convex_right_flipped_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_flipped_idx) / half_num_scan * M_PI);
-        y1 = (selectedGap.convex.convex_right_flipped_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_flipped_idx) / half_num_scan * M_PI);
-        x2 = (selectedGap.convex.convex_left_flipped_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_flipped_idx) / half_num_scan * M_PI);
-        y2 = (selectedGap.convex.convex_left_flipped_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_left_flipped_idx) / half_num_scan * M_PI);
+        x1 = (selectedGap.convex.convex_right_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
+        y1 = (selectedGap.convex.convex_right_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
+        x2 = (selectedGap.convex.convex_left_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);
+        y2 = (selectedGap.convex.convex_left_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);
 
         if (selectedGap.mode.convex) {
             x = {- selectedGap.qB(0) - 1e-6, - selectedGap.qB(1) + 1e-6};
@@ -54,8 +54,8 @@ namespace quad_gap
                             y1 * coefs, y2 * coefs,
                             selectedGap.goal.x * coefs,
                             selectedGap.goal.y * coefs,
-                            selectedGap.getRightFlippedObs(),
-                            selectedGap.getLeftFlippedObs(),
+                            selectedGap.getRightObs(),
+                            selectedGap.getLeftObs(),
                             selectedGap.setRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
@@ -87,10 +87,10 @@ namespace quad_gap
         // Find the intersections of triangle and circle
         float x1, x2, y1, y2;
         float half_num_scan = selectedGap.half_scan;
-        x1 = (selectedGap.convex.convex_right_flipped_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_flipped_idx) / half_num_scan * M_PI);
-        y1 = (selectedGap.convex.convex_right_flipped_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_flipped_idx) / half_num_scan * M_PI);
-        x2 = (selectedGap.convex.convex_left_flipped_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_flipped_idx) / half_num_scan * M_PI);
-        y2 = (selectedGap.convex.convex_left_flipped_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_left_flipped_idx) / half_num_scan * M_PI);
+        x1 = (selectedGap.convex.convex_right_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
+        y1 = (selectedGap.convex.convex_right_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
+        x2 = (selectedGap.convex.convex_left_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);
+        y2 = (selectedGap.convex.convex_left_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);
 
         float goal_x = selectedGap.goal.x;
         float goal_y = selectedGap.goal.y;
