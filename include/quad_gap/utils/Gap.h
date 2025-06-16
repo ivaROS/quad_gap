@@ -240,12 +240,12 @@ namespace quad_gap
 
             Eigen::Vector2d get_middle_pt_vec()
             {
-                float lx, ly;
-                getLCartesian(lx, ly);
-                Eigen::Vector2d l_vec(lx, ly);
-                float rx, ry;
-                getRCartesian(rx, ry);
-                Eigen::Vector2d r_vec(rx, ry);
+                float left_x, left_y;
+                getLCartesian(left_x, left_y);
+                Eigen::Vector2d l_vec(left_x, left_y);
+                float right_x, right_y;
+                getRCartesian(right_x, right_y);
+                Eigen::Vector2d r_vec(right_x, right_y);
                 Eigen::Vector2d m_vec = (l_vec + r_vec) / 2;
                 return m_vec;
             }
