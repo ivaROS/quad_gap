@@ -96,25 +96,26 @@ namespace quad_gap
             // Get Left Cartesian Distance
             void getRCartesian(float &x, float &y)
             {
-                x = (_right_dist) * cos(-((float) half_num_scan - _right_idx) / half_num_scan * M_PI);
-                y = (_right_dist) * sin(-((float) half_num_scan - _right_idx) / half_num_scan * M_PI);
+                x = (_right_dist) * cos(idx2theta(_right_idx));
+                y = (_right_dist) * sin(idx2theta(_right_idx));
             }
 
             // Get Right Cartesian Distance
             void getLCartesian(float &x, float &y)
             {
-                x = (_left_dist) * cos(-((float) half_num_scan - _left_idx) / half_num_scan * M_PI);
-                y = (_left_dist) * sin(-((float) half_num_scan - _left_idx) / half_num_scan * M_PI);
+                x = (_left_dist) * cos(idx2theta(_left_idx));
+                y = (_left_dist) * sin(idx2theta(_left_idx));
             }
 
-            void getRadialExRCartesian(float &x, float &y){
-                x = (convex_right_dist) * cos(-((float) half_num_scan - convex_right_idx) / half_num_scan * M_PI);
-                y = (convex_right_dist) * sin(-((float) half_num_scan - convex_right_idx) / half_num_scan * M_PI);
+            void getRadialExRCartesian(float &x, float &y)
+            {
+                x = (convex_right_dist) * cos(idx2theta(convex_right_idx));
+                y = (convex_right_dist) * sin(idx2theta(convex_right_idx));
             }
 
             void getRadialExLCartesian(float &x, float &y){
-                x = (convex_left_dist) * cos(-((float) half_num_scan - convex_left_idx) / half_num_scan * M_PI);
-                y = (convex_left_dist) * sin(-((float) half_num_scan - convex_left_idx) / half_num_scan * M_PI);
+                x = (convex_left_dist) * cos(idx2theta(convex_left_idx));
+                y = (convex_left_dist) * sin(idx2theta(convex_left_idx));
             }
 
             void setAGCIdx(int right_idx, int left_idx) {
@@ -125,13 +126,13 @@ namespace quad_gap
             }
 
             void getAGCRCartesian(float &x, float &y){
-                x = (agc_right_dist) * cos(-((float) half_num_scan - agc_right_idx) / half_num_scan * M_PI);
-                y = (agc_right_dist) * sin(-((float) half_num_scan - agc_right_idx) / half_num_scan * M_PI);
+                x = (agc_right_dist) * cos(idx2theta(agc_right_idx));
+                y = (agc_right_dist) * sin(idx2theta(agc_right_idx));
             }
 
             void getAGCLCartesian(float &x, float &y){
-                x = (agc_left_dist) * cos(-((float) half_num_scan - agc_left_idx) / half_num_scan * M_PI);
-                y = (agc_left_dist) * sin(-((float) half_num_scan - agc_left_idx) / half_num_scan * M_PI);
+                x = (agc_left_dist) * cos(idx2theta(agc_left_idx));
+                y = (agc_left_dist) * sin(idx2theta(agc_left_idx));
             }
 
             void compareGoalDist(double goal_dist) {
