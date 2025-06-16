@@ -13,11 +13,11 @@ namespace quad_gap {
         // TODO: assume there is no idx that will pass 0
         auto half_num_scan = gap.half_scan;
         float x1, x2, y1, y2;
-        x1 = (gap.convex.convex_ldist) * cos(-((float) half_num_scan - gap.convex.convex_lidx) / half_num_scan * M_PI);
-        y1 = (gap.convex.convex_ldist) * sin(-((float) half_num_scan - gap.convex.convex_lidx) / half_num_scan * M_PI);
+        x1 = (gap.convex.convex_left_dist) * cos(-((float) half_num_scan - gap.convex.convex_lidx) / half_num_scan * M_PI);
+        y1 = (gap.convex.convex_left_dist) * sin(-((float) half_num_scan - gap.convex.convex_lidx) / half_num_scan * M_PI);
 
-        x2 = (gap.convex.convex_rdist) * cos(-((float) half_num_scan - gap.convex.convex_ridx) / half_num_scan * M_PI);
-        y2 = (gap.convex.convex_rdist) * sin(-((float) half_num_scan - gap.convex.convex_ridx) / half_num_scan * M_PI);
+        x2 = (gap.convex.convex_right_dist) * cos(-((float) half_num_scan - gap.convex.convex_ridx) / half_num_scan * M_PI);
+        y2 = (gap.convex.convex_right_dist) * sin(-((float) half_num_scan - gap.convex.convex_ridx) / half_num_scan * M_PI);
 
         Eigen::Vector2f pl(x1, y1);
         Eigen::Vector2f pr(x2, y2);
@@ -65,8 +65,8 @@ namespace quad_gap {
         
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         float confined_theta = std::min(thetarl, std::max(thetalr, goal_orientation));
-        float confined_r = (gap.convex.convex_rdist - gap.convex.convex_ldist) * (confined_theta - thetalr) / (thetarl - thetalr)
-            + gap.convex.convex_ldist;
+        float confined_r = (gap.convex.convex_right_dist - gap.convex.convex_left_dist) * (confined_theta - thetalr) / (thetarl - thetalr)
+            + gap.convex.convex_left_dist;
         float xg = confined_r * cos(confined_theta);
         float yg = confined_r * sin(confined_theta);
         Eigen::Vector2f anchor(xg, yg);
@@ -126,8 +126,8 @@ namespace quad_gap {
         // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
         // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
 
-        // float r1 = gap.convex.convex_ldist;
-        // float r2 = gap.convex.convex_rdist;
+        // float r1 = gap.convex.convex_left_dist;
+        // float r2 = gap.convex.convex_right_dist;
         // double r_close = (double) std::min(r1, r2);
         // double goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
@@ -220,14 +220,14 @@ namespace quad_gap {
 
         // ROS_INFO_STREAM(lidx << " " << ridx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
 
-        float ldist = gap.LDist();
-        float rdist = gap.RDist();
-        float new_ldist = float(new_l - lidx) / float(ridx - lidx) * (rdist - ldist) + ldist;
-        float new_rdist = float(new_r - lidx) / float(ridx - lidx) * (rdist - ldist) + ldist;
+        float left_dist = gap.LDist();
+        float right_dist = gap.RDist();
+        float new_left_dist = float(new_l - lidx) / float(ridx - lidx) * (right_dist - left_dist) + left_dist;
+        float new_right_dist = float(new_r - lidx) / float(ridx - lidx) * (right_dist - left_dist) + left_dist;
         gap.convex.convex_lidx = new_l;
         gap.convex.convex_ridx = new_r;
-        gap.convex.convex_ldist = new_ldist + cfg_->gap_viz.viz_jitter;
-        gap.convex.convex_rdist = new_rdist + cfg_->gap_viz.viz_jitter;
+        gap.convex.convex_left_dist = new_left_dist + cfg_->gap_viz.viz_jitter;
+        gap.convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
         gap.life_time = 50;
         gap.mode.reduced = true;
         return;
@@ -255,9 +255,9 @@ namespace quad_gap {
         if(gap.mode.reduced)
         {
             l_idx = gap.convex.convex_lidx;
-            l_dist = gap.convex.convex_ldist;
+            l_dist = gap.convex.convex_left_dist;
             r_idx = gap.convex.convex_ridx;
-            r_dist = gap.convex.convex_rdist;
+            r_dist = gap.convex.convex_right_dist;
         }
         else
         {
@@ -379,9 +379,9 @@ namespace quad_gap {
 
         // Recalculate end point location based on length
         gap.convex.convex_lidx = left ? near_idx : idx;
-        gap.convex.convex_ldist = left ? near_dist : r;
+        gap.convex.convex_left_dist = left ? near_dist : r;
         gap.convex.convex_ridx = left ? idx : near_idx;
-        gap.convex.convex_rdist = left ? r : near_dist;
+        gap.convex.convex_right_dist = left ? r : near_dist;
 
         if (left && gap.convex.convex_ridx < gap.convex.convex_lidx) {
             gap.goal.discard = true;
@@ -404,11 +404,11 @@ namespace quad_gap {
         float s = selected_gap.getMinSafeDist();
 
         float x1, x2, y1, y2;
-        x1 = (selected_gap.convex.convex_ldist) * cos(-((float) half_num_scan - selected_gap.convex.convex_lidx) / half_num_scan * M_PI);
-        y1 = (selected_gap.convex.convex_ldist) * sin(-((float) half_num_scan - selected_gap.convex.convex_lidx) / half_num_scan * M_PI);
+        x1 = (selected_gap.convex.convex_left_dist) * cos(-((float) half_num_scan - selected_gap.convex.convex_lidx) / half_num_scan * M_PI);
+        y1 = (selected_gap.convex.convex_left_dist) * sin(-((float) half_num_scan - selected_gap.convex.convex_lidx) / half_num_scan * M_PI);
 
-        x2 = (selected_gap.convex.convex_rdist) * cos(-((float) half_num_scan - selected_gap.convex.convex_ridx) / half_num_scan * M_PI);
-        y2 = (selected_gap.convex.convex_rdist) * sin(-((float) half_num_scan - selected_gap.convex.convex_ridx) / half_num_scan * M_PI);
+        x2 = (selected_gap.convex.convex_right_dist) * cos(-((float) half_num_scan - selected_gap.convex.convex_ridx) / half_num_scan * M_PI);
+        y2 = (selected_gap.convex.convex_right_dist) * sin(-((float) half_num_scan - selected_gap.convex.convex_ridx) / half_num_scan * M_PI);
 
         Eigen::Vector2f gL(x1, y1);
         Eigen::Vector2f gR(x2, y2);
@@ -451,16 +451,16 @@ namespace quad_gap {
 
         selected_gap.convex.convex_lidx = polqLn(1) / M_PI * half_num_scan + half_num_scan;
         selected_gap.convex.convex_ridx = polqRn(1) / M_PI * half_num_scan + half_num_scan;
-        selected_gap.convex.convex_ldist = polqLn(0);
-        selected_gap.convex.convex_rdist = polqRn(0);
+        selected_gap.convex.convex_left_dist = polqLn(0);
+        selected_gap.convex.convex_right_dist = polqRn(0);
         selected_gap.mode.convex = true;
 
         selected_gap.qB = qB;
         ROS_DEBUG_STREAM("l: " << selected_gap._left_idx << " to " << selected_gap.convex.convex_lidx
          << ", r: " << selected_gap._right_idx << " to " << selected_gap.convex.convex_ridx);
         
-        ROS_DEBUG_STREAM("ldist: " << selected_gap._ldist << " to " << selected_gap.convex.convex_ldist
-        << ", rdist: " << selected_gap._rdist << " to " << selected_gap.convex.convex_rdist);
+        ROS_DEBUG_STREAM("left_dist: " << selected_gap._left_dist << " to " << selected_gap.convex.convex_left_dist
+        << ", right_dist: " << selected_gap._right_dist << " to " << selected_gap.convex.convex_right_dist);
 
         return;
     }

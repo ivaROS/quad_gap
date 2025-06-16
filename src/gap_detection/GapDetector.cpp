@@ -40,9 +40,9 @@ namespace quad_gap {
         int gap_size = 0;
         std::string frame = stored_scan_msgs.header.frame_id;
         int gap_lidx = 0;
-        float gap_ldist = stored_scan_msgs.ranges[0];
+        float gap_left_dist = stored_scan_msgs.ranges[0];
         float last_scan = stored_scan_msgs.ranges[0];
-        bool prev_lgap = gap_ldist >= max_scan_dist;
+        bool prev_lgap = gap_left_dist >= max_scan_dist;
         float scan_dist;
         float scan_diff;
         int wrap = 0;
@@ -80,7 +80,7 @@ namespace quad_gap {
                 if (prev_lgap)
                 {
                     prev_lgap = false;
-                    Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+                    Gap detected_gap(frame, gap_lidx, gap_left_dist, half_scan);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -95,7 +95,7 @@ namespace quad_gap {
                 else // previously not marked a gap, not marking the gap
                 {
                     gap_lidx = it - 1;
-                    gap_ldist = last_scan;
+                    gap_left_dist = last_scan;
                     prev_lgap = true;
                 }
             }
@@ -105,7 +105,7 @@ namespace quad_gap {
         // Catch the last gap
         if (prev_lgap) 
         {
-            Gap detected_gap(frame, gap_lidx, gap_ldist, half_scan);
+            Gap detected_gap(frame, gap_lidx, gap_left_dist, half_scan);
             detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);
@@ -174,7 +174,7 @@ namespace quad_gap {
                         }
                         else
                         {
-                            float curr_rdist = observed_gaps[i].RDist();
+                            float curr_right_dist = observed_gaps[i].RDist();
                             int erase_counter = 0;
                             int last_mergable = -1;
 
@@ -190,9 +190,9 @@ namespace quad_gap {
                                 double farside_angle = farside_idx * stored_scan_msgs.angle_increment + stored_scan_msgs.angle_min;
                                 Eigen::Vector2d farside_vec(cos(farside_angle), sin(farside_angle));
                                 Eigen::Vector2d orient_vec(1, 0);
-                                double erl_rdist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_rdist);
-                                double erl_ldist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, second_gap[j].LDist());
-                                bool second_test = curr_rdist <= (*farside_iter - erl_rdist) && second_gap[j].LDist() <= (*farside_iter - erl_ldist);
+                                double erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_right_dist);
+                                double erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, second_gap[j].LDist());
+                                bool second_test = curr_right_dist <= (*farside_iter - erl_right_dist) && second_gap[j].LDist() <= (*farside_iter - erl_left_dist);
                                 bool dist_diff = second_gap[j].isLeftType() || !second_gap[j].isAxial();
                                 bool idx_diff = observed_gaps[i].RIdx() - second_gap[j].LIdx() < cfg_->gap_manip.max_idx_diff;
                                 if (second_test && dist_diff && idx_diff) {
@@ -211,8 +211,8 @@ namespace quad_gap {
                     else
                     {
                         // If not axial gap, 
-                        float curr_rdist = observed_gaps.at(i).RDist();
-                        if (std::abs(curr_rdist - second_gap.back().LDist()) < 0.2 && second_gap.back().isAxial() && second_gap.back().isLeftType())
+                        float curr_right_dist = observed_gaps.at(i).RDist();
+                        if (std::abs(curr_right_dist - second_gap.back().LDist()) < 0.2 && second_gap.back().isAxial() && second_gap.back().isLeftType())
                         {
                             second_gap.back().addRightInformation(observed_gaps[i].RIdx(), observed_gaps[i].RDist());
                         } else {
