@@ -63,7 +63,7 @@ namespace quad_gap
             }
 
             // Concluding the Gap after constructing with left information
-            void addLeftInformation(int left_flipped_idx, float left_flipped_dist) 
+            void addRightFlippedInformation(int left_flipped_idx, float left_flipped_dist) 
             {
                 _left_flipped_idx = left_flipped_idx;
                 _left_flipped_dist = left_flipped_dist;
