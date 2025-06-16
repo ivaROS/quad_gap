@@ -34,7 +34,7 @@ namespace quad_gap {
             thetalr = thetalr + 2 * M_PI;
         auto rl = (pl - pr) / (pl - pr).norm() * (epl / 2) * cfg_->traj.inf_ratio + pr;
         auto thetarl = car2pol(rl)(1);
-        if(pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
+        if (pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
             thetarl = thetarl - 2 * M_PI;
         
         auto left_ori = gap.convex.convex_right_idx * msg.get()->angle_increment + msg.get()->angle_min;
@@ -89,15 +89,14 @@ namespace quad_gap {
             float ang_anchor_lr = abs(goal_orientation - thetalr);
             float ang_anchor_rl = abs(goal_orientation - thetarl);
 
-            if(ang_anchor_lr <= ang_anchor_rl)
+            if (ang_anchor_lr <= ang_anchor_rl)
             {
                 Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (rl - lr) / (rl - lr).norm() + anchor;
                 float offset_anchor_angle = atan2(offset_anchor[1], offset_anchor[0]);
-                if(offset_anchor_angle < mid_pt_angle)
+                if (offset_anchor_angle < mid_pt_angle)
                 {
                     goal_pt = offset_anchor;
-                }
-                else
+                } else
                 {
                     goal_pt = mid_pt;
                 }
@@ -106,11 +105,10 @@ namespace quad_gap {
             {
                 Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (lr - rl) / (lr - rl).norm() + anchor;
                 float offset_anchor_angle = atan2(offset_anchor[1], offset_anchor[0]);
-                if(offset_anchor_angle > mid_pt_angle)
+                if (offset_anchor_angle > mid_pt_angle)
                 {
                     goal_pt = offset_anchor;
-                }
-                else
+                } else
                 {
                     goal_pt = mid_pt;
                 }
@@ -281,11 +279,11 @@ namespace quad_gap {
 
         float x1, x2, y1, y2;
 
-        x1 = (right_dist) * cos(-((float) half_num_scan - right_idx) / half_num_scan * M_PI);
-        y1 = (right_dist) * sin(-((float) half_num_scan - right_idx) / half_num_scan * M_PI);
+        x1 = (right_dist) * cos(idx2theta(right_idx));
+        y1 = (right_dist) * sin(idx2theta(right_idx));
 
-        x2 = (left_dist) * cos(-((float) half_num_scan - left_idx) / half_num_scan * M_PI);
-        y2 = (left_dist) * sin(-((float) half_num_scan - left_idx) / half_num_scan * M_PI);
+        x2 = (left_dist) * cos(idx2theta(left_idx));
+        y2 = (left_dist) * sin(idx2theta(left_idx));
 
         Eigen::Vector2d l_vec(x1, y1);
         Eigen::Vector2d r_vec(x2, y2);
@@ -323,12 +321,12 @@ namespace quad_gap {
                     0, 0, 1;
 
         Eigen::Matrix3f near_rbt;
-        near_rbt << 1, 0, near_dist * cos(M_PI / half_num_scan * (near_idx - half_num_scan)),
-                    0, 1, near_dist * sin(M_PI / half_num_scan * (near_idx - half_num_scan)),
+        near_rbt << 1, 0, near_dist * cos(idx2theta(near_idx)),
+                    0, 1, near_dist * sin(idx2theta(near_idx)),
                     0, 0, 1;
         Eigen::Matrix3f far_rbt;
-        far_rbt  << 1, 0, far_dist * cos(M_PI / half_num_scan * (far_idx - half_num_scan)),
-                    0, 1, far_dist * sin(M_PI / half_num_scan * (far_idx - half_num_scan)),
+        far_rbt  << 1, 0, far_dist * cos(idx2theta(far_idx)),
+                    0, 1, far_dist * sin(idx2theta(far_idx)),
                     0, 0, 1;
         
         Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
@@ -416,11 +414,11 @@ namespace quad_gap {
         float s = selected_gap.getMinSafeDist();
 
         float x1, x2, y1, y2;
-        x1 = (selected_gap.convex.convex_right_dist) * cos(-((float) half_num_scan - selected_gap.convex.convex_right_idx) / half_num_scan * M_PI);
-        y1 = (selected_gap.convex.convex_right_dist) * sin(-((float) half_num_scan - selected_gap.convex.convex_right_idx) / half_num_scan * M_PI);
+        x1 = (selected_gap.convex.convex_right_dist) * cos(idx2theta(selected_gap.convex.convex_right_idx));
+        y1 = (selected_gap.convex.convex_right_dist) * sin(idx2theta(selected_gap.convex.convex_right_idx));
 
-        x2 = (selected_gap.convex.convex_left_dist) * cos(-((float) half_num_scan - selected_gap.convex.convex_left_idx) / half_num_scan * M_PI);
-        y2 = (selected_gap.convex.convex_left_dist) * sin(-((float) half_num_scan - selected_gap.convex.convex_left_idx) / half_num_scan * M_PI);
+        x2 = (selected_gap.convex.convex_left_dist) * cos(idx2theta(selected_gap.convex.convex_left_idx));
+        y2 = (selected_gap.convex.convex_left_dist) * sin(idx2theta(selected_gap.convex.convex_left_idx));
 
         Eigen::Vector2f gL(x1, y1);
         Eigen::Vector2f gR(x2, y2);

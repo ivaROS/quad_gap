@@ -122,12 +122,12 @@ namespace quad_gap
         for (int i = 0; i < num_gaps - 1; i++)
         {
             lines.clear();
-            linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-            linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
+            linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+            linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
             sub_gap_right_idx += cfg_->gap_viz.min_resoln;
             sub_gap_right_dist += dist_step;
-            liner.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-            liner.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
+            liner.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+            liner.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
             lines.push_back(linel);
             lines.push_back(liner);
 
@@ -139,10 +139,10 @@ namespace quad_gap
 
         // close the last
         lines.clear();
-        linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-        linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-        liner.x = (g._left_dist + viz_jitter) * cos(-( (float) half_num_scan - g._left_idx) / half_num_scan * M_PI);
-        liner.y = (g._left_dist + viz_jitter) * sin(-( (float) half_num_scan - g._left_idx) / half_num_scan * M_PI);
+        linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+        linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
+        liner.x = (g._left_dist + viz_jitter) * cos(idx2theta(g._left_idx));
+        liner.y = (g._left_dist + viz_jitter) * sin(idx2theta(g._left_idx));
         lines.push_back(linel);
         lines.push_back(liner);
         this_marker.points = lines;
@@ -228,12 +228,12 @@ namespace quad_gap
         for (int i = 0; i < num_gaps - 1; i++)
         {
             lines.clear();
-            linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-            linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
+            linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+            linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
             sub_gap_right_idx += cfg_->gap_viz.min_resoln;
             sub_gap_right_dist += dist_step;
-            liner.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-            liner.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
+            liner.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+            liner.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
             lines.push_back(linel);
             lines.push_back(liner);
 
@@ -244,10 +244,10 @@ namespace quad_gap
 
         // close the last
         lines.clear();
-        linel.x = (sub_gap_right_dist + viz_jitter) * cos(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-        linel.y = (sub_gap_right_dist + viz_jitter) * sin(-( (float) half_num_scan - sub_gap_right_idx) / half_num_scan * M_PI);
-        liner.x = (g.convex.convex_left_dist + viz_jitter) * cos(-( (float) half_num_scan - g.convex.convex_left_idx) / half_num_scan * M_PI);
-        liner.y = (g.convex.convex_left_dist + viz_jitter) * sin(-( (float) half_num_scan - g.convex.convex_left_idx) / half_num_scan * M_PI);
+        linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
+        linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
+        liner.x = (g.convex.convex_left_dist + viz_jitter) * cos(idx2theta(g.convex.convex_left_idx));
+        liner.y = (g.convex.convex_left_dist + viz_jitter) * sin(idx2theta(g.convex.convex_left_idx));
         lines.push_back(linel);
         lines.push_back(liner);
         this_marker.points = lines;
@@ -299,8 +299,8 @@ namespace quad_gap
                                     linel.x = qB(0);
                                     linel.y = qB(1);
                                     linel.z = 0.1;
-                                    liner.x = dist * cos(M_PI / half_num_scan * (idx - half_num_scan));
-                                    liner.y = dist * sin(M_PI / half_num_scan * (idx - half_num_scan));
+                                    liner.x = dist * cos(idx2theta(idx));
+                                    liner.y = dist * sin(idx2theta(idx));
                                     liner.z = 0.1;
                                     lines.push_back(linel);
                                     lines.push_back(liner);
