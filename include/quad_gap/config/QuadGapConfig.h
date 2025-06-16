@@ -59,7 +59,7 @@ namespace quad_gap
                 double reduction_target = M_PI / 4;
                 int max_idx_diff = 256;
                 bool radial_extend = true;
-                bool axial_convert = true;
+                bool radial_convert = true;
                 double rot_ratio = 1.5;
             } gap_manip;
 

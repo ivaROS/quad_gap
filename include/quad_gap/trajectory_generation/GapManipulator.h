@@ -11,6 +11,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <boost/shared_ptr.hpp>
 
+#include <quad_gap/utils/Utils.h>
 #include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap 

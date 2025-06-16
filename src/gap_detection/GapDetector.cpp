@@ -32,7 +32,6 @@ namespace quad_gap {
     {
         observed_gaps.clear();
         sensor_msgs::LaserScan stored_scan_msgs = *scanPtr.get();
-        float half_scan = float(stored_scan_msgs.ranges.size() / 2);
         bool prev = true;
         auto max_dist_iter = std::max_element(stored_scan_msgs.ranges.begin(), stored_scan_msgs.ranges.end());
         float max_scan_dist = *max_dist_iter;
@@ -58,7 +57,7 @@ namespace quad_gap {
                 // If both current and last values are not infinity, meaning this is not a swept gap
                 if (scan_dist < max_scan_dist && last_scan < max_scan_dist) 
                 {
-                    Gap detected_gap(frame, it - 1, last_scan, true, half_scan);
+                    Gap detected_gap(frame, it - 1, last_scan, true);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -80,7 +79,7 @@ namespace quad_gap {
                 if (prev_right_gap)
                 {
                     prev_right_gap = false;
-                    Gap detected_gap(frame, gap_right_idx, gap_right_dist, half_scan);
+                    Gap detected_gap(frame, gap_right_idx, gap_right_dist);
                     detected_gap.addRightInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
@@ -105,7 +104,7 @@ namespace quad_gap {
         // Catch the last gap
         if (prev_right_gap) 
         {
-            Gap detected_gap(frame, gap_right_idx, gap_right_dist, half_scan);
+            Gap detected_gap(frame, gap_right_idx, gap_right_dist);
             detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);
@@ -210,7 +209,7 @@ namespace quad_gap {
                     }
                     else
                     {
-                        // If not axial gap, 
+                        // If not radial gap, 
                         float curr_left_dist = observed_gaps.at(i).LDist();
                         if (std::abs(curr_left_dist - second_gap.back().RDist()) < 0.2 && second_gap.back().setRadial() && second_gap.back().isRightType())
                         {

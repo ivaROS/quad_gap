@@ -19,10 +19,10 @@ namespace quad_gap {
         double close_pt_x, close_pt_y, far_pt_x, far_pt_y, far_vec_x, far_vec_y, rbt_vec_x, rbt_vec_y, angle_gap;
         double dir_vec_x, dir_vec_y;
         double _sigma;
-        bool _l, _r, _axial;
+        bool _l, _r, _radial;
 
-        polar_gap_field(double x1, double x2, double y1, double y2, double gx, double gy, bool l, bool r, bool axial, double sigma)
-            : x1(x1), x2(x2), y1(y1), y2(y2), gx(gx), gy(gy), _l(l), _r(r), _axial(axial), _sigma(sigma) {}
+        polar_gap_field(double x1, double x2, double y1, double y2, double gx, double gy, bool l, bool r, bool radial, double sigma)
+            : x1(x1), x2(x2), y1(y1), y2(y2), gx(gx), gy(gy), _l(l), _r(r), _radial(radial), _sigma(sigma) {}
 
         void operator()(const state_type &x, state_type &dxdt, const double t)
         {
@@ -68,7 +68,7 @@ namespace quad_gap {
             bool left = r2 > r1;
 
             bool pass_gap;
-            if (_axial) {
+            if (_radial) {
                 pass_gap = (rbt.norm() > std::min(p1.norm(), p2.norm()) + 0.18) && rbt.norm() > goal_pt.norm();
             } else {
                 pass_gap = (rbt.norm() > std::max(p1.norm(), p2.norm()) + 0.18) && rbt.norm() > goal_pt.norm();

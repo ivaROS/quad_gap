@@ -11,7 +11,6 @@ namespace quad_gap {
     void GapManipulator::setGapWaypoint(Gap& gap, geometry_msgs::PoseStamped localgoal)
     {
         // TODO: assume there is no idx that will pass 0
-        auto half_num_scan = gap.half_scan;
         float x1, x2, y1, y2;
         x1 = (gap.convex.convex_right_dist) * cos(-((float) half_num_scan - gap.convex.convex_right_idx) / half_num_scan * M_PI);
         y1 = (gap.convex.convex_right_dist) * sin(-((float) half_num_scan - gap.convex.convex_right_idx) / half_num_scan * M_PI);
@@ -234,8 +233,8 @@ namespace quad_gap {
     }
 
     void GapManipulator::convertAxialGap(Gap& gap) {
-        // Return if not axial gap or disabled
-        if (!gap.setRadial() || !cfg_->gap_manip.axial_convert) {
+        // Return if not radial gap or disabled
+        if (!gap.setRadial() || !cfg_->gap_manip.radial_convert) {
             // ROS_INFO_STREAM("Swept gap.");
             return;
         }
@@ -247,8 +246,6 @@ namespace quad_gap {
         // amp-ed by a **small** ratio to ensure the local goal does not exactly fall on the
         // visibility line
         // float rot_val = (float) std::atan2(cfg_->gap_manip.epsilon2 * cfg_->gap_manip.rot_ratio, cfg_->gap_manip.epsilon1);
-
-        auto half_num_scan = gap.half_scan;
 
         int l_idx, r_idx;
         float l_dist, r_dist;

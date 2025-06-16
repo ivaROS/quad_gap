@@ -33,7 +33,6 @@ namespace quad_gap
         }
 
         float x1, x2, y1, y2;
-        float half_num_scan = selectedGap.half_scan;
         x1 = (selectedGap.convex.convex_right_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
         y1 = (selectedGap.convex.convex_right_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
         x2 = (selectedGap.convex.convex_left_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);
@@ -86,7 +85,6 @@ namespace quad_gap
     {
         // Find the intersections of triangle and circle
         float x1, x2, y1, y2;
-        float half_num_scan = selectedGap.half_scan;
         x1 = (selectedGap.convex.convex_right_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
         y1 = (selectedGap.convex.convex_right_dist) * sin(-((float) half_num_scan - selectedGap.convex.convex_right_idx) / half_num_scan * M_PI);
         x2 = (selectedGap.convex.convex_left_dist) * cos(-((float) half_num_scan - selectedGap.convex.convex_left_idx) / half_num_scan * M_PI);

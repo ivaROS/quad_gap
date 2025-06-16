@@ -36,7 +36,7 @@ namespace quad_gap
             nh.param("reduction_target", gap_manip.reduction_target, gap_manip.reduction_target);        
             nh.param("max_idx_diff", gap_manip.max_idx_diff, gap_manip.max_idx_diff);
             nh.param("radial_extend", gap_manip.radial_extend, gap_manip.radial_extend);
-            nh.param("axial_convert", gap_manip.axial_convert, gap_manip.axial_convert);
+            nh.param("radial_convert", gap_manip.radial_convert, gap_manip.radial_convert);
 
             // Control Params
             nh.param("k_drive_x",control.k_drive_x, control.k_drive_x);
@@ -121,7 +121,7 @@ namespace quad_gap
         gap_manip.reduction_target = cfg.reduction_target;        
         gap_manip.max_idx_diff = cfg.max_idx_diff;
         gap_manip.radial_extend = cfg.radial_extend;
-        gap_manip.axial_convert = cfg.axial_convert;
+        gap_manip.radial_convert = cfg.radial_convert;
 
         // Control Params
         control.k_drive_x = cfg.k_drive_x;
