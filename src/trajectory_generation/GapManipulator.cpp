@@ -76,7 +76,7 @@ namespace quad_gap {
         Eigen::Vector2f goal_pt;
         float waypoint_dist_thresh = (epl * 1.5) * cfg_->traj.inf_ratio; // 0.1 // TODO: change this 1.5 to param
         
-        if((goal_orientation - thetalr) > 0 && (goal_orientation - thetarl) < 0 && (anchor - lr).norm() >= waypoint_dist_thresh && (anchor - rl).norm() >= waypoint_dist_thresh)
+        if ((goal_orientation - thetalr) > 0 && (goal_orientation - thetarl) < 0 && (anchor - lr).norm() >= waypoint_dist_thresh && (anchor - rl).norm() >= waypoint_dist_thresh)
         {
             goal_pt = anchor;
         }
@@ -117,7 +117,8 @@ namespace quad_gap {
             }
         }
         Eigen::Matrix2f r_negpi2;
-            r_negpi2 << 0,1,-1,0;
+        r_negpi2 << 0,1,-1,0;
+        
         auto offset = r_negpi2 * (pr - pl);
         goal_pt += robot_geo_proc_.getRobotMaxRadius() * offset / offset.norm();
 
@@ -128,12 +129,13 @@ namespace quad_gap {
         // float r1 = gap.convex.convex_right_dist;
         // float r2 = gap.convex.convex_left_dist;
         // double r_close = (double) std::min(r1, r2);
-        // double goaright_flipped_dist = sqrt(
+        // double goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
         //     pow(localgoal.pose.position.x, 2)
         // );
 
-        if (checkGoalVisibility(localgoal)) {
+        if (checkGoalVisibility(localgoal)) 
+        {
             gap.goal.x = localgoal.pose.position.x;
             gap.goal.y = localgoal.pose.position.y;
             gap.goal.set = true;
@@ -148,7 +150,8 @@ namespace quad_gap {
 
     }
 
-    bool GapManipulator::checkGoalVisibility(geometry_msgs::PoseStamped localgoal) {
+    bool GapManipulator::checkGoalVisibility(geometry_msgs::PoseStamped localgoal) 
+    {
         boost::mutex::scoped_lock lock(egolock);
         double dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
 
@@ -183,13 +186,18 @@ namespace quad_gap {
     }
 
     // In place modification
-    void GapManipulator::reduceGap(Gap& gap, geometry_msgs::PoseStamped localgoal) {
+    void GapManipulator::reduceGap(Gap& gap, geometry_msgs::PoseStamped localgoal) 
+    {
         int right_idx = gap.RIdx();
         int left_idx = gap.LIdx();
-        if (!msg) return; 
+        
+        if (!msg) 
+            return; 
+
         double angular_size = (left_idx - right_idx) * (msg.get()->angle_increment);
 
-        if (angular_size < cfg_->gap_manip.reduction_threshold){
+        if (angular_size < cfg_->gap_manip.reduction_threshold)
+        {
             return;
         }
 
@@ -198,43 +206,51 @@ namespace quad_gap {
         int r_biased_l = left_idx - gap_size;
 
         double goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
-        int goaright_flipped_idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
+        int goal_idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
 
         int acceptable_dist = int(round(gap_size / 2));
 
         int new_l, new_r;
-        if (goaright_flipped_idx + acceptable_dist > left_idx){
+        if (goal_idx + acceptable_dist > left_idx)
+        {
             // r-biased Gap
             new_r = left_idx;
             new_l = r_biased_l;
-        } else if (goaright_flipped_idx - acceptable_dist < right_idx) {
+        } else if (goal_idx - acceptable_dist < right_idx) 
+        {
             // l-biased gap
             new_r = l_biased_r;
             new_l = right_idx;
-        } else {
+        } else 
+        {
             // Lingering in center
-            new_l = goaright_flipped_idx - acceptable_dist;
-            new_r = goaright_flipped_idx + acceptable_dist;
+            new_l = goal_idx - acceptable_dist;
+            new_r = goal_idx + acceptable_dist;
         }
 
-        // ROS_INFO_STREAM(right_idx << " " << left_idx << " " << l_biased_r << " " << r_biased_l << " " << goaright_flipped_idx + acceptable_dist << " " << goaright_flipped_idx - acceptable_dist << " " << new_l << " " << new_r);
+        // ROS_INFO_STREAM(right_idx << " " << left_idx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
 
-        float right_dist = gap.RDist();
         float left_dist = gap.LDist();
-        float new_right_dist = float(new_l - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
+        float right_dist = gap.RDist();
         float new_left_dist = float(new_r - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
-        gap.convex.convex_right_idx = new_l;
+        float new_right_dist = float(new_l - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
+
         gap.convex.convex_left_idx = new_r;
-        gap.convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
+        gap.convex.convex_right_idx = new_l;
+
         gap.convex.convex_left_dist = new_left_dist + cfg_->gap_viz.viz_jitter;
+        gap.convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
+
         gap.life_time = 50;
         gap.mode.reduced = true;
         return;
     }
 
-    void GapManipulator::convertAxialGap(Gap& gap) {
+    void GapManipulator::convertAxialGap(Gap& gap) 
+    {
         // Return if not radial gap or disabled
-        if (!gap.setRadial() || !cfg_->gap_manip.radial_convert) {
+        if (!gap.setRadial() || !cfg_->gap_manip.radial_convert) 
+        {
             // ROS_INFO_STREAM("Swept gap.");
             return;
         }
@@ -247,30 +263,29 @@ namespace quad_gap {
         // visibility line
         // float rot_val = (float) std::atan2(cfg_->gap_manip.epsilon2 * cfg_->gap_manip.rot_ratio, cfg_->gap_manip.epsilon1);
 
-        int right_flipped_idx, left_flipped_idx;
-        float right_flipped_dist, left_flipped_dist;
-        if(gap.mode.reduced)
+        int right_idx, left_idx;
+        float right_dist, left_dist;
+        if (gap.mode.reduced)
         {
-            right_flipped_idx = gap.convex.convex_right_idx;
-            right_flipped_dist = gap.convex.convex_right_dist;
-            left_flipped_idx = gap.convex.convex_left_idx;
-            left_flipped_dist = gap.convex.convex_left_dist;
-        }
-        else
+            left_idx = gap.convex.convex_left_idx;
+            left_dist = gap.convex.convex_left_dist;
+            right_idx = gap.convex.convex_right_idx;
+            right_dist = gap.convex.convex_right_dist;
+        } else
         {
-            right_flipped_idx = gap.RIdx();
-            right_flipped_dist = gap.RDist();
-            left_flipped_idx = gap.LIdx();
-            left_flipped_dist = gap.LDist();
+            left_idx = gap.LIdx();
+            left_dist = gap.LDist();
+            right_idx = gap.RIdx();
+            right_dist = gap.RDist();
         }
 
         float x1, x2, y1, y2;
 
-        x1 = (right_flipped_dist) * cos(-((float) half_num_scan - right_flipped_idx) / half_num_scan * M_PI);
-        y1 = (right_flipped_dist) * sin(-((float) half_num_scan - right_flipped_idx) / half_num_scan * M_PI);
+        x1 = (right_dist) * cos(-((float) half_num_scan - right_idx) / half_num_scan * M_PI);
+        y1 = (right_dist) * sin(-((float) half_num_scan - right_idx) / half_num_scan * M_PI);
 
-        x2 = (left_flipped_dist) * cos(-((float) half_num_scan - left_flipped_idx) / half_num_scan * M_PI);
-        y2 = (left_flipped_dist) * sin(-((float) half_num_scan - left_flipped_idx) / half_num_scan * M_PI);
+        x2 = (left_dist) * cos(-((float) half_num_scan - left_idx) / half_num_scan * M_PI);
+        y2 = (left_dist) * sin(-((float) half_num_scan - left_idx) / half_num_scan * M_PI);
 
         Eigen::Vector2d l_vec(x1, y1);
         Eigen::Vector2d r_vec(x2, y2);
@@ -281,23 +296,25 @@ namespace quad_gap {
         
         float rot_val = (float) std::atan2(robot_el / 2 * cfg_->gap_manip.rot_ratio, robot_er / 2);
         float theta = left ? (rot_val + 1e-3): -(rot_val + 1e-3);
-        int nealeft_flipped_idx, faleft_flipped_idx;
-        float nealeft_flipped_dist, faleft_flipped_dist;
+        int near_idx, far_idx;
+        float near_dist, far_dist;
         
-        if (left) {
-            // nealeft_flipped_idx = gap.RIdx();
-            // faleft_flipped_idx = gap.LIdx();
-            // nealeft_flipped_dist = gap.RDist();
-            // faleft_flipped_dist = gap.LDist();
-            nealeft_flipped_idx = right_flipped_idx;
-            faleft_flipped_idx = left_flipped_idx;
-            nealeft_flipped_dist = right_flipped_dist;
-            faleft_flipped_dist = left_flipped_dist;
-        } else {
-            faleft_flipped_idx = right_flipped_idx;
-            nealeft_flipped_idx = left_flipped_idx;
-            faleft_flipped_dist = right_flipped_dist;
-            nealeft_flipped_dist = left_flipped_dist;
+        if (left) 
+        {
+            // near_idx = gap.RIdx();
+            // far_idx = gap.LIdx();
+            // near_dist = gap.RDist();
+            // far_dist = gap.LDist();
+            near_idx = right_idx;
+            far_idx = left_idx;
+            near_dist = right_dist;
+            far_dist = left_dist;
+        } else 
+        {
+            far_idx = right_idx;
+            near_idx = left_idx;
+            far_dist = right_dist;
+            near_dist = left_dist;
         }
         
         Eigen::Matrix3f rot_mat;
@@ -305,15 +322,13 @@ namespace quad_gap {
                     sin(theta), cos(theta), 0,
                     0, 0, 1;
 
-        
-        
         Eigen::Matrix3f near_rbt;
-        near_rbt << 1, 0, nealeft_flipped_dist * cos(M_PI / half_num_scan * (nealeft_flipped_idx - half_num_scan)),
-                    0, 1, nealeft_flipped_dist * sin(M_PI / half_num_scan * (nealeft_flipped_idx - half_num_scan)),
+        near_rbt << 1, 0, near_dist * cos(M_PI / half_num_scan * (near_idx - half_num_scan)),
+                    0, 1, near_dist * sin(M_PI / half_num_scan * (near_idx - half_num_scan)),
                     0, 0, 1;
         Eigen::Matrix3f far_rbt;
-        far_rbt  << 1, 0, faleft_flipped_dist * cos(M_PI / half_num_scan * (faleft_flipped_idx - half_num_scan)),
-                    0, 1, faleft_flipped_dist * sin(M_PI / half_num_scan * (faleft_flipped_idx - half_num_scan)),
+        far_rbt  << 1, 0, far_dist * cos(M_PI / half_num_scan * (far_idx - half_num_scan)),
+                    0, 1, far_dist * sin(M_PI / half_num_scan * (far_idx - half_num_scan)),
                     0, 0, 1;
         
         Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
@@ -353,8 +368,8 @@ namespace quad_gap {
 
         try{
             for (int i = 0; i < min_dist.size(); i++) {
-                min_dist.at(i) = sqrt(pow(nealeft_flipped_dist, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
-                    2 * nealeft_flipped_dist * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - nealeft_flipped_idx) * stored_scan_msgs.angle_increment));
+                min_dist.at(i) = sqrt(pow(near_dist, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
+                    2 * near_dist * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - near_idx) * stored_scan_msgs.angle_increment));
             }
         } catch(...) {
             ROS_FATAL_STREAM("convertAxialGap outofBound");
@@ -375,10 +390,10 @@ namespace quad_gap {
 
 
         // Recalculate end point location based on length
-        gap.convex.convex_right_idx = left ? nealeft_flipped_idx : idx;
-        gap.convex.convex_right_dist = left ? nealeft_flipped_dist : r;
-        gap.convex.convex_left_idx = left ? idx : nealeft_flipped_idx;
-        gap.convex.convex_left_dist = left ? r : nealeft_flipped_dist;
+        gap.convex.convex_right_idx = left ? near_idx : idx;
+        gap.convex.convex_right_dist = left ? near_dist : r;
+        gap.convex.convex_left_idx = left ? idx : near_idx;
+        gap.convex.convex_left_dist = left ? r : near_dist;
 
         if (left && gap.convex.convex_left_idx < gap.convex.convex_right_idx) {
             gap.goal.discard = true;

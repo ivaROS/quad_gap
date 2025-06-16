@@ -26,30 +26,25 @@ namespace quad_gap
 
             ~Gap() {};
 
-            void setRIdx(int right_idx)
-            {
-                _right_idx = right_idx;
-            }
-
             void setLIdx(int left_idx)
             {
                 _left_idx = left_idx;
             }
 
-            // Setter and Getter for LR Distance and Index
-            void setRDist(float right_dist) 
+            void setRIdx(int right_idx)
             {
-                _right_dist = right_dist;
+                _right_idx = right_idx;
             }
 
+            // Setter and Getter for LR Distance and Index
             void setLDist(float left_dist)
             {
                 _left_dist = left_dist;
             }
 
-            int RIdx()
+            void setRDist(float right_dist) 
             {
-                return _right_idx;
+                _right_dist = right_dist;
             }
 
             int LIdx()
@@ -57,14 +52,19 @@ namespace quad_gap
                 return _left_idx;
             }
 
-            float RDist()
+            int RIdx()
             {
-                return _right_dist;
-            }
+                return _right_idx;
+            }            
 
             float LDist()
             {
                 return _left_dist;
+            }
+
+            float RDist()
+            {
+                return _right_dist;
             }
 
             // Concluding the Gap after constructing with left information
@@ -93,6 +93,13 @@ namespace quad_gap
                 convex.convex_left_dist = _left_dist;
             }
 
+            // Get Right Cartesian Distance
+            void getLCartesian(float &x, float &y)
+            {
+                x = (_left_dist) * cos(idx2theta(_left_idx));
+                y = (_left_dist) * sin(idx2theta(_left_idx));
+            }
+
             // Get Left Cartesian Distance
             void getRCartesian(float &x, float &y)
             {
@@ -100,11 +107,9 @@ namespace quad_gap
                 y = (_right_dist) * sin(idx2theta(_right_idx));
             }
 
-            // Get Right Cartesian Distance
-            void getLCartesian(float &x, float &y)
-            {
-                x = (_left_dist) * cos(idx2theta(_left_idx));
-                y = (_left_dist) * sin(idx2theta(_left_idx));
+            void getRadialExLCartesian(float &x, float &y){
+                x = (convex_left_dist) * cos(idx2theta(convex_left_idx));
+                y = (convex_left_dist) * sin(idx2theta(convex_left_idx));
             }
 
             void getRadialExRCartesian(float &x, float &y)
@@ -113,46 +118,49 @@ namespace quad_gap
                 y = (convex_right_dist) * sin(idx2theta(convex_right_idx));
             }
 
-            void getRadialExLCartesian(float &x, float &y){
-                x = (convex_left_dist) * cos(idx2theta(convex_left_idx));
-                y = (convex_left_dist) * sin(idx2theta(convex_left_idx));
-            }
-
-            void setAGCIdx(int right_idx, int left_idx) {
+            void setAGCIdx(int right_idx, int left_idx) 
+            {
                 agc_right_idx = right_idx;
                 agc_left_idx = left_idx;
                 agc_right_dist = float(right_idx - _right_idx) / float(_left_idx - _right_idx) * (_left_dist - _right_dist) + _right_dist;
                 agc_left_dist = float(left_idx - _right_idx) / float(_left_idx - _right_idx) * (_left_dist - _right_dist) + _right_dist;
             }
 
-            void getAGCRCartesian(float &x, float &y){
-                x = (agc_right_dist) * cos(idx2theta(agc_right_idx));
-                y = (agc_right_dist) * sin(idx2theta(agc_right_idx));
-            }
-
-            void getAGCLCartesian(float &x, float &y){
+            void getAGCLCartesian(float &x, float &y)
+            {
                 x = (agc_left_dist) * cos(idx2theta(agc_left_idx));
                 y = (agc_left_dist) * sin(idx2theta(agc_left_idx));
             }
 
-            void compareGoalDist(double goal_dist) {
+            void getAGCRCartesian(float &x, float &y)
+            {
+                x = (agc_right_dist) * cos(idx2theta(agc_right_idx));
+                y = (agc_right_dist) * sin(idx2theta(agc_right_idx));
+            }
+
+            void compareGoalDist(double goal_dist) 
+            {
                 goal_within = goal_dist < _right_dist && goal_dist < _left_dist;
             }
 
             // Getter and Setter for if side is an obstacle
-            void setRightObs() {
+            void setRightObs() 
+            {
                 right_obs = false;
             }
 
-            void setLeftObs() {
+            void setLeftObs() 
+            {
                 left_obs = false;
             }
 
-            bool getRightObs() {
+            bool getRightObs() 
+            {
                 return right_obs;
             }
 
-            bool getLeftObs() {
+            bool getLeftObs() 
+            {
                 return left_obs;
             }
 
@@ -173,23 +181,28 @@ namespace quad_gap
                 return right_type;
             }
 
-            void resetFrame(std::string frame) {
+            void resetFrame(std::string frame) 
+            {
                 _frame = frame;
             }
 
-            void setMinSafeDist(float _dist) {
+            void setMinSafeDist(float _dist) 
+            {
                 min_safe_dist = _dist;
             }
 
-            float getMinSafeDist() {
+            float getMinSafeDist() 
+            {
                 return min_safe_dist;
             }
 
-            std::string getFrame() {
+            std::string getFrame() 
+            {
                 return _frame;
             }
 
-            float get_dist_side() {
+            float get_dist_side() 
+            {
                 return sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (cos(float(_left_idx - _right_idx) / float(half_num_scan) * M_PI)));
             }
 
