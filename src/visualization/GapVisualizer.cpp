@@ -292,7 +292,6 @@ namespace quad_gap
                                 visualization_msgs::Marker& this_marker,
                                 std::vector<std_msgs::ColorRGBA> & convex_color,
                                 visualization_msgs::MarkerArray& vis_arr,
-                                int half_num_scan,
                                 int id
                                 ) -> void {
                                     lines.clear();
@@ -314,17 +313,17 @@ namespace quad_gap
             {
                 this_marker.ns = "extent_line";
                 getline(g.convex.convex_right_idx, g.convex.convex_right_dist, g.qB, 
-                    lines, linel, liner, this_marker, convex_color, vis_arr, half_num_scan, id++);
+                    lines, linel, liner, this_marker, convex_color, vis_arr, id++);
                 getline(g.convex.convex_left_idx, g.convex.convex_left_dist, g.qB, 
-                    lines, linel, liner, this_marker, convex_color, vis_arr, half_num_scan, id++);
+                    lines, linel, liner, this_marker, convex_color, vis_arr, id++);
                 Eigen::Vector2f origin(0, 0);
 
 
                 this_marker.ns = "orig_line";
                 getline(g._right_idx, g._right_dist, origin, 
-                    lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, half_num_scan, id++);
+                    lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, id++);
                 getline(g._left_idx, g._left_dist, origin, 
-                    lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, half_num_scan, id++);
+                    lines, linel, liner, this_marker, colormap["fin_agc"], vis_arr, id++);
             }
         }
 

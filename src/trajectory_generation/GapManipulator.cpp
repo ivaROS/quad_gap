@@ -293,7 +293,7 @@ namespace quad_gap {
         float robot_er = float(robot_geo_proc_.getLinearDecayEquivalentRL(robot_orient, mid, mid.norm()));
         
         float rot_val = (float) std::atan2(robot_el / 2 * cfg_->gap_manip.rot_ratio, robot_er / 2);
-        float theta = left ? (rot_val + 1e-3): -(rot_val + 1e-3);
+        float signed_rot_vel = left ? (rot_val + 1e-3): -(rot_val + 1e-3);
         int near_idx, far_idx;
         float near_dist, far_dist;
         
@@ -316,8 +316,8 @@ namespace quad_gap {
         }
         
         Eigen::Matrix3f rot_mat;
-        rot_mat << cos(theta), -sin(theta), 0,
-                    sin(theta), cos(theta), 0,
+        rot_mat << cos(signed_rot_vel), -sin(signed_rot_vel), 0,
+                    sin(signed_rot_vel), cos(signed_rot_vel), 0,
                     0, 0, 1;
 
         Eigen::Matrix3f near_rbt;
@@ -332,7 +332,8 @@ namespace quad_gap {
         Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
 
         float r = float(sqrt(pow(rot_rbt(0, 2), 2) + pow(rot_rbt(1, 2), 2)));
-        int idx = int (std::atan2(rot_rbt(1, 2), rot_rbt(0, 2)) / M_PI * half_num_scan) + half_num_scan;
+        float theta = std::atan2(rot_rbt(1, 2), rot_rbt(0, 2));
+        int idx = theta2idx(theta);
 
         // Rotation Completed
         // Get minimum dist range val from start to target index location
@@ -384,8 +385,8 @@ namespace quad_gap {
         Eigen::Matrix3f short_pt = near_rbt * (rot_mat * far_near);
 
         r = float(sqrt(pow(short_pt(0, 2), 2) + pow(short_pt(1, 2), 2)));
-        idx = int (std::atan2(short_pt(1, 2), short_pt(0, 2)) / M_PI * half_num_scan) + half_num_scan;
-
+        theta = std::atan2(short_pt(1, 2), short_pt(0, 2));
+        idx = theta2idx(theta);
 
         // Recalculate end point location based on length
         gap.convex.convex_right_idx = left ? near_idx : idx;
@@ -404,13 +405,15 @@ namespace quad_gap {
         gap.mode.agc = true;
     }
 
-    void GapManipulator::radialExtendGap(Gap& selected_gap) {
-        if (!cfg_->gap_manip.radial_extend) {
+    void GapManipulator::radialExtendGap(Gap& selected_gap) 
+    {
+        if (!cfg_->gap_manip.radial_extend) 
+        {
             ROS_DEBUG_STREAM_THROTTLE(1, "Radial Extension is off");
             return;
         }
         // TODO: check if the idx are correct when they cross the 0.
-        int half_num_scan = (int)(msg.get()->ranges.size()) / 2;
+
         float s = selected_gap.getMinSafeDist();
 
         float x1, x2, y1, y2;
@@ -459,8 +462,8 @@ namespace quad_gap {
         Eigen::Vector2f polqLn = car2pol(qLn);
         Eigen::Vector2f polqRn = car2pol(qRn);
 
-        selected_gap.convex.convex_right_idx = polqLn(1) / M_PI * half_num_scan + half_num_scan;
-        selected_gap.convex.convex_left_idx = polqRn(1) / M_PI * half_num_scan + half_num_scan;
+        selected_gap.convex.convex_right_idx = theta2idx(polqLn(1));
+        selected_gap.convex.convex_left_idx = theta2idx(polqRn(1));
         selected_gap.convex.convex_right_dist = polqLn(0);
         selected_gap.convex.convex_left_dist = polqRn(0);
         selected_gap.mode.convex = true;
