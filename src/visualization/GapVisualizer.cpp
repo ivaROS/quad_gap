@@ -70,8 +70,8 @@ namespace quad_gap
 
         int viz_offset = 0;
         double viz_jitter = cfg_->gap_viz.viz_jitter;
-        if (viz_jitter > 0 && g.isAxial()){
-            viz_offset = g.isLeftType() ? -2 : 2;
+        if (viz_jitter > 0 && g.setRadial()){
+            viz_offset = g.isRightFlippedType() ? -2 : 2;
         }
 
         int num_gaps = (g._left_flipped_idx - g._right_flipped_idx) / cfg_->gap_viz.min_resoln + 1;
@@ -87,7 +87,7 @@ namespace quad_gap
         this_marker.action = visualization_msgs::Marker::ADD;
 
         std::string local_ns = ns;
-        if (g.isAxial()) {
+        if (g.setRadial()) {
             local_ns.append("_axial");
         } else {
             local_ns.append("_radial");
@@ -172,8 +172,8 @@ namespace quad_gap
 
         float viz_jitter = (float) cfg_->gap_viz.viz_jitter;
         int viz_offset = 0;
-        if (viz_jitter > 0 && g.isAxial()){
-            viz_offset = g.isLeftType() ? -2 : 2;
+        if (viz_jitter > 0 && g.setRadial()){
+            viz_offset = g.isRightFlippedType() ? -2 : 2;
         }
 
         std::string ns;

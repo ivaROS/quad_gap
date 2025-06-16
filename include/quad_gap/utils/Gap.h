@@ -57,29 +57,23 @@ namespace quad_gap
                 return _right_flipped_dist;
             }
 
-            float RDist()
+            float LFlippedDist()
             {
                 return _left_flipped_dist;
             }
 
-            void getLLFlippedIdx(int &l, int &r)
-            {
-                l = _right_flipped_idx;
-                r = _left_flipped_idx;
-            }
-
             // Concluding the Gap after constructing with left information
-            void addRightInformation(int left_flipped_idx, float left_flipped_dist) 
+            void addLeftInformation(int left_flipped_idx, float left_flipped_dist) 
             {
                 _left_flipped_idx = left_flipped_idx;
                 _left_flipped_dist = left_flipped_dist;
-                left_type = _right_flipped_dist < _left_flipped_dist;
+                right_flipped_type = _right_flipped_dist < _left_flipped_dist;
 
                 if (!_axial)
                 {
                     float resoln = M_PI / half_scan;
                     float angle1 = (_left_flipped_idx - _right_flipped_idx) * resoln;
-                    float short_side = left_type ? _right_flipped_dist : _left_flipped_dist;
+                    float short_side = right_flipped_type ? _right_flipped_dist : _left_flipped_dist;
                     float opp_side = (float) sqrt(pow(_right_flipped_dist, 2) + pow(_left_flipped_dist, 2) - 2 * _right_flipped_dist * _left_flipped_dist * (float)cos(angle1));
                     float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
                     if (M_PI - small_angle - angle1 > 0.75 * M_PI) 
@@ -95,25 +89,25 @@ namespace quad_gap
             }
 
             // Get Left Cartesian Distance
-            void getLCartesian(float &x, float &y)
+            void getRFlippedCartesian(float &x, float &y)
             {
                 x = (_right_flipped_dist) * cos(-((float) half_scan - _right_flipped_idx) / half_scan * M_PI);
                 y = (_right_flipped_dist) * sin(-((float) half_scan - _right_flipped_idx) / half_scan * M_PI);
             }
 
             // Get Right Cartesian Distance
-            void getRCartesian(float &x, float &y)
+            void getLFlippedCartesian(float &x, float &y)
             {
                 x = (_left_flipped_dist) * cos(-((float) half_scan - _left_flipped_idx) / half_scan * M_PI);
                 y = (_left_flipped_dist) * sin(-((float) half_scan - _left_flipped_idx) / half_scan * M_PI);
             }
 
-            void getRadialExLCartesian(float &x, float &y){
+            void getRadialExRFlippedCartesian(float &x, float &y){
                 x = (convex_right_flipped_dist) * cos(-((float) half_scan - convex_right_flipped_idx) / half_scan * M_PI);
                 y = (convex_right_flipped_dist) * sin(-((float) half_scan - convex_right_flipped_idx) / half_scan * M_PI);
             }
 
-            void getRadialExRCartesian(float &x, float &y){
+            void getRadialExLFlippedCartesian(float &x, float &y){
                 x = (convex_left_flipped_dist) * cos(-((float) half_scan - convex_left_flipped_idx) / half_scan * M_PI);
                 y = (convex_left_flipped_dist) * sin(-((float) half_scan - convex_left_flipped_idx) / half_scan * M_PI);
             }
@@ -125,53 +119,14 @@ namespace quad_gap
                 agc_left_flipped_dist = float(left_flipped_idx - _right_flipped_idx) / float(_left_flipped_idx - _right_flipped_idx) * (_left_flipped_dist - _right_flipped_dist) + _right_flipped_dist;
             }
 
-            void getAGCLCartesian(float &x, float &y){
+            void getAGCRFlippedCartesian(float &x, float &y){
                 x = (agc_right_flipped_dist) * cos(-((float) half_scan - agc_right_flipped_idx) / half_scan * M_PI);
                 y = (agc_right_flipped_dist) * sin(-((float) half_scan - agc_right_flipped_idx) / half_scan * M_PI);
             }
 
-            void getAGCRCartesian(float &x, float &y){
+            void getAGCLFlippedCartesian(float &x, float &y){
                 x = (agc_left_flipped_dist) * cos(-((float) half_scan - agc_left_flipped_idx) / half_scan * M_PI);
                 y = (agc_left_flipped_dist) * sin(-((float) half_scan - agc_left_flipped_idx) / half_scan * M_PI);
-            }
-
-            // Decimate Gap 
-            void segmentGap2Vec(std::vector<Gap>& gap, int min_resoln)
-            {
-                int num_gaps = (_left_flipped_idx - _right_flipped_idx) / min_resoln + 1;
-                int idx_step = (_left_flipped_idx - _right_flipped_idx) / num_gaps;
-                float dist_step = (_left_flipped_dist - _right_flipped_dist) / num_gaps;
-                int sub_gap_right_flipped_idx = _right_flipped_idx;
-                float sub_gap_right_flipped_dist = _right_flipped_dist;
-                int sub_gap_left_flipped_idx = _right_flipped_idx;
-
-                if (num_gaps < 3) {
-                    gap.push_back(*this);
-                    return;
-                }
-                
-                for (int i = 0; i < num_gaps; i++) {
-                    Gap detected_gap(_frame, sub_gap_right_flipped_idx, sub_gap_right_flipped_dist);
-                    // ROS_DEBUG_STREAM("right_flipped_idx: " << sub_gap_right_flipped_idx << "right_flipped_dist: " << sub_gap_right_flipped_dist);
-                    if (i != 0) {
-                        detected_gap.setLeftObs();
-                    }
-
-                    if (i != num_gaps - 1) {
-                        detected_gap.setRightObs();
-                    }
-
-                    sub_gap_right_flipped_idx += idx_step;
-                    sub_gap_right_flipped_dist += dist_step;
-                    // ROS_DEBUG_STREAM("left_flipped_idx: " << sub_gap_right_flipped_idx << "left_flipped_dist: " << sub_gap_right_flipped_dist);
-                    if (i == num_gaps - 1)
-                    {
-                        detected_gap.addRightInformation(_left_flipped_idx, _left_flipped_dist);
-                    } else {
-                        detected_gap.addRightInformation(sub_gap_right_flipped_idx - 1, sub_gap_right_flipped_dist);
-                    }
-                    gap.push_back(detected_gap);
-                }
             }
 
             void compareGoalDist(double goal_dist) {
@@ -180,27 +135,27 @@ namespace quad_gap
 
             // Getter and Setter for if side is an obstacle
             void setLeftObs() {
-                left_obs = false;
+                right_flipped_obs = false;
             }
 
             void setRightObs() {
-                right_obs = false;
+                left_flipped_obs = false;
             }
 
-            bool getLeftObs() {
-                return left_obs;
+            bool getRightFlippedObs() {
+                return right_flipped_obs;
             }
 
 
-            bool getRightObs() {
-                return right_obs;
+            bool getLeftFlippedObs() {
+                return left_flipped_obs;
             }
 
-            bool isAxial()
+            bool setRadial()
             {
                 float resoln = M_PI / half_scan;
                 float angle1 = (_left_flipped_idx - _right_flipped_idx) * resoln;
-                float short_side = left_type ? _right_flipped_dist : _left_flipped_dist;
+                float short_side = right_flipped_type ? _right_flipped_dist : _left_flipped_dist;
                 float opp_side = (float) sqrt(pow(_right_flipped_dist, 2) + pow(_left_flipped_dist, 2) - 2 * _right_flipped_dist * _left_flipped_dist * (float)cos(angle1));
                 float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
                 // _axial = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
@@ -208,14 +163,9 @@ namespace quad_gap
                 return _axial;
             }
 
-            void setRadial()
+            bool isRightFlippedType()
             {
-                _axial = false;
-            }
-
-            bool isLeftType()
-            {
-                return left_type;
+                return right_flipped_type;
             }
 
             void resetFrame(std::string frame) {
@@ -240,13 +190,14 @@ namespace quad_gap
 
             Eigen::Vector2d get_middle_pt_vec()
             {
-                float left_x, left_y;
-                getLCartesian(left_x, left_y);
-                Eigen::Vector2d l_vec(left_x, left_y);
-                float right_x, right_y;
-                getRCartesian(right_x, right_y);
-                Eigen::Vector2d r_vec(right_x, right_y);
-                Eigen::Vector2d m_vec = (l_vec + r_vec) / 2;
+                float right_flipped_x, right_flipped_y;
+                getRFlippedCartesian(right_flipped_x, right_flipped_y);
+                Eigen::Vector2d right_flipped_vec(right_flipped_x, right_flipped_y);
+                
+                float left_flipped_x, left_flipped_y;
+                getLFlippedCartesian(left_flipped_x, left_flipped_y);
+                Eigen::Vector2d left_flipped_vec(left_flipped_x, left_flipped_y);
+                Eigen::Vector2d m_vec = (right_flipped_vec + left_flipped_vec) / 2;
                 return m_vec;
             }
             
@@ -277,10 +228,10 @@ namespace quad_gap
             bool no_agc_coor = false;
 
             std::string _frame = "";
-            bool left_obs = true;
-            bool right_obs = true;
+            bool right_flipped_obs = true;
+            bool left_flipped_obs = true;
             bool _axial = false;
-            bool left_type = false;
+            bool right_flipped_type = false;
 
             struct converted {
                 int convex_right_flipped_idx = 0;

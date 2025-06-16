@@ -54,9 +54,9 @@ namespace quad_gap
                             y1 * coefs, y2 * coefs,
                             selectedGap.goal.x * coefs,
                             selectedGap.goal.y * coefs,
-                            selectedGap.getLeftObs(),
-                            selectedGap.getRightObs(),
-                            selectedGap.isAxial(),
+                            selectedGap.getRightFlippedObs(),
+                            selectedGap.getLeftFlippedObs(),
+                            selectedGap.setRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
             inte, x, 0.0,

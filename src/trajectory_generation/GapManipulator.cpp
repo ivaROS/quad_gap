@@ -221,7 +221,7 @@ namespace quad_gap {
         // ROS_INFO_STREAM(right_flipped_idx << " " << left_flipped_idx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
 
         float right_flipped_dist = gap.RFlippedDist();
-        float left_flipped_dist = gap.RDist();
+        float left_flipped_dist = gap.LFlippedDist();
         float new_right_flipped_dist = float(new_l - right_flipped_idx) / float(left_flipped_idx - right_flipped_idx) * (left_flipped_dist - right_flipped_dist) + right_flipped_dist;
         float new_left_flipped_dist = float(new_r - right_flipped_idx) / float(left_flipped_idx - right_flipped_idx) * (left_flipped_dist - right_flipped_dist) + right_flipped_dist;
         gap.convex.convex_right_flipped_idx = new_l;
@@ -235,14 +235,14 @@ namespace quad_gap {
 
     void GapManipulator::convertAxialGap(Gap& gap) {
         // Return if not axial gap or disabled
-        if (!gap.isAxial() || !cfg_->gap_manip.axial_convert) {
+        if (!gap.setRadial() || !cfg_->gap_manip.axial_convert) {
             // ROS_INFO_STREAM("Swept gap.");
             return;
         }
 
         auto stored_scan_msgs = *msg.get();
         
-        bool left = gap.isLeftType();
+        bool left = gap.isRightFlippedType();
         // Extend of rotation to the radial gap 
         // amp-ed by a **small** ratio to ensure the local goal does not exactly fall on the
         // visibility line
@@ -264,7 +264,7 @@ namespace quad_gap {
             l_idx = gap.RFlippedIdx();
             l_dist = gap.RFlippedDist();
             r_idx = gap.LFlippedIdx();
-            r_dist = gap.RDist();
+            r_dist = gap.LFlippedDist();
         }
 
         float x1, x2, y1, y2;
@@ -291,7 +291,7 @@ namespace quad_gap {
             // near_idx = gap.RFlippedIdx();
             // far_idx = gap.LFlippedIdx();
             // near_dist = gap.RFlippedDist();
-            // far_dist = gap.RDist();
+            // far_dist = gap.LFlippedDist();
             near_idx = l_idx;
             far_idx = r_idx;
             near_dist = l_dist;
