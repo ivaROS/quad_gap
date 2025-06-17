@@ -166,7 +166,8 @@ namespace quad_gap
                 // Wait until the first mergable gap aka swept left type gap
                 mark_to_start = false;
                 second_gap.push_back(observed_gaps[i]);
-            } else {
+            } else 
+            {
                 if (!mark_to_start)
                 {
                     if (observed_gaps.at(i).isRadial())

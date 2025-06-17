@@ -1,29 +1,32 @@
 #include <quad_gap/trajectory_evaluation/TrajectoryEvaluator.h>
 
-namespace quad_gap {
+namespace quad_gap 
+{
     TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
     {
         cfg_ = & cfg;
-        r_inscr = cfg_->rbt.r_inscr;
-        rmax = cfg_->traj.rmax;
-        cobs = cfg_->traj.cobs;
-        w = cfg_->traj.w;
-        terminal_weight = cfg_->traj.terminal_weight;
+        // r_inscr = cfg_->rbt.r_inscr;
+        // rmax = cfg_->traj.rmax;
+        // cobs = cfg_->traj.cobs;
+        // w = cfg_->traj.w;
+        // terminal_weight = cfg_->traj.terminal_weight;
         robot_geo_proc_ = robot_geo_proc;
     }
 
-    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) {
+    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
+    {
         boost::mutex::scoped_lock lock(scanMutex_);
-        msg = msg_;
+        scan_ = msg;
     }
-    void TrajectoryEvaluator::updateGapContainer(const std::vector<Gap> observed_gaps) {
+    void TrajectoryEvaluator::updateGapContainer(const std::vector<Gap> & observed_gaps) 
+    {
         boost::mutex::scoped_lock lock(gap_mutex);
         gaps.clear();
         gaps = observed_gaps;
     }
 
     void TrajectoryEvaluator::transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
-                                                const geometry_msgs::TransformStamped & odom2rbt) 
+                                                                            const geometry_msgs::TransformStamped & odom2rbt) 
     {
         boost::mutex::scoped_lock lock(globalPlanMutex_);
         tf2::doTransform(globalPathLocalWaypointOdomFrame, globalPathLocalWaypointRobotFrame_, odom2rbt);
@@ -40,7 +43,7 @@ namespace quad_gap {
         }
 
         // How fix this
-        int num_of_scan = msg.get()->ranges.size();
+        int num_of_scan = scan_.get()->ranges.size();
         double goal_orientation = std::atan2(globalPathLocalWaypointRobotFrame_.pose.position.y, globalPathLocalWaypointRobotFrame_.pose.position.x);
         int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
         ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
@@ -62,14 +65,15 @@ namespace quad_gap {
     }
 
     // Again, in rbt frame
-    std::vector<double> TrajectoryEvaluator::scoreTrajectories (
-        std::vector<geometry_msgs::PoseArray> sample_traj) {
+    std::vector<double> TrajectoryEvaluator::scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj) 
+    {
         // This will be in robot frame
         
         return std::vector<double>(sample_traj.size());
     }
 
-    std::vector<double> TrajectoryEvaluator::scoreTrajectory(geometry_msgs::PoseArray traj) {
+    std::vector<double> TrajectoryEvaluator::scoreTrajectory(const geometry_msgs::PoseArray & traj) 
+    {
         // Requires LOCAL FRAME
         // Should be no racing condition
         std::vector<double> cost_val(traj.poses.size());
@@ -81,7 +85,7 @@ namespace quad_gap {
 
         if (cost_val.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<double>::infinity())
         {
-            auto terminal_cost = terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
+            auto terminal_cost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
             if (terminal_cost < 1 && total_val > -10) return std::vector<double>(traj.poses.size(), 100);
             // Should be safe
             cost_val.at(0) -= terminal_cost;
@@ -90,7 +94,8 @@ namespace quad_gap {
         return cost_val;
     }
 
-    double TrajectoryEvaluator::terminalGoalCost(geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::Pose & pose) 
+    {
         boost::mutex::scoped_lock planlock(globalPlanMutex_);
         // ROS_INFO_STREAM(pose);
         double dx = pose.position.x - globalPathLocalWaypointRobotFrame_.pose.position.x;
@@ -98,15 +103,17 @@ namespace quad_gap {
         return sqrt(pow(dx, 2) + pow(dy, 2));
     }
 
-    double TrajectoryEvaluator::dist2Pose(float theta, float dist, geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    {
         float x = dist * std::cos(theta);
         float y = dist * std::sin(theta);
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
-    double TrajectoryEvaluator::scorePose(geometry_msgs::Pose pose) {
+    double TrajectoryEvaluator::scorePose(const geometry_msgs::Pose & pose) 
+    {
         boost::mutex::scoped_lock lock(scanMutex_);
-        sensor_msgs::LaserScan stored_scan = *msg.get();
+        sensor_msgs::LaserScan stored_scan = *scan_.get();
 
         // double pose_ori = std::atan2(pose.position.y + 1e-3, pose.position.x + 1e-3);
         // int center_idx = (int) std::round((pose_ori + M_PI) / msg.get()->angle_increment);
@@ -116,7 +123,8 @@ namespace quad_gap {
         std::vector<double> rmax_offset(scan_size);
 
         // This size **should** be ensured
-        if (stored_scan.ranges.size() < 500) {
+        if (stored_scan.ranges.size() < 500) 
+        {
             ROS_FATAL_STREAM("Scan range incorrect scorePose");
         }
 
@@ -165,14 +173,15 @@ namespace quad_gap {
 
         auto iter = std::min_element(dist.begin(), dist.end());
         // double rmax_offset_val = rmax_offset[iter - dist.begin()];
-        double rmax_offset_val = rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
+        double rmax_offset_val = cfg_->traj.rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
         return chapterScore(*iter, rmax_offset_val);
     }
 
-    double TrajectoryEvaluator::chapterScore(double d, double rmax_offset_val) {
+    double TrajectoryEvaluator::chapterScore(const double & d, const double & rmax_offset_val) 
+    {
         if (d <= 0) return -std::numeric_limits<double>::infinity();
         if (d > rmax_offset_val) return 0;
-        return cobs * std::exp(- w * (d));
+        return cfg_->traj.cobs * std::exp(- cfg_->traj.w * (d));
     }
 
     // int TrajectoryEvaluator::searchIdx(geometry_msgs::Pose pose) {
@@ -185,7 +194,8 @@ namespace quad_gap {
     //     return searchIdx;
     // }
 
-    Gap TrajectoryEvaluator::returnAndScoreGaps() {
+    Gap TrajectoryEvaluator::returnAndScoreGaps() 
+    {
         boost::mutex::scoped_lock gaplock(gap_mutex);
         std::vector<double> cost = scoreGaps();
         auto decision_iter = std::min_element(cost.begin(), cost.end());

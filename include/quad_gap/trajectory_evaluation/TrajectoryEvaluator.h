@@ -47,8 +47,8 @@ namespace quad_gap {
                 robot_geo_proc_ = t.robot_geo_proc_;
             }
             
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const>);
-            void updateGapContainer(const std::vector<Gap>);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            void updateGapContainer(const std::vector<Gap>& observed_gaps);
 
             void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
                                                             const geometry_msgs::TransformStamped & odom2rbt);
@@ -57,29 +57,34 @@ namespace quad_gap {
             Gap returnAndScoreGaps();
             
             // Full Scoring
-            std::vector<double> scoreTrajectories(std::vector<geometry_msgs::PoseArray>);
+            std::vector<double> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
             geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
-            std::vector<double> scoreTrajectory(geometry_msgs::PoseArray traj);
+            std::vector<double> scoreTrajectory(const geometry_msgs::PoseArray & traj);
         
         private:
+            
+            double scorePose(const geometry_msgs::Pose & pose);
+            // int searchIdx(geometry_msgs::Pose pose);
+            double dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            double chapterScore(const double & d, const double & rmax_offset_val);
+            double terminalGoalCost(const geometry_msgs::Pose & pose);
+
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::LaserScan const> msg;
+            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             std::vector<Gap> gaps;
             geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame_;
 
             boost::mutex globalPlanMutex_; /**< mutex locking thread for updating current global plan */
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */
             boost::mutex gap_mutex;
-            
-            double scorePose(geometry_msgs::Pose pose);
-            // int searchIdx(geometry_msgs::Pose pose);
-            double dist2Pose(float theta, float dist, geometry_msgs::Pose pose);
-            double chapterScore(double d, double rmax_offset_val);
-            double terminalGoalCost(geometry_msgs::Pose pose);
 
             int search_idx = -1;
 
-            double r_inscr, rmax, cobs, w, terminal_weight;
+            // double r_inscr; 
+            // double rmax;
+            // double cobs;
+            // double w;
+            // double terminal_weight;
             RobotGeometryProcessor robot_geo_proc_;
     };
 }
