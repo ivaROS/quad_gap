@@ -28,7 +28,7 @@
 
 namespace quad_gap 
 {
-    class QuadGapPlanner : public nav_core::BaseLocalPlanner , public mbf_costmap_core::CostmapController
+    class QuadGapPlanner : public nav_core::BaseLocalPlanner // , public mbf_costmap_core::CostmapController
     {
         public: 
 
@@ -117,7 +117,7 @@ namespace quad_gap
 
             // void initialize(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros);
 
-            void reset();
+            // void reset();
 
         private:
             // qgConfig loadRosParamFromNodeHandle(const ros::NodeHandle& nh);

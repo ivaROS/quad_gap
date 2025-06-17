@@ -1,6 +1,8 @@
 #pragma once
 
 #include <ros/ros.h>
+#include <ros/package.h>
+
 #include <quad_gap/utils/Gap.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -80,10 +82,6 @@ namespace quad_gap
     class Planner
     {
         public:
-            Planner();
-
-            ~Planner();
-
             /**
             * \brief initialize Planner class
             * 

@@ -13,10 +13,13 @@ namespace quad_gap
 
         if (model == "rto")
         {
-            nh.param("map_frame_id", map_frame_id, map_frame_id);
+            // nh.param("map_frame_id", map_frame_id, map_frame_id);
             odom_frame_id = model + "/odom";
             robot_frame_id = model + "/base_link";
             sensor_frame_id = model + "/hokuyo_link";
+
+            odom_topic = "odom"; // model + "/odom";
+            scan_topic = "scan"; // model + "/scan";
 
             // Gap Visualization
             nh.param("min_resoln", gap_viz.min_resoln, gap_viz.min_resoln);

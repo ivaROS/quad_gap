@@ -8,8 +8,6 @@
 
 namespace quad_gap
 {
-    Planner::~Planner() {}
-
     bool Planner::initialize(const std::string & name)
     {
         if (initialized_)
@@ -27,7 +25,7 @@ namespace quad_gap
         cfg_.loadRosParamFromNodeHandle(name);
 
         // Load precomputed robot geo
-        std::string file_name = "/home/shiyu/workspaces/cheetah_ws/src/quadruped_nav_benchmark/config/robot_geometry/box_1_geometry.yaml";
+        std::string file_name = ros::package::getPath("quad_gap") + "/config/box_1_geometry.yaml";
         unh.getParam("file_name", file_name);
         unh.setParam("file_name", file_name);
 

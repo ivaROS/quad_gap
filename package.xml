@@ -60,6 +60,6 @@
   <export>
     <!-- Other tools can request additional information be placed here -->
     <nav_core plugin="${prefix}/qg_plugin.xml" />
-    <mbf_costmap_core plugin="${prefix}/qg_plugin.xml"/>
+    <!-- <mbf_costmap_core plugin="${prefix}/qg_plugin.xml"/> -->
   </export>
 </package>

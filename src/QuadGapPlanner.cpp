@@ -1,22 +1,23 @@
-#include <ros/ros.h>
+// #include <ros/ros.h>
 #include <quad_gap/QuadGapPlanner.h>
-#include <quad_gap/utils/Gap.h>
-#include <pluginlib/class_list_macros.h>
-
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
 
 // MBF return codes
 #include <mbf_msgs/ExePathResult.h>
 
-#include <boost/numeric/odeint.hpp>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <cmath>
-#include <math.h>
+// #include <quad_gap/utils/Gap.h>
+#include <pluginlib/class_list_macros.h>
+
+// #include <visualization_msgs/Marker.h>
+// #include <visualization_msgs/MarkerArray.h>
+
+// #include <boost/numeric/odeint.hpp>
+// #include <Eigen/Core>
+// #include <Eigen/Geometry>
+// #include <cmath>
+// #include <math.h>
 
 // using namespace boost::numeric::odeint;
-namespace pl = std::placeholders;
+// namespace pl = std::placeholders;
 
 PLUGINLIB_EXPORT_CLASS(quad_gap::QuadGapPlanner, nav_core::BaseLocalPlanner)
 
@@ -29,7 +30,7 @@ namespace quad_gap
         planner_name = name;
         planner.initialize(name);
 
-        ros::NodeHandle pnh("~/" + planner_name);
+        // ros::NodeHandle pnh("~/" + planner_name);
 
         // // Setup dynamic reconfigure
         // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <qgConfig> > (pnh);

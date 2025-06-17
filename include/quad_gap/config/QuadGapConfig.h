@@ -19,7 +19,7 @@ namespace quad_gap
             std::string robot_frame_id = "TBD"; /**< Robot frame ID */
             std::string sensor_frame_id = "TBD"; /**< Sensor frame ID */
             std::string odom_topic = "TBD"; /**< Odometry ROS topic */
-            std::string acc_topic = "TBD"; /**< IMU ROS topic */
+            // std::string acc_topic = "TBD"; /**< IMU ROS topic */
             std::string scan_topic = "TBD"; /**< Laser scan ROS topic */
 
             struct GapVisualization 
