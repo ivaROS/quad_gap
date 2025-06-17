@@ -19,9 +19,6 @@ namespace quad_gap
     class GapManipulator 
     {
         public: 
-            GapManipulator(){};
-            ~GapManipulator(){};
-
             GapManipulator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
@@ -42,25 +39,26 @@ namespace quad_gap
                 robot_geo_proc_ = t.robot_geo_proc_;
             };
 
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const>);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
-            void setGapWaypoint(Gap&, geometry_msgs::PoseStamped);
-            void reduceGap(Gap&, geometry_msgs::PoseStamped);
-            void convertAxialGap(Gap&);
-            void radialExtendGap(Gap&);
+            void setGapWaypoint(Gap & gap, const geometry_msgs::PoseStamped & localgoal);
+            void reduceGap(Gap & gap, const geometry_msgs::PoseStamped & localgoal);
+            void convertAxialGap(Gap & gap);
+            void radialExtendGap(Gap & gap);
         
-            private:
-                boost::shared_ptr<sensor_msgs::LaserScan const> msg;
-                const QuadGapConfig* cfg_;
-                int num_of_scan;
-                boost::mutex egolock;
+        private:
+            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            const QuadGapConfig* cfg_;
+            int num_of_scan;
+            boost::mutex egolock;
 
-                Eigen::Vector2f car2pol(Eigen::Vector2f);
-                Eigen::Vector2f pol2car(Eigen::Vector2f);
-                Eigen::Vector2f pTheta(float, float, Eigen::Vector2f, Eigen::Vector2f);
-                bool checkGoalVisibility(geometry_msgs::PoseStamped);
+            Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
+            Eigen::Vector2f pol2car(const Eigen::Vector2f & a);
+            Eigen::Vector2f pTheta(const float & th, const float & phiB, 
+                                    const Eigen::Vector2f & pRp, const Eigen::Vector2f & pLp);
+            bool checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal);
 
-                RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryProcessor robot_geo_proc_;
 
 
     };

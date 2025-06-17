@@ -1,14 +1,14 @@
 #include <quad_gap/trajectory_generation/GapManipulator.h>
 
 namespace quad_gap {
-    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg_) 
+    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(egolock);
-        msg = msg_;
-        num_of_scan = (int)(msg.get()->ranges.size());
+        scan_ = msg;
+        num_of_scan = (int)(scan_.get()->ranges.size());
     }
 
-    void GapManipulator::setGapWaypoint(Gap& gap, geometry_msgs::PoseStamped localgoal)
+    void GapManipulator::setGapWaypoint(Gap& gap, const geometry_msgs::PoseStamped & localgoal)
     {
         // TODO: assume there is no idx that will pass 0
         float x1, x2, y1, y2;
@@ -37,8 +37,8 @@ namespace quad_gap {
         if (pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
             thetarl = thetarl - 2 * M_PI;
         
-        auto left_ori = gap.convex.convex_right_idx * msg.get()->angle_increment + msg.get()->angle_min;
-        auto right_ori = gap.convex.convex_left_idx * msg.get()->angle_increment + msg.get()->angle_min;
+        auto left_ori = gap.convex.convex_right_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
+        auto right_ori = gap.convex.convex_left_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
@@ -148,12 +148,12 @@ namespace quad_gap {
 
     }
 
-    bool GapManipulator::checkGoalVisibility(geometry_msgs::PoseStamped localgoal) 
+    bool GapManipulator::checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal) 
     {
         boost::mutex::scoped_lock lock(egolock);
         double dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
 
-        auto scan = *msg.get();
+        auto scan = *scan_.get();
         auto min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot
@@ -184,22 +184,22 @@ namespace quad_gap {
     }
 
     // In place modification
-    void GapManipulator::reduceGap(Gap& gap, geometry_msgs::PoseStamped localgoal) 
+    void GapManipulator::reduceGap(Gap& gap, const geometry_msgs::PoseStamped & localgoal) 
     {
         int right_idx = gap.RIdx();
         int left_idx = gap.LIdx();
         
-        if (!msg) 
+        if (!scan_) 
             return; 
 
-        double angular_size = (left_idx - right_idx) * (msg.get()->angle_increment);
+        double angular_size = (left_idx - right_idx) * (scan_.get()->angle_increment);
 
         if (angular_size < cfg_->gap_manip.reduction_threshold)
         {
             return;
         }
 
-        int gap_size = cfg_->gap_manip.reduction_target / msg.get()->angle_increment;
+        int gap_size = cfg_->gap_manip.reduction_target / scan_.get()->angle_increment;
         int l_biased_r = right_idx + gap_size;
         int r_biased_l = left_idx - gap_size;
 
@@ -253,7 +253,7 @@ namespace quad_gap {
             return;
         }
 
-        auto stored_scan_msgs = *msg.get();
+        auto stored_scan_msgs = *scan_.get();
         
         bool left = gap.isRightType();
         // Extend of rotation to the radial gap 
@@ -478,16 +478,19 @@ namespace quad_gap {
         return;
     }
 
-    Eigen::Vector2f GapManipulator::car2pol(Eigen::Vector2f a) {
+    Eigen::Vector2f GapManipulator::car2pol(const Eigen::Vector2f & a) 
+    {
         return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
     }
 
-    Eigen::Vector2f GapManipulator::pol2car(Eigen::Vector2f a) {
+    Eigen::Vector2f GapManipulator::pol2car(const Eigen::Vector2f & a) 
+    {
         return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
     }
 
-    Eigen::Vector2f GapManipulator::pTheta(
-        float th, float phiB, Eigen::Vector2f pRp, Eigen::Vector2f pLp) {
+    Eigen::Vector2f GapManipulator::pTheta(const float & th, const float & phiB, 
+                                            const Eigen::Vector2f & pRp, const Eigen::Vector2f & pLp) 
+    {
         return pLp * (th - pRp(1)) / phiB + pRp * (pLp(1) - th) / phiB;
     }
 
