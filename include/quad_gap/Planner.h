@@ -320,6 +320,7 @@ namespace quad_gap
             geometry_msgs::PoseStamped final_goal_odom;
 
             // Gaps:
+            std::vector<Gap> raw_gaps;
             std::vector<Gap> observed_gaps;
 
             // Helper modules

@@ -64,13 +64,14 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, Gap g, std::string ns, std::string color) {
+    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, Gap g, std::string ns, std::string color) 
+    {
         // ROS_INFO_STREAM(g._right_idx << ", " << g._right_dist << ", " << g._left_idx << ", " << g._left_dist << ", " << g._frame);
         if (!cfg_->gap_viz.debug_viz) return;
 
         int viz_offset = 0;
         double viz_jitter = cfg_->gap_viz.viz_jitter;
-        if (viz_jitter > 0 && g.setRadial()){
+        if (viz_jitter > 0 && g.isRadial()){
             viz_offset = g.isRightType() ? -2 : 2;
         }
 
@@ -87,7 +88,7 @@ namespace quad_gap
         this_marker.action = visualization_msgs::Marker::ADD;
 
         std::string local_ns = ns;
-        if (g.setRadial()) {
+        if (g.isRadial()) {
             local_ns.append("_radial");
         } else {
             local_ns.append("_swept");
@@ -151,7 +152,8 @@ namespace quad_gap
         vis_arr.markers.push_back(this_marker);
     }
     
-    void GapVisualizer::drawGaps(std::vector<Gap> g, std::string ns, std::string color) {
+    void GapVisualizer::drawGaps(std::vector<Gap> g, std::string ns, std::string color) 
+    {
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         for (auto & gap : g) {
@@ -160,19 +162,22 @@ namespace quad_gap
         gaparc_publisher.publish(vis_arr);
     }
 
-    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, Gap g, bool & circle) {
+    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, Gap g, bool & circle) 
+    {
         // if AGC: Color is Red
         // if Convex: color is Brown, viz_jitter + 0.1
         // if RadialExtension: color is green, draw additional circle
         if (!cfg_->gap_viz.debug_viz) return;
 
-        if (!g.mode.reduced && !g.mode.convex && !g.mode.agc) {
+        if (!g.mode.reduced && !g.mode.convex && !g.mode.agc) 
+        {
             return;
         }
 
         float viz_jitter = (float) cfg_->gap_viz.viz_jitter;
         int viz_offset = 0;
-        if (viz_jitter > 0 && g.setRadial()){
+        if (viz_jitter > 0 && g.isRadial())
+        {
             viz_offset = g.isRightType() ? -2 : 2;
         }
 

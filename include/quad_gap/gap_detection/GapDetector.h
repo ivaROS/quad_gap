@@ -22,10 +22,6 @@ namespace quad_gap
     class GapDetector 
     {
         public: 
-            GapDetector();
-
-            ~GapDetector();
-
             GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
 
             GapDetector& operator=(GapDetector other) 
@@ -49,16 +45,15 @@ namespace quad_gap
             */
             void preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan);
 
-            void gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
+            std::vector<Gap> gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);
 
-            void gapSimplification(boost::shared_ptr<sensor_msgs::LaserScan const>, std::vector<Gap>&);
-
-            RobotGeometryProcessor robot_geo_proc_;
+            std::vector<Gap> gapSimplification(const std::vector<Gap> & rawGaps);
 
         private:
 
-            const QuadGapConfig* cfg_;
-    };
+            sensor_msgs::LaserScan scan_; /**< Current laser scan */
+            const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */
+            RobotGeometryProcessor robot_geo_proc_;
 
-
+        };
 }

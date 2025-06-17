@@ -247,7 +247,7 @@ namespace quad_gap {
     void GapManipulator::convertAxialGap(Gap& gap) 
     {
         // Return if not radial gap or disabled
-        if (!gap.setRadial() || !cfg_->gap_manip.radial_convert) 
+        if (!gap.isRadial() || !cfg_->gap_manip.radial_convert) 
         {
             // ROS_INFO_STREAM("Swept gap.");
             return;

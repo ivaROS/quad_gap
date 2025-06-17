@@ -1,6 +1,7 @@
 #include <quad_gap/gap_detection/GapDetector.h>
 
-namespace quad_gap {
+namespace quad_gap 
+{
     GapDetector::GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
     {
         cfg_ = & cfg;
@@ -27,28 +28,30 @@ namespace quad_gap {
         }
     }
 
-    void GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr,
-                                    std::vector<Gap> & observed_gaps)
+    std::vector<Gap> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)
     {
-        observed_gaps.clear();
-        sensor_msgs::LaserScan stored_scan_msgs = *scanPtr.get();
+        std::vector<Gap> observed_gaps;
+        // observed_gaps.clear();
+
+        scan_ = *scanPtr.get();
+
         bool prev = true;
-        auto max_dist_iter = std::max_element(stored_scan_msgs.ranges.begin(), stored_scan_msgs.ranges.end());
+        auto max_dist_iter = std::max_element(scan_.ranges.begin(), scan_.ranges.end());
         float max_scan_dist = *max_dist_iter;
-        auto min_dist = *std::min_element(stored_scan_msgs.ranges.begin(), stored_scan_msgs.ranges.end());
+        auto min_dist = *std::min_element(scan_.ranges.begin(), scan_.ranges.end());
         int gap_size = 0;
-        std::string frame = stored_scan_msgs.header.frame_id;
+        std::string frame = scan_.header.frame_id;
         int gap_right_idx = 0;
-        float gap_right_dist = stored_scan_msgs.ranges[0];
-        float last_scan = stored_scan_msgs.ranges[0];
+        float gap_right_dist = scan_.ranges[0];
+        float last_scan = scan_.ranges[0];
         bool prev_right_gap = gap_right_dist >= max_scan_dist;
         float scan_dist;
         float scan_diff;
         int wrap = 0;
 
-        for (std::vector<float>::size_type it = 1; it < stored_scan_msgs.ranges.size(); ++it)
+        for (std::vector<float>::size_type it = 1; it < scan_.ranges.size(); ++it)
         {
-            scan_dist = stored_scan_msgs.ranges[it];
+            scan_dist = scan_.ranges[it];
             scan_diff = scan_dist - last_scan;
             
             // Arbitrary small threshold for a range difference to be considered
@@ -58,7 +61,7 @@ namespace quad_gap {
                 if (scan_dist < max_scan_dist && last_scan < max_scan_dist) 
                 {
                     Gap detected_gap(frame, it - 1, last_scan, true);
-                    detected_gap.addRightInformation(it, scan_dist);
+                    detected_gap.addLeftInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
                     // then no need for range diff
@@ -80,14 +83,14 @@ namespace quad_gap {
                 {
                     prev_right_gap = false;
                     Gap detected_gap(frame, gap_right_idx, gap_right_dist);
-                    detected_gap.addRightInformation(it, scan_dist);
+                    detected_gap.addLeftInformation(it, scan_dist);
                     detected_gap.setMinSafeDist(min_dist);
                     // Inscribed radius gets enforced here, or unless using inflated egocircle,
                     // then no need for range diff
                     // Find equivalent passing length
                     Eigen::Vector2d orient_vec(1, 0);
                     Eigen::Vector2d m_pt_vec = detected_gap.get_middle_pt_vec();
-                    // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+                    // double epl = robot_geo_proc->.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
                     double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
                     if (detected_gap.get_dist_side() > epl) observed_gaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
                 }
@@ -105,7 +108,7 @@ namespace quad_gap {
         if (prev_right_gap) 
         {
             Gap detected_gap(frame, gap_right_idx, gap_right_dist);
-            detected_gap.addRightInformation(int(stored_scan_msgs.ranges.size() - 1), *(stored_scan_msgs.ranges.end() - 1));
+            detected_gap.addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
             detected_gap.setMinSafeDist(min_dist);
             Eigen::Vector2d orient_vec(1, 0);
             Eigen::Vector2d m_pt_vec = detected_gap.get_middle_pt_vec();
@@ -117,7 +120,7 @@ namespace quad_gap {
         // Bridge the last gap around
         if (observed_gaps.size() > 1)
         {
-            if (observed_gaps[0].RIdx() == 0 && observed_gaps[observed_gaps.size() - 1].LIdx() == stored_scan_msgs.ranges.size() - 1) // Magic number?
+            if (observed_gaps[0].RIdx() == 0 && observed_gaps[observed_gaps.size() - 1].LIdx() == scan_.ranges.size() - 1) // Magic number?
             {
                 // Both ends
                 float start_side_dist = observed_gaps[0].LDist();
@@ -130,24 +133,25 @@ namespace quad_gap {
                 float result = (end_side_dist - start_side_dist) * (float (start_side_idx) / float (total_size)) + start_side_dist;
                 observed_gaps[0].setRightObs();
                 observed_gaps[observed_gaps.size() - 1].setLeftObs();
-                observed_gaps[observed_gaps.size() - 1].addRightInformation(511, result);
+                observed_gaps[observed_gaps.size() - 1].addLeftInformation(511, result);
                 observed_gaps[0].setRDist(result);
             }
         }
+
+        return observed_gaps;
     }
 
-    void GapDetector::gapSimplification(
-        boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr,
-        std::vector<Gap>& observed_gaps)
+    std::vector<Gap> GapDetector::gapSimplification(const std::vector<Gap> & observed_gaps)
     {
+        std::vector<Gap> second_gap;
+
         // int right_idx = -1;
         // int left_idx = -1;
         // float left_dist = 3;
         // float right_dist = 3; // TODO: Make this reconfigurable
         int observed_size = (int) observed_gaps.size();
-        std::vector<Gap> second_gap;
 
-        sensor_msgs::LaserScan stored_scan_msgs = *scanPtr.get();
+        // sensor_msgs::LaserScan scan_ = *scanPtr.get();
         // Termination Condition
 
         // Insert first
@@ -157,7 +161,7 @@ namespace quad_gap {
         bool changed = true;
         for (int i = 0; i < (int) observed_gaps.size(); i++)
         {
-            if (mark_to_start && observed_gaps.at(i).setRadial() && observed_gaps.at(i).isRightType())
+            if (mark_to_start && observed_gaps.at(i).isRadial() && observed_gaps.at(i).isRightType())
             {
                 // Wait until the first mergable gap aka swept left type gap
                 mark_to_start = false;
@@ -165,7 +169,7 @@ namespace quad_gap {
             } else {
                 if (!mark_to_start)
                 {
-                    if (observed_gaps.at(i).setRadial())
+                    if (observed_gaps.at(i).isRadial())
                     {
                         if (observed_gaps.at(i).isRightType())
                         {
@@ -182,17 +186,17 @@ namespace quad_gap {
                             {
                                 int start_idx = std::min(second_gap[j].LIdx(), observed_gaps[i].RIdx());
                                 int end_idx = std::max(second_gap[j].LIdx(), observed_gaps[i].RIdx());
-                                auto farside_iter = std::min_element(stored_scan_msgs.ranges.begin() + start_idx, stored_scan_msgs.ranges.begin() + end_idx);
-                                int farside_idx = farside_iter - stored_scan_msgs.ranges.begin();
+                                auto farside_iter = std::min_element(scan_.ranges.begin() + start_idx, scan_.ranges.begin() + end_idx);
+                                int farside_idx = farside_iter - scan_.ranges.begin();
                                 // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
                                 // double max_r_er = robot_geo_proc_.getRobotMaxRadius();
-                                double farside_angle = farside_idx * stored_scan_msgs.angle_increment + stored_scan_msgs.angle_min;
+                                double farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
                                 Eigen::Vector2d farside_vec(cos(farside_angle), sin(farside_angle));
                                 Eigen::Vector2d orient_vec(1, 0);
                                 double erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_left_dist);
                                 double erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, second_gap[j].RDist());
                                 bool second_test = curr_left_dist <= (*farside_iter - erl_left_dist) && second_gap[j].RDist() <= (*farside_iter - erl_right_dist);
-                                bool dist_diff = second_gap[j].isRightType() || !second_gap[j].setRadial();
+                                bool dist_diff = second_gap[j].isRightType() || !second_gap[j].isRadial();
                                 bool idx_diff = observed_gaps[i].LIdx() - second_gap[j].RIdx() < cfg_->gap_manip.max_idx_diff;
                                 if (second_test && dist_diff && idx_diff) {
                                     last_mergable = j;
@@ -201,7 +205,7 @@ namespace quad_gap {
 
                             if (last_mergable != -1) {
                                 second_gap.erase(second_gap.begin() + last_mergable + 1, second_gap.end());
-                                second_gap.back().addRightInformation(observed_gaps[i].LIdx(), observed_gaps[i].LDist());
+                                second_gap.back().addLeftInformation(observed_gaps[i].LIdx(), observed_gaps[i].LDist());
                             } else {
                                 second_gap.push_back(observed_gaps.at(i));
                             }
@@ -211,9 +215,9 @@ namespace quad_gap {
                     {
                         // If not radial gap, 
                         float curr_left_dist = observed_gaps.at(i).LDist();
-                        if (std::abs(curr_left_dist - second_gap.back().RDist()) < 0.2 && second_gap.back().setRadial() && second_gap.back().isRightType())
+                        if (std::abs(curr_left_dist - second_gap.back().RDist()) < 0.2 && second_gap.back().isRadial() && second_gap.back().isRightType())
                         {
-                            second_gap.back().addRightInformation(observed_gaps[i].LIdx(), observed_gaps[i].LDist());
+                            second_gap.back().addLeftInformation(observed_gaps[i].LIdx(), observed_gaps[i].LDist());
                         } else {
                             second_gap.push_back(observed_gaps[i]);
                         }
@@ -227,9 +231,10 @@ namespace quad_gap {
             }
             last_type_left = observed_gaps[i].isRightType();
         }
-        observed_gaps.clear();
-        observed_gaps = second_gap;
 
+        // observed_gaps.clear();
+        // observed_gaps = second_gap;
+        return second_gap;
     }
 
 

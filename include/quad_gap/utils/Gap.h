@@ -47,45 +47,34 @@ namespace quad_gap
                 _right_dist = right_dist;
             }
 
-            int LIdx()
+            int LIdx() const
             {
                 return _left_idx;
             }
 
-            int RIdx()
+            int RIdx() const
             {
                 return _right_idx;
             }            
 
-            float LDist()
+            float LDist() const
             {
                 return _left_dist;
             }
 
-            float RDist()
+            float RDist() const
             {
                 return _right_dist;
             }
 
             // Concluding the Gap after constructing with left information
-            void addRightInformation(int left_idx, float left_dist) 
+            void addLeftInformation(int left_idx, float left_dist) 
             {
                 _left_idx = left_idx;
                 _left_dist = left_dist;
                 right_type = _right_dist < _left_dist;
 
-                if (!_radial)
-                {
-                    float resoln = M_PI / half_num_scan;
-                    float angle1 = (_left_idx - _right_idx) * resoln;
-                    float short_side = right_type ? _right_dist : _left_dist;
-                    float opp_side = (float) sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (float)cos(angle1));
-                    float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
-                    if (M_PI - small_angle - angle1 > 0.75 * M_PI) 
-                    {
-                        _radial = true;
-                    }
-                }
+                setRadial();
 
                 convex.convex_right_idx = _right_idx;
                 convex.convex_left_idx = _left_idx;
@@ -164,7 +153,7 @@ namespace quad_gap
                 return left_obs;
             }
 
-            bool setRadial()
+            void setRadial()
             {
                 float resoln = M_PI / half_num_scan;
                 float angle1 = (_left_idx - _right_idx) * resoln;
@@ -173,10 +162,19 @@ namespace quad_gap
                 float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
                 // _radial = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
                 _radial = (M_PI - small_angle - angle1 > (2.0 / 3.0 * M_PI)); 
-                return _radial;
+                // return _radial;
             }
 
-            bool isRightType()
+            /**
+            * \brief Getter for gap radial condition
+            * \return Gap radial condition
+            */
+            bool isRadial() const 
+            { 
+                return _radial; 
+            }
+
+            bool isRightType() const
             {
                 return right_type;
             }

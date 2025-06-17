@@ -351,14 +351,14 @@ namespace quad_gap
         //////// GAP DETECTION ////////
         ///////////////////////////////
 
-        gapDetector_->gapDetection(scan, observed_gaps);
-        gapVisualizer_->drawGaps(observed_gaps, std::string("raw"));
+        raw_gaps = gapDetector_->gapDetection(scan);
+        gapVisualizer_->drawGaps(raw_gaps, std::string("raw"));
 
         ////////////////////////////////////
         //////// GAP SIMPLIFICATION ////////
         ////////////////////////////////////
 
-        gapDetector_->gapSimplification(scan, observed_gaps);
+        observed_gaps = gapDetector_->gapSimplification(raw_gaps);
         gapVisualizer_->drawGaps(observed_gaps, std::string("fin"));
 
         // ROS_INFO_STREAM("observed_gaps count:" << observed_gaps.size());
