@@ -364,7 +364,7 @@ namespace quad_gap
 
     void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan> scan)
     {
-        boost::mutex::scoped_lock gapset(gapset_mutex);
+        boost::mutex::scoped_lock gapset(gapMutex_);
 
         ROS_INFO_STREAM_NAMED("Planner", "[laserScanCB()]");
 
@@ -463,8 +463,8 @@ namespace quad_gap
 
     void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& rbtOdomMsg)
     {
-        ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
-        ROS_INFO_STREAM("[poseCB()]");
+        // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
+        // ROS_INFO_STREAM("[poseCB()]");
 
         if (!haveTFs_)
             return;
@@ -594,7 +594,7 @@ namespace quad_gap
 
     void Planner::tfCB(const tf2_msgs::TFMessage& msg)
     {
-        ROS_INFO_STREAM_NAMED("Planner", "[tfCB()]");
+        // ROS_INFO_STREAM_NAMED("Planner", "[tfCB()]");
 
         try 
         {
@@ -629,7 +629,7 @@ namespace quad_gap
 
     std::vector<Gap *> Planner::gapManipulate(const std::vector<Gap *> & planning_gaps) 
     {
-        boost::mutex::scoped_lock gapset(gapset_mutex);
+        boost::mutex::scoped_lock gapset(gapMutex_);
         std::vector<Gap *> manip_set = planning_gaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
@@ -659,7 +659,8 @@ namespace quad_gap
                                                                 std::vector<geometry_msgs::PoseArray>& res, 
                                                                 std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
     {
-        boost::mutex::scoped_lock gapset(gapset_mutex);
+        boost::mutex::scoped_lock gapset(gapMutex_);
+
         std::vector<geometry_msgs::PoseArray> ret_traj(gaps.size());
         std::vector<geometry_msgs::PoseArray> virtual_traj(gaps.size());
         std::vector<std::vector<double>> ret_traj_scores(gaps.size());
@@ -787,6 +788,8 @@ namespace quad_gap
                                                 const std::vector<geometry_msgs::PoseArray> & virtual_path, 
                                                 geometry_msgs::PoseArray& chosen_virtual_path) 
     {
+        boost::mutex::scoped_lock gapset(gapMutex_);
+
         ROS_INFO_STREAM_NAMED("qg_trajCount", "qg_trajCount, " << prr.size());
         if (prr.size() == 0) {
             ROS_WARN_STREAM("No traj synthesized");
@@ -836,9 +839,11 @@ namespace quad_gap
         return prr.at(idx);
     }
 
-    geometry_msgs::PoseArray Planner::compareToOldTraj(const geometry_msgs::PoseArray & incoming, 
+    geometry_msgs::PoseArray Planner::compareToCurrentTraj(const geometry_msgs::PoseArray & incoming, 
                                                         geometry_msgs::PoseArray& virtual_curr_traj) 
     {
+        boost::mutex::scoped_lock gapset(gapMutex_);
+
         geometry_msgs::PoseArray  curr_traj = getCurrentTraj();
 
         try 
@@ -922,7 +927,7 @@ namespace quad_gap
             trajectory_pub.publish(curr_traj);
         } catch (...) 
         {
-            ROS_FATAL_STREAM("compareToOldTraj");
+            ROS_FATAL_STREAM("compareToCurrentTraj");
         }
         return curr_traj;
     }
@@ -1055,7 +1060,7 @@ namespace quad_gap
 
     std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps()
     {
-        boost::mutex::scoped_lock gapset(gapset_mutex);
+        boost::mutex::scoped_lock gapset(gapMutex_);
 
         std::vector<Gap *> planningGaps;
 
@@ -1115,7 +1120,7 @@ namespace quad_gap
 
         timeKeeper_->startTimer(TRAJ_COMP);
         geometry_msgs::PoseArray chosen_final_virtual_traj_set;
-        geometry_msgs::PoseArray final_traj = compareToOldTraj(picked_traj, chosen_final_virtual_traj_set);
+        geometry_msgs::PoseArray final_traj = compareToCurrentTraj(picked_traj, chosen_final_virtual_traj_set);
         timeKeeper_->stopTimer(TRAJ_COMP);
 
         timeKeeper_->startTimer(COLL_CHECK);

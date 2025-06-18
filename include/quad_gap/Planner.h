@@ -194,7 +194,7 @@ namespace quad_gap
             * @param incoming trajectory
             * @return the best trajectory  
             */
-            geometry_msgs::PoseArray compareToOldTraj(const geometry_msgs::PoseArray & incoming, 
+            geometry_msgs::PoseArray compareToCurrentTraj(const geometry_msgs::PoseArray & incoming, 
                                                         geometry_msgs::PoseArray& virtual_curr_traj);
 
             geometry_msgs::PoseArray getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path);
@@ -207,7 +207,7 @@ namespace quad_gap
             int egoTrajPosition(const geometry_msgs::PoseArray & curr);
 
             /**
-            * Setter and Getter of Current Trajectory, this is performed in the compareToOldTraj function
+            * Setter and Getter of Current Trajectory, this is performed in the compareToCurrentTraj function
             */
             void setCurrentTraj(const geometry_msgs::PoseArray & curr_traj);   
 
@@ -364,7 +364,7 @@ namespace quad_gap
             
             QuadGapConfig cfg_;
 
-            boost::mutex gapset_mutex;
+            boost::mutex gapMutex_;
 
             geometry_msgs::PoseArray curr_executing_traj;
 
