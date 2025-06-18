@@ -71,8 +71,10 @@ namespace quad_gap
             cfg_->traj.integrate_maxt,
             cfg_->traj.integrate_stept, corder);
 
-        if (selectedGap.mode.convex) {
-            for (auto & p : posearr.poses) {
+        if (selectedGap.mode.convex) 
+        {
+            for (auto & p : posearr.poses) 
+            {
                 p.position.x += selectedGap.qB(0);
                 p.position.y += selectedGap.qB(1);
             }
@@ -114,7 +116,14 @@ namespace quad_gap
         Eigen::Vector2f l_vec(x_right, y_right);
         Eigen::Vector2f r_vec(x_left, y_left);
         float circ_r = selectedGap.getMinSafeDist();
-        assert(circ_r <= l_vec.norm() && circ_r <= r_vec.norm());
+        // assert(circ_r <= l_vec.norm() && circ_r <= r_vec.norm());
+
+        if (circ_r > l_vec.norm() || circ_r > r_vec.norm())
+        {
+            ROS_WARN_STREAM("The circle radius is larger than the triangle side length.");
+            return false;
+        }
+
         Eigen::Vector2f l_inter = circ_r * l_vec / l_vec.norm();
         Eigen::Vector2f r_inter = circ_r * r_vec / r_vec.norm();
         Eigen::Vector2f goal_vec(goal_x, goal_y);
@@ -127,7 +136,7 @@ namespace quad_gap
         bool l_side = true;
         Eigen::Vector2f chosen_inter = l_inter;
         Eigen::Vector2f other_inter = r_inter;
-        if(abs(ang_r_conv) > abs(ang_l_conv))
+        if (abs(ang_r_conv) > abs(ang_l_conv))
         {
             l_side = false;
             chosen_inter = r_inter;
@@ -144,16 +153,16 @@ namespace quad_gap
         // float cp_max_length = circ_r - robot_geo_diagonal_thresh;
         float cp_max_length = circ_r - robot_geo_thresh_dist;
         
-        if(cp_max_length <= 0)
+        if (cp_max_length <= 0)
         {
             ROS_WARN_STREAM("The circle is smaller than robot thresh.");
             return success;
         }
 
         // If the goal is inside the circle, directly go to goal
-        if(goal_vec.norm() <= circ_r)
+        if (goal_vec.norm() <= circ_r)
         {
-            if(ideal_min_cp_length > cp_max_length)
+            if (ideal_min_cp_length > cp_max_length)
                 cp = cp_max_length * rbt_orient_vec;
             else
                 cp = ideal_min_cp_length * rbt_orient_vec;
@@ -170,15 +179,15 @@ namespace quad_gap
         }
 
         // Conditions
-        if(ang_r_conv <= 0 && ang_l_conv > 0)
+        if (ang_r_conv <= 0 && ang_l_conv > 0)
         {
             double chosen_ang = atan2(chosen_inter[1], chosen_inter[0]);
 
-            if(abs(chosen_ang) <= M_PI / 2)
+            if (abs(chosen_ang) <= M_PI / 2)
             {
                 float dist_inter_orient = abs(chosen_inter[1]);
 
-                if(dist_inter_orient >= robot_geo_thresh_dist)
+                if (dist_inter_orient >= robot_geo_thresh_dist)
                 {
                     // Second control point
                     // if(ideal_min_cp_length < circ_r)
@@ -190,7 +199,7 @@ namespace quad_gap
                     // {
                     //     cp = ideal_min_cp_length * rbt_orient_vec;
                     // }
-                    if(ideal_min_cp_length > cp_max_length)
+                    if (ideal_min_cp_length > cp_max_length)
                         cp = cp_max_length * rbt_orient_vec;
                     else
                         cp = ideal_min_cp_length * rbt_orient_vec;
@@ -209,7 +218,7 @@ namespace quad_gap
                     // ROS_INFO_STREAM("Within 1: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
                     Eigen::Vector2f l_used_vec = chosen_inter;
                     Eigen::Vector2f r_used_vec = other_inter;
-                    if(!l_side)
+                    if (!l_side)
                     {
                         l_used_vec = other_inter;
                         r_used_vec = chosen_inter;
@@ -226,7 +235,7 @@ namespace quad_gap
 
                     // if(!isLeftofLine(cp, l_new_vec, r_new_vec))
                     // if(!isLargerAngle(cp_r_vec_rot, cp_l_vec_rot))
-                    if(!isLargerAngle(r_new, l_new))
+                    if (!isLargerAngle(r_new, l_new))
                     {
                         success = false;
                         ROS_WARN_STREAM("The union region does not exist. [Orientation is within gap 1]");
@@ -243,25 +252,24 @@ namespace quad_gap
                         bool larger_than_r = isLargerAngle(goal_vec, r_new);
 
                         // if(!left_side_of_l)
-                        if(!larger_than_l)
+                        if (!larger_than_l)
                         {
                             // Eigen::Vector2f goal_cp_vec = goal_vec - cp;
                             // new_goal = goal_cp_vec.norm() * cp_l_vec_rot / cp_l_vec_rot.norm() + cp;
                             new_goal = goal_vec.norm() * l_new / l_new.norm();
                         }
                         // else if(left_side_of_l && left_side_of_r)
-                        else if(larger_than_l && larger_than_r)
+                        else if (larger_than_l && larger_than_r)
                         {
                             // Eigen::Vector2f goal_cp_vec = goal_vec - cp;
                             // new_goal = goal_cp_vec.norm() * cp_r_vec_rot / cp_r_vec_rot.norm() + cp;
                             new_goal = goal_vec.norm() * r_new / r_new.norm();
                         }
                         // else if(left_side_of_l && !left_side_of_r)
-                        else if(larger_than_l && !larger_than_r)
+                        else if (larger_than_l && !larger_than_r)
                         {
                             new_goal = goal_vec;
-                        }
-                        else
+                        }else
                         {
                             ROS_WARN_STREAM("Goal point is in the wrong region. [Orientation is within gap 1]");
                             success = false;
@@ -271,7 +279,7 @@ namespace quad_gap
                 else
                 {
                     float dist_other_inter_orient = abs(other_inter[1]);
-                    if(dist_other_inter_orient >= robot_geo_thresh_dist)
+                    if (dist_other_inter_orient >= robot_geo_thresh_dist)
                     {
                         // Find the intersect for max length / 2
                         float length_devi = sqrt(robot_geo_diagonal_thresh * robot_geo_diagonal_thresh - dist_other_inter_orient * dist_other_inter_orient);

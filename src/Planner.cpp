@@ -208,41 +208,41 @@ namespace quad_gap
 
         Lock lock(connect_mutex_);
 
-        // collision_checker_enable_ = config.cc_enable;
-        // if(!collision_checker_enable_)
-        // {
-        //     ROS_WARN_STREAM("Collision checking is disabled.");
-        //     return;
-        // }
+        collision_checker_enable_ = config.cc_enable;
+        if(!collision_checker_enable_)
+        {
+            ROS_WARN_STREAM("Collision checking is disabled.");
+            return;
+        }
 
-        // if(config.cc_type != cc_type_)
-        // {
-        //     if(config.cc_type == CollisionChecker_depth)
-        //     {
-        //         ROS_INFO_STREAM("New cc type = depth");
-        //         cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        //     }
-        //     else if(config.cc_type == CollisionChecker_depth_ego)
-        //     {
-        //         ROS_INFO_STREAM("New cc type = depth ego");
-        //         cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        //     }
-        //     else if(config.cc_type == CollisionChecker_egocircle)
-        //     {
-        //         ROS_INFO_STREAM("New cc type = egocircle");
-        //         cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        //     }
+        if(config.cc_type != cc_type_)
+        {
+            if(config.cc_type == CollisionChecker_depth)
+            {
+                ROS_INFO_STREAM("New cc type = depth");
+                cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+            }
+            else if(config.cc_type == CollisionChecker_depth_ego)
+            {
+                ROS_INFO_STREAM("New cc type = depth ego");
+                cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+            }
+            else if(config.cc_type == CollisionChecker_egocircle)
+            {
+                ROS_INFO_STREAM("New cc type = egocircle");
+                cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+            }
 
-        //     traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
+            traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
             
-        //     cc_wrapper_->init();
-        //     cc_wrapper_->autoUpdate();
+            cc_wrapper_->init();
+            cc_wrapper_->autoUpdate();
 
-        //     traj_tester_->init();
-        //     traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
+            traj_tester_->init();
+            traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
             
-        //     cc_type_ = config.cc_type;
-        // }
+            cc_type_ = config.cc_type;
+        }
     }
 
     bool Planner::isGoalReached()
@@ -467,11 +467,11 @@ namespace quad_gap
         // }
     }
 
-    bool Planner::setPlan(const std::vector<geometry_msgs::PoseStamped> &globalPlanMapFrame)
+    bool Planner::setPlan(const std::vector<geometry_msgs::PoseStamped> &incomingGlobalPlan)
     {
         ROS_INFO_STREAM_NAMED("Planner", "[setPlan()]");
 
-        if (globalPlanMapFrame.size() == 0) 
+        if (incomingGlobalPlan.size() == 0) 
             return true;
 
         if (!haveTFs_)
@@ -482,26 +482,29 @@ namespace quad_gap
         ////////////////////////////////////
 
         // plan should be in global frame
-        // std::vector<geometry_msgs::PoseStamped> global_plan;
-        // if(globalPlanMapFrame[0].header.frame_id != cfg_.map_frame_id)
-        // {
-        //     geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg_.map_frame_id, globalPlanMapFrame[0].header.frame_id, ros::Time(0));
-        //     for(size_t i = 0; i < globalPlanMapFrame.size(); i++)
-        //     {
-        //         geometry_msgs::PoseStamped plan_pose = globalPlanMapFrame[i];
-        //         geometry_msgs::PoseStamped out_pose;
-        //         tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
-        //         out_pose.header.stamp = plan_pose.header.stamp;
-        //         out_pose.header.frame_id = cfg_.map_frame_id;
-        //         global_plan.push_back(out_pose);
-        //     }
-        // }
-        // else
-        // {
-        //     global_plan = globalPlanMapFrame;
-        // }
+        std::vector<geometry_msgs::PoseStamped> globalPlanMapFrame;
+        if(incomingGlobalPlan[0].header.frame_id != cfg_.map_frame_id)
+        {
+            geometry_msgs::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg_.map_frame_id, incomingGlobalPlan[0].header.frame_id, ros::Time(0));
+            for(size_t i = 0; i < incomingGlobalPlan.size(); i++)
+            {
+                geometry_msgs::PoseStamped plan_pose = incomingGlobalPlan[i];
+                geometry_msgs::PoseStamped out_pose;
+                tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
+                out_pose.header.stamp = plan_pose.header.stamp;
+                out_pose.header.frame_id = cfg_.map_frame_id;
+                globalPlanMapFrame.push_back(out_pose);
+            }
+        }
+        else
+        {
+            globalPlanMapFrame = incomingGlobalPlan;
+        }
         
         geometry_msgs::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.end());
+        // geometry_msgs::PoseStamped globalGoalOdomFrame;
+        // Transform global goal to odom frame
+        tf2::doTransform(globalGoalMapFrame, globalGoalOdomFrame_, map2odom_);
 
         // Store New Global Plan to Goal Selector
         globalPlanManager_->updateGlobalPathMapFrame(globalPlanMapFrame);
@@ -849,43 +852,43 @@ namespace quad_gap
         return curr_traj;
     }
 
-    // CollisionResults Planner::checkCollision(const geometry_msgs::PoseArray path)
-    // {
-    //     // Convert the trajectory from odom to base frame
-    //     auto path_rbt = gapTrajGenerator_->transformBackTrajectory(path, odom2rbt_);
-    //     geometry_msgs::Pose curr_pose;
-    //     curr_pose.orientation.w = 1;
-    //     auto orig_ref = trajController_->trajGen(path_rbt);
-    //     orig_ref.header.frame_id = cfg_.robot_frame_id;
-    //     ctrl_idx = trajController_->targetPoseIdx(curr_pose, orig_ref);
+    CollisionResults Planner::checkCollision(const geometry_msgs::PoseArray & path)
+    {
+        // Convert the trajectory from odom to base frame
+        auto path_rbt = gapTrajGenerator_->transformBackTrajectory(path, odom2rbt_);
+        geometry_msgs::Pose curr_pose;
+        curr_pose.orientation.w = 1;
+        auto orig_ref = trajController_->trajGen(path_rbt);
+        orig_ref.header.frame_id = cfg_.robot_frame_id;
+        ctrl_idx = trajController_->targetPoseIdx(curr_pose, orig_ref);
 
-    //     pips_trajectory_msgs::trajectory_points local_traj;
-    //     local_traj.header.frame_id = cfg_.robot_frame_id;
-    //     for(int i = ctrl_idx; i < orig_ref.poses.size(); i++)
-    //     {
-    //         pips_trajectory_msgs::trajectory_point pt;
-    //         pt.x = orig_ref.poses[i].position.x;
-    //         pt.y = orig_ref.poses[i].position.y;
+        pips_trajectory_msgs::trajectory_points local_traj;
+        local_traj.header.frame_id = cfg_.robot_frame_id;
+        for(int i = ctrl_idx; i < orig_ref.poses.size(); i++)
+        {
+            pips_trajectory_msgs::trajectory_point pt;
+            pt.x = orig_ref.poses[i].position.x;
+            pt.y = orig_ref.poses[i].position.y;
 
-    //         // ROS_INFO_STREAM(pt.x << " " << pt.y);
+            // ROS_INFO_STREAM(pt.x << " " << pt.y);
 
-    //         tf2::Quaternion quat_tf;
-    //         tf2::convert(orig_ref.poses[i].orientation, quat_tf);
-    //         tf2::Matrix3x3 m(quat_tf);
-    //         double roll, pitch, yaw;
-    //         m.getRPY(roll, pitch, yaw);
-    //         pt.theta = yaw;
+            tf2::Quaternion quat_tf;
+            tf2::convert(orig_ref.poses[i].orientation, quat_tf);
+            tf2::Matrix3x3 m(quat_tf);
+            double roll, pitch, yaw;
+            m.getRPY(roll, pitch, yaw);
+            pt.theta = yaw;
 
-    //         local_traj.points.push_back(pt);
-    //     }
+            local_traj.points.push_back(pt);
+        }
         
 
-    //     int collision_ind = traj_tester_->evaluateTrajectory(local_traj);
+        int collision_ind = traj_tester_->evaluateTrajectory(local_traj);
 
-    //     CollisionResults cc_results(collision_ind, local_traj);
+        CollisionResults cc_results(collision_ind, local_traj);
 
-    //     return cc_results;
-    // }
+        return cc_results;
+    }
 
     int Planner::egoTrajPosition(const geometry_msgs::PoseArray & curr) 
     {
@@ -1008,25 +1011,25 @@ namespace quad_gap
         geometry_msgs::PoseArray chosen_final_virtual_traj_set;
         auto final_traj = compareToOldTraj(picked_traj, chosen_final_virtual_traj_set);
 
-        // CollisionResults cc_results;
-        // if(collision_checker_enable_)
-        // {
-        //     ros::WallTime start = ros::WallTime::now();
+        CollisionResults cc_results;
+        if (collision_checker_enable_)
+        {
+            ros::WallTime start = ros::WallTime::now();
 
-        //     // cc_results = checkCollision(final_traj);
-        //     cc_results = checkCollision(chosen_final_virtual_traj_set);
+            // cc_results = checkCollision(final_traj);
+            cc_results = checkCollision(chosen_final_virtual_traj_set);
 
-        //     ROS_INFO_STREAM("Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
+            ROS_INFO_STREAM("Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
         
-        //     int cc_ite_min = 10;
-        //     double cc_itc_ratio = 0.2;
+            int cc_ite_min = 10;
+            double cc_itc_ratio = 0.2;
 
-        //     if(cc_results.collision_idx_ >= 0 && double(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
-        //     {
-        //         ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
-        //         setCurrentTraj(geometry_msgs::PoseArray());
-        //     }
-        // }
+            if(cc_results.collision_idx_ >= 0 && double(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
+            {
+                ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
+                setCurrentTraj(geometry_msgs::PoseArray());
+            }
+        }
         
         return final_traj;
     }
