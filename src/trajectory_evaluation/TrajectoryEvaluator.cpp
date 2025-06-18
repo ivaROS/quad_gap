@@ -79,7 +79,8 @@ namespace quad_gap
         // Requires LOCAL FRAME
         // Should be no racing condition
         std::vector<double> cost_val(traj.poses.size());
-        for (int i = 0; i < cost_val.size(); i++) {
+        for (int i = 0; i < cost_val.size(); i++) 
+        {
             cost_val.at(i) = scorePose(traj.poses.at(i));
         }
 

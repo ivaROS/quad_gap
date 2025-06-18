@@ -207,7 +207,7 @@ namespace quad_gap
                 int sample_size = 20; // TOO SLOW
                 double res = M_PI * 2 / sample_size;
 
-                for(size_t i = 0; i < sample_size; i++)
+                for (size_t i = 0; i < sample_size; i++)
                 {
                     double ang = i * res - M_PI;
                     ang = (ang <= M_PI) ? ang : M_PI;
@@ -304,7 +304,7 @@ namespace quad_gap
 
                 std::vector<double> dists;
 
-                for(size_t i = 0; i < sample_size; i++)
+                for (size_t i = 0; i < sample_size; i++)
                 {
                     double ang = i * res - M_PI;
                     ang = (ang <= M_PI) ? ang : M_PI;

@@ -507,7 +507,7 @@ namespace quad_gap
     {
         TrajPlan traj;
         traj.header.frame_id = cfg_->odom_frame_id;
-        for(size_t i = 0; i < orig_traj.poses.size(); i++)
+        for (size_t i = 0; i < orig_traj.poses.size(); i++)
         {
             geometry_msgs::Pose ni_pose = orig_traj.poses[i];
             geometry_msgs::Twist ni_twist;

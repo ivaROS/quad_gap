@@ -250,6 +250,8 @@ namespace quad_gap
                 last_mergable = j;
             } 
         }
+
+        return last_mergable;
     }
 
     bool GapDetector::mergeSweptGapCondition(Gap * rawGap, 

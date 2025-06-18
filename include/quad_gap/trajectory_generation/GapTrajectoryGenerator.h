@@ -70,7 +70,7 @@ namespace quad_gap
             
             // std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
 
-            geometry_msgs::PoseArray transformBackTrajectory(const geometry_msgs::PoseArray & posearr, 
+            geometry_msgs::PoseArray transformPath(const geometry_msgs::PoseArray & posearr, 
                                                                 const geometry_msgs::TransformStamped & trans);
 
             geometry_msgs::PoseArray forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr);
@@ -100,7 +100,7 @@ namespace quad_gap
             {
                 double approx_dist = 0;
                 double t_diff = (t_end - t_start) / (steps - 1);
-                for(size_t k = 0; k < steps - 1; k++)
+                for (size_t k = 0; k < steps - 1; k++)
                 {
                     double x = quadBezier.valueAt(t_start + k * t_diff, 0);
                     double y = quadBezier.valueAt(t_start + k * t_diff, 1);

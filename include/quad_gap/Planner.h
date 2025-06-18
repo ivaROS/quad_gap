@@ -202,9 +202,11 @@ namespace quad_gap
             CollisionResults checkCollision(const geometry_msgs::PoseArray & path);
 
             /**
-            * Gets the current position along the currently executing Trajectory
+            * \brief Function for getting index of closest pose in trajectory
+            * \param currTrajRbtFrame current trajectory in robot frame
+            * \return index of closest pose in trajectory
             */
-            int egoTrajPosition(const geometry_msgs::PoseArray & curr);
+            int getClosestTrajectoryPoseIdx(const geometry_msgs::PoseArray & currTrajRbtFrame);
 
             /**
             * Setter and Getter of Current Trajectory, this is performed in the compareToCurrentTraj function

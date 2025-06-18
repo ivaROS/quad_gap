@@ -701,7 +701,7 @@ namespace quad_gap
         {
             if(!cfg_->traj.bezier_interp)
             {
-                for(float t = 0; t <= 1; t+=0.02)
+                for (float t = 0; t <= 1; t+=0.02)
                 {
                     geometry_msgs::Pose pose;
                     pose.position.x = qudraBezier.valueAt(t, 0);
@@ -720,7 +720,7 @@ namespace quad_gap
                 double dist_thresh = des_dist / 10;
                 double t_step = 1. / (num_sampled_pts - 1);
                 double t_min = 0;
-                for(size_t i = 0; i < num_sampled_pts; i++)
+                for (size_t i = 0; i < num_sampled_pts; i++)
                 {
                     double cur_t = i * t_step;
                     double cur_dist = getBezierDist(qudraBezier, t_min, cur_t, 5);
@@ -777,8 +777,8 @@ namespace quad_gap
         }
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::transformBackTrajectory(const geometry_msgs::PoseArray & posearr,
-                                                                        const geometry_msgs::TransformStamped & trans)
+    geometry_msgs::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::PoseArray & posearr,
+                                                                const geometry_msgs::TransformStamped & trans)
     {
         geometry_msgs::PoseArray retarr;
         geometry_msgs::PoseStamped outplaceholder;
