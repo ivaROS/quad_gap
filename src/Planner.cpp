@@ -926,17 +926,6 @@ namespace quad_gap
         return;
     }
 
-
-    bool Planner::isReplan() 
-    {
-        return replan;
-    }
-
-    void Planner::setReplan() 
-    {
-        replan = false;
-    }
-
     geometry_msgs::Twist Planner::ctrlGeneration(const geometry_msgs::PoseArray & traj) 
     {
         
@@ -1034,58 +1023,6 @@ namespace quad_gap
         }
         
         return final_traj;
-    }
-
-    geometry_msgs::PoseArray Planner::getSinglePath()
-    {
-        // updateTF();
-
-        auto gap_set = gapManipulate();
-        
-        std::vector<geometry_msgs::PoseArray> traj_set, virtual_traj_set;
-        
-        auto score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
-
-        geometry_msgs::PoseArray chosen_virtual_traj_set;
-        auto picked_traj = pickTraj(traj_set, score_set, virtual_traj_set, chosen_virtual_traj_set);
-        virtual_orient_traj_pub.publish(chosen_virtual_traj_set);
-
-        setCurrentTraj(picked_traj);
-
-        pubPickedTraj(picked_traj);
-
-        return picked_traj;
-    }
-
-    void Planner::pubPickedTraj(const geometry_msgs::PoseArray & picked_traj)
-    {
-        trajectory_pub.publish(picked_traj);
-    }
-
-    geometry_msgs::PoseArray Planner::getLocalPath(const geometry_msgs::PoseArray & input_path)
-    {
-        return gapTrajGenerator_->transformBackTrajectory(input_path, odom2rbt_);
-    }
-
-    bool Planner::reachedTrajEnd()
-    {
-        auto curr_traj = getCurrentTraj();
-        if (curr_traj.poses.size() == 0) {
-            return true;
-        } 
-
-        // Both Args are in Odom frame
-        auto curr_rbt = gapTrajGenerator_->transformBackTrajectory(curr_traj, odom2rbt_);
-        curr_rbt.header.frame_id = cfg_.robot_frame_id;
-
-        int start_position = egoTrajPosition(curr_rbt);
-        geometry_msgs::PoseArray reduced_curr_rbt = curr_rbt;
-        reduced_curr_rbt.poses = std::vector<geometry_msgs::Pose>(curr_rbt.poses.begin() + start_position, curr_rbt.poses.end());
-        if (reduced_curr_rbt.poses.size() < 5) {
-            return true;
-        }
-        
-        return false;
     }
 
     bool Planner::recordAndCheckVel(const geometry_msgs::Twist & cmd_vel) 

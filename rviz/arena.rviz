@@ -11,6 +11,8 @@ Panels:
         - /Dynamic Gap1/Gaps1/Marker1
         - /Dynamic Gap1/Gaps1/Marker2
         - /Dynamic Gap1/Gaps1/MarkerArray1
+        - /Dynamic Gap1/Gaps1/Marker4
+        - /Dynamic Gap1/Gaps1/Marker6
         - /Dynamic Gap1/Trajectories1
         - /Dynamic Gap1/Tracking1
       Splitter Ratio: 0.32792791724205017
@@ -325,18 +327,18 @@ Visualization Manager:
               Value: true
             - Class: rviz/Marker
               Enabled: true
-              Marker Topic: /rto/goals
+              Marker Topic: /rto/gap_goals
+              Name: Marker
+              Namespaces:
+                gap_goal: true
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /rto/global_path_local_waypoint
               Name: Marker
               Namespaces:
                 local_goal: true
-              Queue Size: 100
-              Value: true
-            - Class: rviz/MarkerArray
-              Enabled: true
-              Marker Topic: /rto/gap_goals
-              Name: MarkerArray
-              Namespaces:
-                gap_goal: true
               Queue Size: 100
               Value: true
           Enabled: true
@@ -522,10 +524,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 58.13447570800781
+      Scale: 53.289039611816406
       Target Frame: rto/base_link
-      X: 0.11252561956644058
-      Y: 0.29697540402412415
+      X: 1.2627795934677124
+      Y: 2.0167791843414307
     Saved: ~
 Window Geometry:
   Displays:

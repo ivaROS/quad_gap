@@ -34,12 +34,10 @@ namespace quad_gap
                             const std_msgs::ColorRGBA & convex_color);                     
 
             std::map<std::string, std_msgs::ColorRGBA> colorMap;
+
             ros::Publisher rawGapsPublisher;
             ros::Publisher simpGapsPublisher;
             ros::Publisher manipGapsPublisher;
-
-            ros::Publisher gapside_publisher;
-            ros::Publisher gaqgoal_publisher;
 
             int gapSpanResoln = 2;
             float invGapSpanResoln = 0.5;            

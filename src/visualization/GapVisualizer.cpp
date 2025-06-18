@@ -14,8 +14,6 @@ namespace quad_gap
         simpGapsPublisher = nh.advertise<visualization_msgs::Marker>("simp_gaps", 10);
         manipGapsPublisher = nh.advertise<visualization_msgs::Marker>("manip_gaps", 10);
 
-        gaqgoal_publisher = nh.advertise<visualization_msgs::MarkerArray>("qg_markers", 10);
-
         std_msgs::ColorRGBA std_color;
         std_msgs::ColorRGBA raw_radial;
         std_msgs::ColorRGBA raw_swept;

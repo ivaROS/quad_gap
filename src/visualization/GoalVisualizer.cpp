@@ -6,14 +6,13 @@ namespace quad_gap
     {
         cfg_ = &cfg;
         globalGoalPublisher = nh.advertise<visualization_msgs::Marker>("global_goal", 10);
-        globalPathLocalWaypointPublisher = nh.advertise<visualization_msgs::Marker>("goals", 10);
-        gapwp_pub = nh.advertise<visualization_msgs::MarkerArray>("gap_goals", 1000);
+        globalPathLocalWaypointPublisher = nh.advertise<visualization_msgs::Marker>("global_path_local_waypoint", 10);
+        gapGoalPublisher = nh.advertise<visualization_msgs::Marker>("gap_goals", 1000);
 
-
-        gapwp_color.r = 0.5;
-        gapwp_color.g = 1;
-        gapwp_color.b = 0.5;
-        gapwp_color.a = 1;
+        gapGoalColor.r = 0.5;
+        gapGoalColor.g = 1;
+        gapGoalColor.b = 0.5;
+        gapGoalColor.a = 1;
 
         globalPathLocalWaypointColor.r = 0;
         globalPathLocalWaypointColor.g = 1;
@@ -87,46 +86,64 @@ namespace quad_gap
     }
 
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, const Gap & g) 
+    void GoalVisualizer::drawGapGoal(visualization_msgs::Marker & marker, const Gap & gap) 
     {
-        if (!cfg_->gap_viz.debug_viz) return;
-        if (!g.goal.set) {
+        if (!gap.goal.set) 
+        {
             return;
         }
 
-        visualization_msgs::Marker lg_marker;
-        lg_marker.header.frame_id = g._frame;
-        lg_marker.header.stamp = ros::Time::now();
-        lg_marker.ns = "gap_goal";
-        lg_marker.id = int (vis_arr.markers.size());
-        lg_marker.type = visualization_msgs::Marker::SPHERE;
-        lg_marker.action = visualization_msgs::Marker::ADD;
-        lg_marker.pose.position.x = g.goal.x;
-        lg_marker.pose.position.y = g.goal.y;
-        lg_marker.pose.position.z = 0.5;
-        lg_marker.pose.orientation.w = 1;
-        lg_marker.scale.x = 0.1;
-        lg_marker.scale.y = 0.1;
-        lg_marker.scale.z = 0.1;
-        lg_marker.color = gapwp_color;
-        lg_marker.lifetime = ros::Duration(0.5);
-        vis_arr.markers.push_back(lg_marker);
+        // visualization_msgs::Marker lg_marker;
+
+        geometry_msgs::Point lg_point;
+        lg_point.x = gap.goal.x;
+        lg_point.y = gap.goal.y;
+        lg_point.z = 0.0005;
+
+        marker.points.push_back(lg_point);
+        marker.colors.push_back(gapGoalColor);
+        
+        // lg_marker.color = gapGoalColor;
+        // vis_arr.markers.push_back(lg_marker);
 
     }
 
-    void GoalVisualizer::drawGapGoals(const std::vector<Gap> & gs) 
+    void GoalVisualizer::drawGapGoals(const std::vector<Gap> & gaps) 
     {
         // First, clearing topic.
-        clearMarkerArrayPublisher(gapwp_pub);
+        clearMarkerPublisher(gapGoalPublisher);
 
-        if (!cfg_->gap_viz.debug_viz) return;
+        // if (!cfg_->gap_viz.debug_viz) return;
 
-        visualization_msgs::MarkerArray vis_arr;
-        for (const Gap & gap : gs) 
+        if (gaps.empty()) 
         {
-            drawGapGoal(vis_arr, gap);
+            ROS_WARN_STREAM_NAMED("Visualizer", "[drawGapGoals] No gaps to visualize");
+            return;
         }
-        gapwp_pub.publish(vis_arr);
+
+        visualization_msgs::Marker marker;
+
+        marker.header.frame_id = gaps.at(0)._frame;
+        marker.header.stamp = ros::Time::now();
+        marker.ns = "gap_goal";
+        marker.id = 0;
+        marker.type = visualization_msgs::Marker::SPHERE_LIST;
+        marker.action = visualization_msgs::Marker::ADD;
+        marker.pose.position.x = 0.0;
+        marker.pose.position.y = 0.0;
+        marker.pose.position.z = 0.0;
+        marker.pose.orientation.w = 1;
+        marker.scale.x = 0.1;
+        marker.scale.y = 0.1;
+        marker.scale.z = 0.0001;
+        // marker.lifetime = ros::Duration(0);
+
+        for (const Gap & gap : gaps) 
+        {
+            drawGapGoal(marker, gap);
+        }
+
+        gapGoalPublisher.publish(marker);
         return;
     }
 }

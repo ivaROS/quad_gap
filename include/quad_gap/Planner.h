@@ -216,20 +216,10 @@ namespace quad_gap
             */
             geometry_msgs::PoseArray getPlanTrajectory();    
 
-            geometry_msgs::PoseArray getSinglePath();
-
-            void pubPickedTraj(const geometry_msgs::PoseArray & picked_traj);
-
-            geometry_msgs::PoseArray getLocalPath(const geometry_msgs::PoseArray & input_path);
-
-            bool reachedTrajEnd();
-
             /**
             * Reset Planner, clears current observedSet
             */
             void reset();
-            bool isReplan();
-            void setReplan();
 
             /**
             * Check if the robot has been stuck
