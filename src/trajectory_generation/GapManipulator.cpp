@@ -228,8 +228,8 @@ namespace quad_gap {
 
         // ROS_INFO_STREAM(right_idx << " " << left_idx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
 
-        float left_dist = gap.LDist();
-        float right_dist = gap.RDist();
+        float left_dist = gap.LRange();
+        float right_dist = gap.RRange();
         float new_left_dist = float(new_r - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
         float new_right_dist = float(new_l - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
 
@@ -272,9 +272,9 @@ namespace quad_gap {
         } else
         {
             left_idx = gap.LIdx();
-            left_dist = gap.LDist();
+            left_dist = gap.LRange();
             right_idx = gap.RIdx();
-            right_dist = gap.RDist();
+            right_dist = gap.RRange();
         }
 
         float x1, x2, y1, y2;
@@ -301,8 +301,8 @@ namespace quad_gap {
         {
             // near_idx = gap.RIdx();
             // far_idx = gap.LIdx();
-            // near_dist = gap.RDist();
-            // far_dist = gap.LDist();
+            // near_dist = gap.RRange();
+            // far_dist = gap.LRange();
             near_idx = right_idx;
             far_idx = left_idx;
             near_dist = right_dist;

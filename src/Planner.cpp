@@ -927,11 +927,13 @@ namespace quad_gap
     }
 
 
-    bool Planner::isReplan() {
+    bool Planner::isReplan() 
+    {
         return replan;
     }
 
-    void Planner::setReplan() {
+    void Planner::setReplan() 
+    {
         replan = false;
     }
 

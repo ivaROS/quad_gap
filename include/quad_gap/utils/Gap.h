@@ -37,12 +37,12 @@ namespace quad_gap
             }
 
             // Setter and Getter for LR Distance and Index
-            void setLDist(const float & left_dist)
+            void setLRange(const float & left_dist)
             {
                 _left_dist = left_dist;
             }
 
-            void setRDist(const float & right_dist) 
+            void setRRange(const float & right_dist) 
             {
                 _right_dist = right_dist;
             }
@@ -57,12 +57,12 @@ namespace quad_gap
                 return _right_idx;
             }            
 
-            float LDist() const
+            float LRange() const
             {
                 return _left_dist;
             }
 
-            float RDist() const
+            float RRange() const
             {
                 return _right_dist;
             }
@@ -83,29 +83,47 @@ namespace quad_gap
             }
 
             // Get Right Cartesian Distance
-            void getLCartesian(float &x, float &y)
+            void getLCartesian(float &x, float &y) const
             {
-                x = (_left_dist) * cos(idx2theta(_left_idx));
-                y = (_left_dist) * sin(idx2theta(_left_idx));
+                float left_theta = idx2theta(_left_idx);
+                x = _left_dist * cos(left_theta);
+                y = _left_dist * sin(left_theta);
+            }
+
+            Eigen::Vector2d getLCartesian() const
+            {
+                float left_x, left_y;
+                getLCartesian(left_x, left_y);
+                return Eigen::Vector2d(left_x, left_y);
             }
 
             // Get Left Cartesian Distance
-            void getRCartesian(float &x, float &y)
+            void getRCartesian(float &x, float &y) const
             {
-                x = (_right_dist) * cos(idx2theta(_right_idx));
-                y = (_right_dist) * sin(idx2theta(_right_idx));
+                float right_theta = idx2theta(_right_idx);
+                x = _right_dist * cos(right_theta);
+                y = _right_dist * sin(right_theta);
+            }
+
+            Eigen::Vector2d getRCartesian() const
+            {
+                float right_x, right_y;
+                getRCartesian(right_x, right_y);
+                return Eigen::Vector2d(right_x, right_y);
             }
 
             void getRadialExLCartesian(float &x, float &y)
             {
-                x = (convex_left_dist) * cos(idx2theta(convex_left_idx));
-                y = (convex_left_dist) * sin(idx2theta(convex_left_idx));
+                float left_theta = idx2theta(convex_left_idx);
+                x = (convex_left_dist) * cos(left_theta);
+                y = (convex_left_dist) * sin(left_theta);
             }
 
             void getRadialExRCartesian(float &x, float &y)
             {
-                x = (convex_right_dist) * cos(idx2theta(convex_right_idx));
-                y = (convex_right_dist) * sin(idx2theta(convex_right_idx));
+                float right_theta = idx2theta(convex_right_idx);
+                x = (convex_right_dist) * cos(right_theta);
+                y = (convex_right_dist) * sin(right_theta);
             }
 
             void setAGCIdx(const int & right_idx, const int & left_idx) 
@@ -118,14 +136,16 @@ namespace quad_gap
 
             void getAGCLCartesian(float &x, float &y)
             {
-                x = (agc_left_dist) * cos(idx2theta(agc_left_idx));
-                y = (agc_left_dist) * sin(idx2theta(agc_left_idx));
+                float left_theta = idx2theta(agc_left_idx);
+                x = (agc_left_dist) * cos(left_theta);
+                y = (agc_left_dist) * sin(left_theta);
             }
 
             void getAGCRCartesian(float &x, float &y)
             {
-                x = (agc_right_dist) * cos(idx2theta(agc_right_idx));
-                y = (agc_right_dist) * sin(idx2theta(agc_right_idx));
+                float right_theta = idx2theta(agc_right_idx);
+                x = (agc_right_dist) * cos(right_theta);
+                y = (agc_right_dist) * sin(right_theta);
             }
 
             void compareGoalDist(const double & goal_dist) 
@@ -200,21 +220,24 @@ namespace quad_gap
                 return _frame;
             }
 
-            float get_dist_side() 
+            float get_dist_side() const
             {
                 return sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (cos(float(_left_idx - _right_idx) / float(half_num_scan) * M_PI)));
             }
 
-            Eigen::Vector2d get_middle_pt_vec()
+            Eigen::Vector2d get_middle_pt_vec() const
             {
-                float right_x, right_y;
-                getRCartesian(right_x, right_y);
-                Eigen::Vector2d right_vec(right_x, right_y);
+                Eigen::Vector2d left_vec = getLCartesian();
+                // float right_x, right_y;
+                // getRCartesian(right_x, right_y);
+                // Eigen::Vector2d right_vec(right_x, right_y);
                 
-                float left_x, left_y;
-                getLCartesian(left_x, left_y);
-                Eigen::Vector2d left_vec(left_x, left_y);
-                Eigen::Vector2d m_vec = (right_vec + left_vec) / 2;
+                Eigen::Vector2d right_vec = getRCartesian();
+                // float left_x, left_y;
+                // getLCartesian(left_x, left_y);
+                // Eigen::Vector2d left_vec(left_x, left_y);
+                // Eigen::Vector2d m_vec = (right_vec + left_vec) / 2;
+                Eigen::Vector2d m_vec = (right_vec + left_vec) / 2.0;
                 return m_vec;
             }
             
