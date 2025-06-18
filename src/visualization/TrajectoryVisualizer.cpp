@@ -12,7 +12,8 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
 
     }
 
-    void TrajectoryVisualizer::rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & plan) {
+    void TrajectoryVisualizer::rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & plan) 
+    {
         if (!cfg_->gap_viz.debug_viz) return;
         if (plan.size() < 1) {
             ROS_WARN_STREAM("Goal Selector Returned Trajectory Size " << plan.size() << " < 1");
@@ -26,7 +27,11 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         goal_selector_traj_vis.publish(vis_arr);
     }
 
-    void TrajectoryVisualizer::trajScore(geometry_msgs::PoseArray p_arr, std::vector<double> p_score) {
+    void TrajectoryVisualizer::trajScore(const geometry_msgs::PoseArray & p_arr, const std::vector<double> & p_score) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(trajectory_score);
+
         if (!cfg_->gap_viz.debug_viz) return;
 
         ROS_FATAL_STREAM_COND(!p_score.size() == p_arr.poses.size(), "trajScore size mismatch, p_arr: "
@@ -61,7 +66,12 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         trajectory_score.publish(score_arr);
     }
 
-    void TrajectoryVisualizer::pubAllScore(std::vector<geometry_msgs::PoseArray> prr, std::vector<std::vector<double>> cost) {
+    void TrajectoryVisualizer::pubAllScore(const std::vector<geometry_msgs::PoseArray> & prr, 
+                                            const std::vector<std::vector<double>> & cost) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(trajectory_score);
+
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray score_arr;
         visualization_msgs::Marker lg_marker;
@@ -111,7 +121,11 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         trajectory_score.publish(score_arr);
     }
 
-    void TrajectoryVisualizer::pubAllTraj(std::vector<geometry_msgs::PoseArray> prr) {
+    void TrajectoryVisualizer::pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(all_traj_viz);
+
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_traj_arr;
         visualization_msgs::Marker lg_marker;

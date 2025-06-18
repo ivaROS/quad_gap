@@ -11,12 +11,13 @@ namespace quad_gap
 
             GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
             void initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            void drawGap(visualization_msgs::MarkerArray &, Gap g, std::string ns, std::string color = "Default");
-            void drawGaps(std::vector<Gap> g, std::string ns, std::string color = "Default");
-            void drawManipGap(visualization_msgs::MarkerArray &, Gap g, bool &);
-            void drawManipGaps(std::vector<Gap> vec);
+            void drawGaps(const std::vector<Gap> & g, const std::string & ns, const std::string & color = "Default");
+            void drawManipGaps(const std::vector<Gap> & vec);
 
         private:
+            void drawGap(visualization_msgs::MarkerArray & vis_arr, const Gap & g, const std::string & ns, const std::string & color = "Default");
+            void drawManipGap(visualization_msgs::MarkerArray & vis_arr, const Gap & g, bool & circle);
+
             std::map<std::string, std::vector<std_msgs::ColorRGBA>> colormap;
             ros::Publisher gaparc_publisher;
             ros::Publisher gapside_publisher;

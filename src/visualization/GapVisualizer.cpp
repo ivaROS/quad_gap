@@ -64,7 +64,7 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, Gap g, std::string ns, std::string color) 
+    void GapVisualizer::drawGap(visualization_msgs::MarkerArray & vis_arr, const Gap & g, const std::string & ns, const std::string & color) 
     {
         // ROS_INFO_STREAM(g._right_idx << ", " << g._right_dist << ", " << g._left_idx << ", " << g._left_dist << ", " << g._frame);
         if (!cfg_->gap_viz.debug_viz) return;
@@ -152,17 +152,23 @@ namespace quad_gap
         vis_arr.markers.push_back(this_marker);
     }
     
-    void GapVisualizer::drawGaps(std::vector<Gap> g, std::string ns, std::string color) 
+    void GapVisualizer::drawGaps(const std::vector<Gap> & g, const std::string & ns, const std::string & color) 
     {
-        if (!cfg_->gap_viz.debug_viz) return;
+        // First, clearing topic.
+        clearMarkerArrayPublisher(gaparc_publisher);
+
+        if (!cfg_->gap_viz.debug_viz) 
+            return;
+
         visualization_msgs::MarkerArray vis_arr;
-        for (auto & gap : g) {
+        for (const Gap & gap : g) 
+        {
             drawGap(vis_arr, gap, ns);
         }
         gaparc_publisher.publish(vis_arr);
     }
 
-    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, Gap g, bool & circle) 
+    void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, const Gap & g, bool & circle) 
     {
         // if AGC: Color is Red
         // if Convex: color is Brown, viz_jitter + 0.1
@@ -271,8 +277,10 @@ namespace quad_gap
             this_marker.ns = "fin_extent";
 
             // The Circle
-            if (!circle) {
-                for (int i = 0; i < 50; i++) {
+            if (!circle) 
+            {
+                for (int i = 0; i < 50; i++) 
+                {
                     lines.clear();
                     linel.x = r * cos(M_PI / 25 * float(i));
                     linel.y = r * sin(M_PI / 25 * float(i));
@@ -289,15 +297,15 @@ namespace quad_gap
                 circle = true;
             }
 
-            auto getline = [] (int idx, float dist,
-                                Eigen::Vector2f& qB,
+            auto getline = [] (const int & idx, const float & dist,
+                                const Eigen::Vector2f & qB,
                                 std::vector<geometry_msgs::Point>& lines,
                                 geometry_msgs::Point& linel,
                                 geometry_msgs::Point& liner,
                                 visualization_msgs::Marker& this_marker,
-                                std::vector<std_msgs::ColorRGBA> & convex_color,
+                                const std::vector<std_msgs::ColorRGBA> & convex_color,
                                 visualization_msgs::MarkerArray& vis_arr,
-                                int id
+                                const int & id
                                 ) -> void {
                                     lines.clear();
                                     linel.x = qB(0);
@@ -334,11 +342,17 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawManipGaps(std::vector<Gap> vec) {
+    void GapVisualizer::drawManipGaps(const std::vector<Gap> & vec) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(gapside_publisher);
+
         if (!cfg_->gap_viz.debug_viz) return;
         visualization_msgs::MarkerArray vis_arr;
         bool circle = false;
-        for (auto & gap : vec) {
+        
+        for (const Gap & gap : vec) 
+        {
             drawManipGap(vis_arr, gap, circle);
         }
         gapside_publisher.publish(vis_arr);

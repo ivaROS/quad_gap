@@ -9,9 +9,11 @@ namespace quad_gap
         public: 
             using Visualizer::Visualizer;
             GoalVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            void localGoal(geometry_msgs::PoseStamped);
-            void drawGapGoal(visualization_msgs::MarkerArray&, Gap);
-            void drawGapGoals(std::vector<Gap>);
+
+            // void localGoal(const geometry_msgs::PoseStamped);
+
+            void drawGapGoal(visualization_msgs::MarkerArray& vis_arr, const Gap & g);
+            void drawGapGoals(const std::vector<Gap> & gaps);
 
             /**
             * \brief Visualize global goal

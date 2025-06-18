@@ -87,7 +87,8 @@ namespace quad_gap
     }
 
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, Gap g) {
+    void GoalVisualizer::drawGapGoal(visualization_msgs::MarkerArray& vis_arr, const Gap & g) 
+    {
         if (!cfg_->gap_viz.debug_viz) return;
         if (!g.goal.set) {
             return;
@@ -113,10 +114,16 @@ namespace quad_gap
 
     }
 
-    void GoalVisualizer::drawGapGoals(std::vector<Gap> gs) {
+    void GoalVisualizer::drawGapGoals(const std::vector<Gap> & gs) 
+    {
+        // First, clearing topic.
+        clearMarkerArrayPublisher(gapwp_pub);
+
         if (!cfg_->gap_viz.debug_viz) return;
+
         visualization_msgs::MarkerArray vis_arr;
-        for (auto & gap : gs) {
+        for (const Gap & gap : gs) 
+        {
             drawGapGoal(vis_arr, gap);
         }
         gapwp_pub.publish(vis_arr);
