@@ -24,6 +24,39 @@ namespace quad_gap
                 const bool & radial = false) : _frame(frame), _right_idx(right_idx), _right_dist(right_dist), _radial(radial)
             {};
 
+            Gap(const Gap & otherGap)
+            {
+                _frame = otherGap._frame;
+                _left_idx = otherGap._left_idx;
+                _right_idx = otherGap._right_idx;
+                _left_dist = otherGap._left_dist;
+                _right_dist = otherGap._right_dist;
+                right_type = otherGap.right_type;
+                convex = otherGap.convex;
+                agc_right_idx = otherGap.agc_right_idx;
+                agc_left_idx = otherGap.agc_left_idx;
+                agc_right_dist = otherGap.agc_right_dist;
+                agc_left_dist = otherGap.agc_left_dist;
+                goal_within = otherGap.goal_within;
+                right_obs = otherGap.right_obs;
+                left_obs = otherGap.left_obs;
+                _radial = otherGap._radial;
+                convex_left_idx = otherGap.convex_left_idx;
+                convex_right_idx = otherGap.convex_right_idx;
+                convex_left_dist = otherGap.convex_left_dist;
+                convex_right_dist = otherGap.convex_right_dist;
+                goal_within = otherGap.goal_within;
+                goal_dir_within = otherGap.goal_dir_within;
+                life_time = otherGap.life_time;
+                agc = otherGap.agc;
+                reduced = otherGap.reduced;
+                convexified = otherGap.convexified;
+                min_safe_dist = otherGap.min_safe_dist;
+                qB = otherGap.qB;
+                goal = otherGap.goal;
+                mode = otherGap.mode;
+            }
+
             ~Gap() {};
 
             void setLIdx(const int & left_idx)
@@ -270,7 +303,6 @@ namespace quad_gap
             float _right_dist = 3;
             int _left_idx = 511;
             float _left_dist = 3;
-            bool wrap = false;
             bool reduced = false;
             bool convexified = false;
             int convex_right_idx;
@@ -279,13 +311,12 @@ namespace quad_gap
             float convex_left_dist;
             float min_safe_dist = -1;
             Eigen::Vector2f qB;
-            float half_num_scan = 256;
+            // float half_num_scan = 256;
 
             int agc_right_idx;
             int agc_left_idx;
             float agc_right_dist;
             float agc_left_dist;
-            bool no_agc_coor = false;
 
             std::string _frame = "";
             bool right_obs = true;

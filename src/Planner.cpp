@@ -187,6 +187,7 @@ namespace quad_gap
         goalVisualizer_ = new GoalVisualizer(nh, cfg_);
         gapManipulator_ = new GapManipulator(nh, cfg_, robot_geo_proc_);
         trajController_ = new TrajectoryController(nh, cfg_);
+        timeKeeper_ = new TimeKeeper();
 
         map2rbt_.transform.rotation.w = 1;
         rbt2map_.transform.rotation.w = 1;
@@ -320,6 +321,8 @@ namespace quad_gap
 
         ROS_INFO_STREAM_NAMED("Planner", "[laserScanCB()]");
 
+        timeKeeper_->startTimer(SCAN);
+
         // boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = scan_;
 
         // ROS_INFO_STREAM(msg.get()->ranges.size());
@@ -351,17 +354,23 @@ namespace quad_gap
         //////// GAP DETECTION ////////
         ///////////////////////////////
 
+        timeKeeper_->startTimer(GAP_DET);
         raw_gaps = gapDetector_->gapDetection(scan);
+        timeKeeper_->stopTimer(GAP_DET);
+
         gapVisualizer_->drawGaps(raw_gaps, std::string("raw"));
 
         ////////////////////////////////////
         //////// GAP SIMPLIFICATION ////////
         ////////////////////////////////////
 
-        observed_gaps = gapDetector_->gapSimplification(raw_gaps);
-        gapVisualizer_->drawGaps(observed_gaps, std::string("simp"));
+        timeKeeper_->startTimer(GAP_SIMP);
+        simp_gaps = gapDetector_->gapSimplification(raw_gaps);
+        timeKeeper_->stopTimer(GAP_SIMP);
 
-        // ROS_INFO_STREAM("observed_gaps count:" << observed_gaps.size());
+        gapVisualizer_->drawGaps(simp_gaps, std::string("simp"));
+
+        // ROS_INFO_STREAM("simp_gaps count:" << simp_gaps.size());
 
         hasLaserScan_ = true;
 
@@ -392,6 +401,7 @@ namespace quad_gap
             trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame, odom2rbt_);
         }  
 
+        timeKeeper_->stopTimer(SCAN);
     }
 
     void Planner::updateEgoCircle()
@@ -570,11 +580,11 @@ namespace quad_gap
     //     return;
     // }
 
-    std::vector<Gap> Planner::gapManipulate() 
+    std::vector<Gap> Planner::gapManipulate(const std::vector<Gap> & planning_gaps) 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<Gap> manip_set;
-        manip_set = observed_gaps;
+        manip_set = planning_gaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
@@ -918,7 +928,7 @@ namespace quad_gap
 
     void Planner::reset()
     {
-        observed_gaps.clear();
+        simp_gaps.clear();
         setCurrentTraj(geometry_msgs::PoseArray());
         ROS_INFO_STREAM("log_vel_comp size: " << log_vel_comp.size());
         log_vel_comp.clear();
@@ -938,6 +948,8 @@ namespace quad_gap
             return geometry_msgs::Twist();
         }
 
+        timeKeeper_->startTimer(CONTROL);
+
         // Know Current Pose
         geometry_msgs::PoseStamped currPoseStRobotFrame;
         currPoseStRobotFrame.header.frame_id = cfg_.robot_frame_id;
@@ -956,8 +968,11 @@ namespace quad_gap
 
         sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
 
+        timeKeeper_->startTimer(FEEBDACK);
         auto cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose, stored_scan_msgs, currPoseStRobotFrame);
+        timeKeeper_->stopTimer(FEEBDACK);
 
+        timeKeeper_->stopTimer(CONTROL);
         return cmd_vel;
     }
 
@@ -971,7 +986,20 @@ namespace quad_gap
         log_vel_comp.set_capacity(cfg_.planning.halt_size);
     }
 
-    geometry_msgs::PoseArray Planner::getPlanTrajectory() 
+
+    std::vector<Gap> Planner::deepCopyCurrentSimplifiedGaps()
+    {
+        boost::mutex::scoped_lock gapset(gapset_mutex);
+
+        std::vector<Gap> planningGaps;
+
+        for (const Gap & gap : simp_gaps)
+            planningGaps.push_back(Gap(gap));
+
+        return planningGaps;
+    }
+
+    geometry_msgs::PoseArray Planner::runPlanningLoop() 
     {
         if (!initialized_ || !hasLaserScan_ || !hasGlobalGoal_)
         {
@@ -987,21 +1015,44 @@ namespace quad_gap
             return geometry_msgs::PoseArray();
         }
 
+        timeKeeper_->startTimer(PLAN);
+
+        trajVisualizer_->drawPlanningLoopIdx(timeKeeper_->getPlanningLoopCalls());
+
         isGoalReached();
 
-        auto gap_set = gapManipulate();
-        
+        std::vector<Gap> planningGaps = deepCopyCurrentSimplifiedGaps();
+
+        int gapCount = planningGaps.size();
+        if (gapCount == 0)
+        {
+            ROS_WARN_STREAM_NAMED("Planner", "No gaps found, planning loop will not continue.");
+            // chosenTraj = Trajectory();
+            return geometry_msgs::PoseArray();
+        }
+
+        timeKeeper_->startTimer(GAP_MANIP);
+        std::vector<Gap> gap_set = gapManipulate(planningGaps);
+        timeKeeper_->stopTimer(GAP_MANIP);
+
+        timeKeeper_->startTimer(GAP_TRAJ_GEN);
         std::vector<geometry_msgs::PoseArray> traj_set, virtual_traj_set;
         
         auto score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
+        timeKeeper_->stopTimer(GAP_TRAJ_GEN);
 
+        timeKeeper_->startTimer(TRAJ_PICK);
         geometry_msgs::PoseArray chosen_virtual_traj_set;
         auto picked_traj = pickTraj(traj_set, score_set, virtual_traj_set, chosen_virtual_traj_set);
         virtual_orient_traj_pub.publish(chosen_virtual_traj_set);
+        timeKeeper_->stopTimer(TRAJ_PICK);
 
+        timeKeeper_->startTimer(TRAJ_COMP);
         geometry_msgs::PoseArray chosen_final_virtual_traj_set;
         auto final_traj = compareToOldTraj(picked_traj, chosen_final_virtual_traj_set);
+        timeKeeper_->stopTimer(TRAJ_COMP);
 
+        timeKeeper_->startTimer(COLL_CHECK);
         CollisionResults cc_results;
         if (collision_checker_enable_)
         {
@@ -1021,7 +1072,11 @@ namespace quad_gap
                 setCurrentTraj(geometry_msgs::PoseArray());
             }
         }
-        
+        timeKeeper_->stopTimer(COLL_CHECK);
+
+        timeKeeper_->stopTimer(PLAN);
+        timeKeeper_->computeAverageNumberGaps(gapCount);        
+
         return final_traj;
     }
 

@@ -31,6 +31,7 @@
 #include <quad_gap/trajectory_evaluation/TrajectoryEvaluator.h>
 #include <quad_gap/trajectory_generation/GapManipulator.h>
 #include <quad_gap/trajectory_tracking/TrajectoryController.h>
+#include <quad_gap/TimeKeeper.h>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -158,7 +159,7 @@ namespace quad_gap
             * @param None, directly taken from private variable space
             * @return gap_set, simplfied radial prioritized gaps
             */
-            std::vector<Gap> gapManipulate();
+            std::vector<Gap> gapManipulate(const std::vector<Gap> & planning_gaps);
 
             /**
             * 
@@ -214,7 +215,7 @@ namespace quad_gap
             * Conglomeration of getting a plan Trajectory
             * @return the trajectory
             */
-            geometry_msgs::PoseArray getPlanTrajectory();    
+            geometry_msgs::PoseArray runPlanningLoop();    
 
             /**
             * Reset Planner, clears current observedSet
@@ -274,6 +275,9 @@ namespace quad_gap
             void updateEgoCircle();
 
         private:
+
+            std::vector<Gap> deepCopyCurrentSimplifiedGaps();
+
             boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
             // Transforms
@@ -317,18 +321,20 @@ namespace quad_gap
 
             // Gaps:
             std::vector<Gap> raw_gaps;
-            std::vector<Gap> observed_gaps;
+            std::vector<Gap> simp_gaps;
 
             // Helper modules
-            GapDetector *gapDetector_;
-            GapVisualizer *gapVisualizer_;
-            GlobalPlanManager *globalPlanManager_;
-            TrajectoryVisualizer *trajVisualizer_;
-            GoalVisualizer *goalVisualizer_;
-            TrajectoryEvaluator *trajEvaluator_;
-            GapTrajGenerator *gapTrajGenerator_;
-            GapManipulator *gapManipulator_;
-            TrajectoryController *trajController_;
+            GapDetector * gapDetector_  = NULL; 
+            GapVisualizer * gapVisualizer_  = NULL; 
+            GlobalPlanManager * globalPlanManager_  = NULL; 
+            TrajectoryVisualizer * trajVisualizer_  = NULL; 
+            GoalVisualizer * goalVisualizer_  = NULL; 
+            TrajectoryEvaluator * trajEvaluator_  = NULL; 
+            GapTrajGenerator * gapTrajGenerator_  = NULL; 
+            GapManipulator * gapManipulator_  = NULL; 
+            TrajectoryController * trajController_  = NULL;
+            TimeKeeper * timeKeeper_ = NULL; /**< Time keeper */
+
 
             // Status
             bool hasGlobalGoal_ = false;

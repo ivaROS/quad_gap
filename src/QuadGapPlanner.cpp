@@ -81,7 +81,7 @@ namespace quad_gap
 
         planner.setReachedGlobalGoal(false);
 
-        auto final_traj = planner.getPlanTrajectory();
+        auto final_traj = planner.runPlanningLoop();
 
         if (planner.isGoalReached())
         {
