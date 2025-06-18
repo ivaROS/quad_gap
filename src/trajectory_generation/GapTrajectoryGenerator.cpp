@@ -13,17 +13,18 @@ namespace quad_gap
         // posearr.header.frame_id = cfg_->traj.synthesized_frame ? cfg_->sensor_frame_id : cfg_->robot_frame_id;
         posearr.header.frame_id = cfg_->robot_frame_id;
 
-        if (selectedGap.goal.discard) {
+        if (selectedGap.goal.discard) 
+        {
             return posearr;
         }
 
         state_type x = {curr_pose.pose.position.x + 1e-5, curr_pose.pose.position.y + 1e-6}; 
 
-        if (selectedGap.goal.goalwithin) {
+        if (selectedGap.goal.goalwithin) 
+        {
             // ROS_INFO_STREAM("Goal to Goal");
-            g2g inte_g2g(
-                selectedGap.goal.x * coefs,
-                selectedGap.goal.y * coefs);
+            g2g inte_g2g(selectedGap.goal.x * coefs,
+                         selectedGap.goal.y * coefs);
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
             inte_g2g, x, 0.0,
             cfg_->traj.integrate_maxt,
@@ -32,11 +33,13 @@ namespace quad_gap
             return posearr;
         }
 
-        float x1, x2, y1, y2;
-        x1 = (selectedGap.convex.convex_right_dist) * cos(idx2theta(selectedGap.convex.convex_right_idx));
-        y1 = (selectedGap.convex.convex_right_dist) * sin(idx2theta(selectedGap.convex.convex_right_idx));
-        x2 = (selectedGap.convex.convex_left_dist) * cos(idx2theta(selectedGap.convex.convex_left_idx));
-        y2 = (selectedGap.convex.convex_left_dist) * sin(idx2theta(selectedGap.convex.convex_left_idx));
+        float x_left, x_right, y_left, y_right;
+        float theta_left = idx2theta(selectedGap.convex.convex_left_idx);
+        float theta_right = idx2theta(selectedGap.convex.convex_right_idx);
+        x_right = selectedGap.convex.convex_right_dist * cos(theta_right);
+        y_right = selectedGap.convex.convex_right_dist * sin(theta_right);
+        x_left = selectedGap.convex.convex_left_dist * cos(theta_left);
+        y_left = selectedGap.convex.convex_left_dist * sin(theta_left);
 
         float goal_x = selectedGap.goal.x;
         float goal_y = selectedGap.goal.y;
@@ -44,10 +47,10 @@ namespace quad_gap
         if (selectedGap.mode.convex) 
         {
             x = {- selectedGap.qB(0) - 1e-6, - selectedGap.qB(1) + 1e-6};
-            x1 -= selectedGap.qB(0);
-            x2 -= selectedGap.qB(0);
-            y1 -= selectedGap.qB(1);
-            y2 -= selectedGap.qB(1);
+            x_right -= selectedGap.qB(0);
+            x_left -= selectedGap.qB(0);
+            y_right -= selectedGap.qB(1);
+            y_left -= selectedGap.qB(1);
             goal_x -= selectedGap.qB(0);
             goal_y -= selectedGap.qB(1);
             // selectedGap.goal.x -= selectedGap.qB(0);
@@ -55,12 +58,12 @@ namespace quad_gap
 
         }
         
-        polar_gap_field inte(x1 * coefs, x2 * coefs,
-                            y1 * coefs, y2 * coefs,
+        polar_gap_field inte(x_right * coefs, x_left * coefs,
+                            y_right * coefs, y_left * coefs,
                             goal_x * coefs,
                             goal_y * coefs,
-                            selectedGap.getRightObs(),
-                            selectedGap.getLeftObs(),
+                            // selectedGap.getRightObs(),
+                            // selectedGap.getLeftObs(),
                             selectedGap.isRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
@@ -90,11 +93,11 @@ namespace quad_gap
                                                 const geometry_msgs::TransformStamped & odom2rbt)
     {
         // Find the intersections of triangle and circle
-        float x1, x2, y1, y2;
-        x1 = (selectedGap.convex.convex_right_dist) * cos(idx2theta(selectedGap.convex.convex_right_idx));
-        y1 = (selectedGap.convex.convex_right_dist) * sin(idx2theta(selectedGap.convex.convex_right_idx));
-        x2 = (selectedGap.convex.convex_left_dist) * cos(idx2theta(selectedGap.convex.convex_left_idx));
-        y2 = (selectedGap.convex.convex_left_dist) * sin(idx2theta(selectedGap.convex.convex_left_idx));
+        float x_right, x_left, y_right, y_left;
+        x_right = (selectedGap.convex.convex_right_dist) * cos(idx2theta(selectedGap.convex.convex_right_idx));
+        y_right = (selectedGap.convex.convex_right_dist) * sin(idx2theta(selectedGap.convex.convex_right_idx));
+        x_left = (selectedGap.convex.convex_left_dist) * cos(idx2theta(selectedGap.convex.convex_left_idx));
+        y_left = (selectedGap.convex.convex_left_dist) * sin(idx2theta(selectedGap.convex.convex_left_idx));
 
         float goal_x = selectedGap.goal.x;
         float goal_y = selectedGap.goal.y;
@@ -102,14 +105,14 @@ namespace quad_gap
         // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << selectedGap.goal.goalwithin);
 
         // Check if goal is in the middle
-        double ang_l = std::atan2(y1, x1);
-        double ang_r = std::atan2(y2, x2);
+        double ang_r_conv = std::atan2(y_right, x_right);
+        double ang_l_conv = std::atan2(y_left, x_left);
         double ang_goal = std::atan2(goal_y, goal_x);
 
-        // assert(ang_goal >= ang_l && ang_goal <= ang_r);
+        // assert(ang_goal >= ang_r_conv && ang_goal <= ang_l_conv);
 
-        Eigen::Vector2f l_vec(x1, y1);
-        Eigen::Vector2f r_vec(x2, y2);
+        Eigen::Vector2f l_vec(x_right, y_right);
+        Eigen::Vector2f r_vec(x_left, y_left);
         float circ_r = selectedGap.getMinSafeDist();
         assert(circ_r <= l_vec.norm() && circ_r <= r_vec.norm());
         Eigen::Vector2f l_inter = circ_r * l_vec / l_vec.norm();
@@ -124,7 +127,7 @@ namespace quad_gap
         bool l_side = true;
         Eigen::Vector2f chosen_inter = l_inter;
         Eigen::Vector2f other_inter = r_inter;
-        if(abs(ang_l) > abs(ang_r))
+        if(abs(ang_r_conv) > abs(ang_l_conv))
         {
             l_side = false;
             chosen_inter = r_inter;
@@ -167,7 +170,7 @@ namespace quad_gap
         }
 
         // Conditions
-        if(ang_l <= 0 && ang_r > 0)
+        if(ang_r_conv <= 0 && ang_l_conv > 0)
         {
             double chosen_ang = atan2(chosen_inter[1], chosen_inter[0]);
 

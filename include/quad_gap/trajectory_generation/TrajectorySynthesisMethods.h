@@ -10,33 +10,34 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-namespace quad_gap {
+namespace quad_gap 
+{
     typedef boost::array<double, 2> state_type;
 
-    struct polar_gap_field{
+    struct polar_gap_field
+    {
 
-        double x1, x2, y1, y2, gx, gy;
-        double close_pt_x, close_pt_y, far_pt_x, far_pt_y, far_vec_x, far_vec_y, rbt_vec_x, rbt_vec_y, angle_gap;
-        double dir_vec_x, dir_vec_y;
+        double x_right, x_left, y_right, y_left, goal_x, goal_y;
         double _sigma;
-        bool _l, _r, _radial;
+        bool _radial;
 
-        polar_gap_field(double x1, double x2, double y1, double y2, double gx, double gy, bool l, bool r, bool radial, double sigma)
-            : x1(x1), x2(x2), y1(y1), y2(y2), gx(gx), gy(gy), _l(l), _r(r), _radial(radial), _sigma(sigma) {}
+        polar_gap_field(double x_right, double x_left, double y_right, double y_left, double goal_x, double goal_y, bool radial, double sigma)
+            : x_right(x_right), x_left(x_left), y_right(y_right), y_left(y_left), goal_x(goal_x), goal_y(goal_y), _radial(radial), _sigma(sigma) {}
 
         void operator()(const state_type &x, state_type &dxdt, const double t)
         {
-            if (atan2(y1, x1) > atan2(y2, x2)) {
-                std::swap(y1, y2);
-                std::swap(x1, x2);
+            if (atan2(y_right, x_right) > atan2(y_left, x_left)) 
+            {
+                std::swap(y_right, y_left);
+                std::swap(x_right, x_left);
             }
             
             Eigen::Vector2d rbt(x[0], x[1]);
-            Eigen::Vector2d p1(x1, y1);
-            Eigen::Vector2d p2(x2, y2);
+            Eigen::Vector2d p_right(x_right, y_right);
+            Eigen::Vector2d p_left(x_left, y_left);
 
-            Eigen::Vector2d vec_1 = p1 - rbt;
-            Eigen::Vector2d vec_2 = p2 - rbt;
+            Eigen::Vector2d vec_right = p_right - rbt;
+            Eigen::Vector2d vec_left = p_left - rbt;
 
             Eigen::Matrix2d r_pi2;
             double rot_angle = M_PI / 2;
@@ -44,23 +45,23 @@ namespace quad_gap {
             Eigen::Matrix2d neg_r_pi2;
             neg_r_pi2 << std::cos(-rot_angle), -std::sin(-rot_angle), std::sin(-rot_angle), std::cos(-rot_angle);
 
-            Eigen::Vector2d goal_pt(gx, gy);
+            Eigen::Vector2d goal_pt(goal_x, goal_y);
             Eigen::Vector2d goal_vec = goal_pt - rbt;
 
-            double r1 = sqrt(pow(x1, 2) + pow(y1, 2));
-            double r2 = sqrt(pow(x2, 2) + pow(y2, 2));
+            double r1 = sqrt(pow(x_right, 2) + pow(y_right, 2));
+            double r2 = sqrt(pow(x_left, 2) + pow(y_left, 2));
             double rx = sqrt(pow(x[0], 2) + pow(x[1], 2));
             double rg = goal_vec.norm();
-            double theta1 = atan2(y1, x1);
-            double theta2 = atan2(y2, x2);
+            double theta_right = atan2(y_right, x_right);
+            double theta_left = atan2(y_left, x_left);
             double thetax = atan2(x[1], x[0]);
             double thetag = atan2(goal_vec(1), goal_vec(0));
 
-            double new_theta = std::min(std::max(thetag, theta1), theta2);
-            double theta_test = std::min(std::max(thetax, theta1), theta2);
+            double new_theta = std::min(std::max(thetag, theta_right), theta_left);
+            double theta_test = std::min(std::max(thetax, theta_right), theta_left);
 
-            Eigen::Vector2d c1 = r_pi2     * (vec_1 / vec_1.norm()) * exp(-std::abs(thetax - theta1) / _sigma);
-            Eigen::Vector2d c2 = neg_r_pi2 * (vec_2 / vec_2.norm()) * exp(-std::abs(theta2 - thetax) / _sigma);
+            Eigen::Vector2d c1 = r_pi2     * (vec_right / vec_right.norm()) * exp(-std::abs(thetax - theta_right) / _sigma);
+            Eigen::Vector2d c2 = neg_r_pi2 * (vec_left / vec_left.norm()) * exp(-std::abs(theta_left - thetax) / _sigma);
 
             // Since local goal will definitely be within the range of the gap, this limit poses no difference
             Eigen::Vector2d sub_goal_vec(rg * cos(new_theta), rg * sin(new_theta));
@@ -68,15 +69,17 @@ namespace quad_gap {
             bool left = r2 > r1;
 
             bool pass_gap;
-            if (_radial) {
-                pass_gap = (rbt.norm() > std::min(p1.norm(), p2.norm()) + 0.18) && rbt.norm() > goal_pt.norm();
-            } else {
-                pass_gap = (rbt.norm() > std::max(p1.norm(), p2.norm()) + 0.18) && rbt.norm() > goal_pt.norm();
+            if (_radial) 
+            {
+                pass_gap = (rbt.norm() > std::min(p_right.norm(), p_left.norm()) + 0.18) && rbt.norm() > goal_pt.norm();
+            } else 
+            {
+                pass_gap = (rbt.norm() > std::max(p_right.norm(), p_left.norm()) + 0.18) && rbt.norm() > goal_pt.norm();
             }
 
 
-            Eigen::Vector2d v1 = p1 - p2;
-            Eigen::Vector2d v2 = p1 - rbt;
+            Eigen::Vector2d v1 = p_right - p_left;
+            Eigen::Vector2d v2 = p_right - rbt;
 
             Eigen::Vector2d polar_vec = rbt.norm() < 1e-3 || pass_gap ? Eigen::Vector2d(0, 0) : rbt / (rbt.norm());
 
@@ -99,20 +102,21 @@ namespace quad_gap {
         }
     };
 
-    struct g2g {
-        double gx, gy;
-        g2g(double gx, double gy)
-        : gx(gx), gy(gy) {}
+    struct g2g 
+    {
+        double goal_x, goal_y;
+        g2g(double goal_x, double goal_y)
+        : goal_x(goal_x), goal_y(goal_y) {}
 
-        void operator() ( const state_type &x , state_type &dxdt , const double  t  )
+        void operator() ( const state_type &x , state_type &dxdt , const double  t)
         {
-            double goal_norm = sqrt(pow(gx - x[0], 2) + pow(gy - x[1], 2));
+            double goal_norm = sqrt(pow(goal_x - x[0], 2) + pow(goal_y - x[1], 2));
             if (goal_norm < 0.1) {
                 dxdt[0] = 0;
                 dxdt[1] = 0;
             } else {
-                dxdt[0] = (gx - x[0]);
-                dxdt[1] = (gy - x[1]);
+                dxdt[0] = (goal_x - x[0]);
+                dxdt[1] = (goal_y - x[1]);
             }
         }
     };
