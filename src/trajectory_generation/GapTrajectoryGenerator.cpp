@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap selectedGap, geometry_msgs::PoseStamped curr_pose) 
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(const Gap & selectedGap, const geometry_msgs::PoseStamped & curr_pose) 
     {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray posearr;
@@ -38,21 +38,27 @@ namespace quad_gap
         x2 = (selectedGap.convex.convex_left_dist) * cos(idx2theta(selectedGap.convex.convex_left_idx));
         y2 = (selectedGap.convex.convex_left_dist) * sin(idx2theta(selectedGap.convex.convex_left_idx));
 
-        if (selectedGap.mode.convex) {
+        float goal_x = selectedGap.goal.x;
+        float goal_y = selectedGap.goal.y;
+
+        if (selectedGap.mode.convex) 
+        {
             x = {- selectedGap.qB(0) - 1e-6, - selectedGap.qB(1) + 1e-6};
             x1 -= selectedGap.qB(0);
             x2 -= selectedGap.qB(0);
             y1 -= selectedGap.qB(1);
             y2 -= selectedGap.qB(1);
-            selectedGap.goal.x -= selectedGap.qB(0);
-            selectedGap.goal.y -= selectedGap.qB(1);
+            goal_x -= selectedGap.qB(0);
+            goal_y -= selectedGap.qB(1);
+            // selectedGap.goal.x -= selectedGap.qB(0);
+            // selectedGap.goal.y -= selectedGap.qB(1);
 
         }
         
         polar_gap_field inte(x1 * coefs, x2 * coefs,
                             y1 * coefs, y2 * coefs,
-                            selectedGap.goal.x * coefs,
-                            selectedGap.goal.y * coefs,
+                            goal_x * coefs,
+                            goal_y * coefs,
                             selectedGap.getRightObs(),
                             selectedGap.getLeftObs(),
                             selectedGap.isRadial(),
@@ -72,16 +78,16 @@ namespace quad_gap
         return posearr;
     }
 
-    [[deprecated("Use single trajectory generation")]]
-    std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<Gap> gapset) {
-        std::vector<geometry_msgs::PoseArray> traj_set(gapset.size());
-        return traj_set;
-    }
+    // [[deprecated("Use single trajectory generation")]]
+    // std::vector<geometry_msgs::PoseArray> GapTrajGenerator::generateTrajectory(std::vector<Gap> gapset) {
+    //     std::vector<geometry_msgs::PoseArray> traj_set(gapset.size());
+    //     return traj_set;
+    // }
 
-    bool GapTrajGenerator::findBezierControlPts(Gap selectedGap, 
+    bool GapTrajGenerator::findBezierControlPts(const Gap & selectedGap, 
                                                 Bezier::Bezier<2>& bezier_curve, 
-                                                geometry_msgs::TwistStamped rbtVelRbtFrame, 
-                                                geometry_msgs::TransformStamped odom2rbt)
+                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
+                                                const geometry_msgs::TransformStamped & odom2rbt)
     {
         // Find the intersections of triangle and circle
         float x1, x2, y1, y2;
@@ -655,9 +661,9 @@ namespace quad_gap
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap selectedGap, 
-                                                                        geometry_msgs::TwistStamped rbtVelRbtFrame, 
-                                                                        geometry_msgs::TransformStamped odom2rbt)
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(const Gap & selectedGap, 
+                                                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
+                                                                        const geometry_msgs::TransformStamped & odom2rbt)
     {
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
@@ -758,9 +764,8 @@ namespace quad_gap
         }
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::transformBackTrajectory(
-        geometry_msgs::PoseArray posearr,
-        geometry_msgs::TransformStamped trans)
+    geometry_msgs::PoseArray GapTrajGenerator::transformBackTrajectory(const geometry_msgs::PoseArray & posearr,
+                                                                        const geometry_msgs::TransformStamped & trans)
     {
         geometry_msgs::PoseArray retarr;
         geometry_msgs::PoseStamped outplaceholder;
@@ -781,8 +786,10 @@ namespace quad_gap
         return retarr;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::forwardPassTrajectory(geometry_msgs::PoseArray pose_arr)
+    geometry_msgs::PoseArray GapTrajGenerator::forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr)
     {
+        geometry_msgs::PoseArray new_pose_arr;
+
         Eigen::Quaternionf q;
         geometry_msgs::Pose old_pose;
         old_pose.position.x = 0;
@@ -806,13 +813,14 @@ namespace quad_gap
                 shortened.push_back(pose);
         }
 
-        pose_arr.poses = shortened;
+        new_pose_arr.header = pose_arr.header;
+        new_pose_arr.poses = shortened;
 
         // Fix rotation
-        for (int idx = 1; idx < pose_arr.poses.size(); idx++)
+        for (int idx = 1; idx < new_pose_arr.poses.size(); idx++)
         {
-            new_pose = pose_arr.poses[idx];
-            old_pose = pose_arr.poses[idx - 1];
+            new_pose = new_pose_arr.poses[idx];
+            old_pose = new_pose_arr.poses[idx - 1];
             dx = new_pose.position.x - old_pose.position.x;
             dy = new_pose.position.y - old_pose.position.y;
             result = std::atan2(dy, dx);
@@ -820,17 +828,17 @@ namespace quad_gap
                 Eigen::AngleAxisf(0, Eigen::Vector3f::UnitY()) *
                 Eigen::AngleAxisf(result, Eigen::Vector3f::UnitZ());
             q.normalize();
-            pose_arr.poses[idx - 1].orientation.x = q.x();
-            pose_arr.poses[idx - 1].orientation.y = q.y();
-            pose_arr.poses[idx - 1].orientation.z = q.z();
-            pose_arr.poses[idx - 1].orientation.w = q.w();
+            new_pose_arr.poses[idx - 1].orientation.x = q.x();
+            new_pose_arr.poses[idx - 1].orientation.y = q.y();
+            new_pose_arr.poses[idx - 1].orientation.z = q.z();
+            new_pose_arr.poses[idx - 1].orientation.w = q.w();
         }
-        pose_arr.poses.pop_back();
+        new_pose_arr.poses.pop_back();
 
-        return pose_arr;
+        return new_pose_arr;
     }
 
-    Eigen::Vector2f GapTrajGenerator::getRotatedVec(Eigen::Vector2f orig_vec, float chord_length, bool ccw)
+    Eigen::Vector2f GapTrajGenerator::getRotatedVec(const Eigen::Vector2f & orig_vec, const float & chord_length, const bool & ccw)
     {
         float r = orig_vec.norm();
         float rotate_angle = acos((2 * r * r - chord_length * chord_length) / (2 * r * r));

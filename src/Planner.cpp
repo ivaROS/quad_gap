@@ -183,7 +183,7 @@ namespace quad_gap
         globalPlanManager_ = new GlobalPlanManager(cfg_, robot_geo_proc_);
         trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
         trajEvaluator_ = new TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
-        gapTrajGenerator_ = new GapTrajGenerator(nh, cfg_, robot_geo_proc_);
+        gapTrajGenerator_ = new GapTrajGenerator(cfg_, robot_geo_proc_);
         goalVisualizer_ = new GoalVisualizer(nh, cfg_);
         gapManipulator_ = new GapManipulator(nh, cfg_, robot_geo_proc_);
         trajController_ = new TrajectoryController(nh, cfg_);

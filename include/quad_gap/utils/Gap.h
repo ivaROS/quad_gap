@@ -143,12 +143,12 @@ namespace quad_gap
                 left_obs = false;
             }
 
-            bool getRightObs() 
+            bool getRightObs() const
             {
                 return right_obs;
             }
 
-            bool getLeftObs() 
+            bool getLeftObs() const
             {
                 return left_obs;
             }
@@ -189,12 +189,12 @@ namespace quad_gap
                 min_safe_dist = _dist;
             }
 
-            float getMinSafeDist() 
+            float getMinSafeDist() const
             {
                 return min_safe_dist;
             }
 
-            std::string getFrame() 
+            std::string getFrame() const
             {
                 return _frame;
             }

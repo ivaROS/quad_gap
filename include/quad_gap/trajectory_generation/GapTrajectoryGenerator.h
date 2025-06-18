@@ -32,50 +32,14 @@
 
 namespace quad_gap 
 {
-
-    class TrajectoryGenerator 
+    class GapTrajGenerator
     {
         public:
-            TrajectoryGenerator(){};
-            ~TrajectoryGenerator(){};
-
-            TrajectoryGenerator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
-            {
+            GapTrajGenerator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
+            { 
                 cfg_ = &cfg;
                 robot_geo_proc_ = robot_geo_proc;
-            };
-
-            TrajectoryGenerator& operator=(TrajectoryGenerator & other) 
-            {
-                cfg_ = other.cfg_;
-                robot_geo_proc_ = other.robot_geo_proc_;
-            
-                return *this;
-            };
-            
-            TrajectoryGenerator(const TrajectoryGenerator &t) 
-            {
-                cfg_ = t.cfg_;
-                robot_geo_proc_ = t.robot_geo_proc_;
-            };
-
-            virtual geometry_msgs::PoseArray generateTrajectory(Gap, geometry_msgs::PoseStamped) = 0;
-            virtual std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>) = 0;
-        protected:
-            const QuadGapConfig* cfg_;
-            RobotGeometryProcessor robot_geo_proc_;
-    };
-
-    class GapTrajGenerator : public TrajectoryGenerator 
-    {
-        using TrajectoryGenerator::TrajectoryGenerator;
-        public:
-            GapTrajGenerator(){};
-            ~GapTrajGenerator(){};
-
-            GapTrajGenerator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) :
-                TrajectoryGenerator(nh, cfg, robot_geo_proc)
-            { };
+            }
 
             GapTrajGenerator& operator=(GapTrajGenerator & other)
             {
@@ -85,29 +49,45 @@ namespace quad_gap
                 return *this;
             };
 
-            GapTrajGenerator(const GapTrajGenerator &t) :
-                TrajectoryGenerator(t)
-            { };
+            GapTrajGenerator(const GapTrajGenerator &t)
+            { 
+                cfg_ = t.cfg_;
+                robot_geo_proc_ = t.robot_geo_proc_;
+            }
 
-            void updateTF(geometry_msgs::TransformStamped tf) {planning2odom = tf;};
-            geometry_msgs::PoseArray generateTrajectory(Gap, geometry_msgs::PoseStamped);
-            bool findBezierControlPts(Gap, Bezier::Bezier<2>&, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
-            geometry_msgs::PoseArray generateBezierTrajectory(Gap, geometry_msgs::TwistStamped, geometry_msgs::TransformStamped);
-            std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
-            geometry_msgs::PoseArray transformBackTrajectory(geometry_msgs::PoseArray, geometry_msgs::TransformStamped);
-            geometry_msgs::PoseArray forwardPassTrajectory(geometry_msgs::PoseArray);
+            void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
+
+            geometry_msgs::PoseArray generateTrajectory(const Gap & gap, const geometry_msgs::PoseStamped & curr_pose);
+
+            bool findBezierControlPts(const Gap & selectedGap, 
+                                        Bezier::Bezier<2>&, 
+                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
+                                        const geometry_msgs::TransformStamped & odom2rbt);
+
+            geometry_msgs::PoseArray generateBezierTrajectory(const Gap & selectedGap, 
+                                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
+                                                                const geometry_msgs::TransformStamped & odom2rbt);
+            
+            // std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
+
+            geometry_msgs::PoseArray transformBackTrajectory(const geometry_msgs::PoseArray & posearr, 
+                                                                const geometry_msgs::TransformStamped & trans);
+
+            geometry_msgs::PoseArray forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr);
 
         private: 
-            geometry_msgs::TransformStamped planning2odom;
+            Eigen::Vector2f getRotatedVec(const Eigen::Vector2f & orig_vec, 
+                                            const float & chord_length, 
+                                            const bool & ccw = true);
 
-            Eigen::Vector2f getRotatedVec(Eigen::Vector2f orig_vec, float chord_length, bool ccw = true);
-
-            bool isLeftofLine(Eigen::Vector2f l1, Eigen::Vector2f l2, Eigen::Vector2f p)
+            bool isLeftofLine(const Eigen::Vector2f & l1, 
+                                const Eigen::Vector2f & l2, 
+                                const Eigen::Vector2f & p)
             {
                 return ((l2[0] - l1[0])*(p[1] - l1[1]) - (l2[1] - l1[1])*(p[0] - l1[0])) >= 0;
             }
 
-            bool isLargerAngle(Eigen::Vector2f v1, Eigen::Vector2f v2)
+            bool isLargerAngle(const Eigen::Vector2f & v1, const Eigen::Vector2f & v2)
             {
                 // v1 angle is larger than and equal to v2 angle ccw
                 double ang_1 = atan2(v1[1], v1[0]);
@@ -116,7 +96,7 @@ namespace quad_gap
                 return ang_1 >= ang_2;
             }
 
-            double getBezierDist(Bezier::Bezier<2>& qudraBezier, double t_start, double t_end, int steps)
+            double getBezierDist(Bezier::Bezier<2>& qudraBezier, const double & t_start, const double & t_end, const int & steps)
             {
                 double approx_dist = 0;
                 double t_diff = (t_end - t_start) / (steps - 1);
@@ -132,5 +112,10 @@ namespace quad_gap
                 }
                 return approx_dist;
             }
+
+            geometry_msgs::TransformStamped planning2odom;
+
+            const QuadGapConfig* cfg_;
+            RobotGeometryProcessor robot_geo_proc_;
     };
 }
