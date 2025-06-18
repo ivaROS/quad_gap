@@ -63,6 +63,8 @@ namespace quad_gap {
         
         private:
             
+            double costFn(Gap * g, int goal_idx);
+
             double scorePose(const geometry_msgs::Pose & pose);
             // int searchIdx(geometry_msgs::Pose pose);
             double dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);

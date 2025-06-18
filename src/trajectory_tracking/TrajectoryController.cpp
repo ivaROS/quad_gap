@@ -19,7 +19,7 @@ namespace quad_gap
     [[deprecated("Not Used, Deemed Unnecessary")]]
     std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
     {
-        auto egocircle = *scan_.get();
+        sensor_msgs::LaserScan egocircle = *scan_.get();
         std::vector<double> dist(egocircle.ranges.size());
 
         if (!scan_) {

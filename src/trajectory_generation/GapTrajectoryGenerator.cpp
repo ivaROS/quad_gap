@@ -74,7 +74,7 @@ namespace quad_gap
 
         if (selectedGap->mode.convex) 
         {
-            for (auto & p : posearr.poses) 
+            for (geometry_msgs::Pose & p : posearr.poses) 
             {
                 p.position.x += selectedGap->qB(0);
                 p.position.y += selectedGap->qB(1);
@@ -787,7 +787,7 @@ namespace quad_gap
         geometry_msgs::PoseStamped inplaceholder;
         // inplaceholder.header.frame_id = cfg_->robot_frame_id;
         inplaceholder.header.frame_id = trans.child_frame_id;
-        for (const auto pose : posearr.poses)
+        for (const geometry_msgs::Pose & pose : posearr.poses)
         {
             inplaceholder.pose = pose;
             tf2::doTransform(inplaceholder, outplaceholder, trans);
@@ -817,7 +817,7 @@ namespace quad_gap
 
         std::vector<geometry_msgs::Pose> shortened;
         shortened.push_back(old_pose);
-        for (auto pose : pose_arr.poses)
+        for (const geometry_msgs::Pose & pose : pose_arr.poses)
         {
             dx = pose.position.x - shortened.back().position.x;
             dy = pose.position.y - shortened.back().position.y;

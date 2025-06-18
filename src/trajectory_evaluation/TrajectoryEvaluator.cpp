@@ -32,6 +32,14 @@ namespace quad_gap
         tf2::doTransform(globalPathLocalWaypointOdomFrame, globalPathLocalWaypointRobotFrame_, odom2rbt);
     }
 
+    double TrajectoryEvaluator::costFn(Gap * g, int goal_idx)
+    {
+        // This is in rbt frame
+        int leftdist = std::abs(g->_right_idx - goal_idx);
+        int rightdist = std::abs(g->_left_idx - goal_idx);
+        return std::min(leftdist, rightdist);
+    }
+
     // Does things in rbt frame
     std::vector<double> TrajectoryEvaluator::scoreGaps()
     {
@@ -48,12 +56,6 @@ namespace quad_gap
         int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
         ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
         ROS_DEBUG_STREAM(globalPathLocalWaypointRobotFrame_.pose.position);
-        auto costFn = [](Gap * g, int goal_idx) -> double
-        {
-            int leftdist = std::abs(g->_right_idx - goal_idx);
-            int rightdist = std::abs(g->_left_idx - goal_idx);
-            return std::min(leftdist, rightdist);
-        };
 
         std::vector<double> cost(gaps.size());
         for (int i = 0; i < cost.size(); i++) 
@@ -81,11 +83,11 @@ namespace quad_gap
             cost_val.at(i) = scorePose(traj.poses.at(i));
         }
 
-        auto total_val = std::accumulate(cost_val.begin(), cost_val.end(), double(0));
+        double total_val = std::accumulate(cost_val.begin(), cost_val.end(), double(0));
 
         if (cost_val.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<double>::infinity())
         {
-            auto terminal_cost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
+            double terminal_cost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
             if (terminal_cost < 1 && total_val > -10) return std::vector<double>(traj.poses.size(), 100);
             // Should be safe
             cost_val.at(0) -= terminal_cost;
@@ -129,7 +131,7 @@ namespace quad_gap
         }
 
         Eigen::Quaterniond q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-        auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+        Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
         Eigen::Vector2d orient_vec(cos(euler[2]), sin(euler[2]));
         Eigen::Vector2d pose_vec(pose.position.x, pose.position.y); // TODO: pose should be in robot frame
         double pose_angle = atan2(pose_vec[1], pose_vec[0]);

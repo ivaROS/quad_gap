@@ -356,7 +356,7 @@ namespace Bezier
         bool add(const ExtremeValue& val)
         {
             assert(Math::isWithinZeroAndOne(val.t));
-            for (auto const &v : values)
+            for (const ExtremeValue & v : values)
             {
                 if (val.fuzzyEquals(v))
                     return false;
@@ -396,7 +396,7 @@ namespace Bezier
 
         bool add(const Point& extremePoint)
         {
-            for (auto const &ep : points)
+            for (const Point & ep : points)
             {
                 if (extremePoint.fuzzyEquals(ep))
                     return false;

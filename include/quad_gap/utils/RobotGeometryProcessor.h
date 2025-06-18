@@ -198,7 +198,7 @@ namespace quad_gap
 
                 std::vector<Eigen::Vector2d> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
                 std::vector<double> dist;
-                for(auto pt : pt_list)
+                for (const Eigen::Vector2d & pt : pt_list)
                 {
                     Eigen::Vector2d pt_vec_global = m_new_vec + pt;
                     dist.push_back(pt_vec_global.norm());
@@ -334,7 +334,7 @@ namespace quad_gap
                 Eigen::Vector2d p8 = -robot_f_vec + robot_ccw_n_vec;
 
                 std::vector<Eigen::Vector2d> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
-                for(auto pt : pt_list)
+                for (const Eigen::Vector2d & pt : pt_list)
                 {
                     Eigen::Vector2d pt_vec_global = pt_new_vec - pt;
                     dists.push_back(pt_vec_global.norm());

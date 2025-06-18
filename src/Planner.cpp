@@ -684,8 +684,8 @@ namespace quad_gap
                 }
                 
                 tmp = gapTrajGenerator_->forwardPassTrajectory(tmp);
-                // auto tmp_rbt = gapTrajGenerator_->transformBackTrajectory(tmp, cam2rbt_);
-                auto virtual_score_path = getOrientDecayedPath(tmp);
+
+                geometry_msgs::PoseArray virtual_score_path = getOrientDecayedPath(tmp);
                 virtual_traj.at(i) = virtual_score_path;
                 ret_traj_scores.at(i) = trajEvaluator_->scoreTrajectory(virtual_score_path);
                 ret_traj.at(i) = gapTrajGenerator_->transformBackTrajectory(tmp, rbt2odom_);
@@ -750,7 +750,7 @@ namespace quad_gap
                     double avg_ang = cfg_.control.ang_absmax / speed_factor_;
 
                     Eigen::Quaterniond q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
-                    auto euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+                    Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
                     double ang_diff = std::abs(euler[2]);
                     double decayed_ang = avg_ang * t;
                     decayed_ang = decayed_ang <= ang_diff ? decayed_ang : ang_diff;
@@ -824,7 +824,7 @@ namespace quad_gap
         if (result_score.at(idx) == -std::numeric_limits<double>::infinity()) 
         {
             ROS_WARN_STREAM("No executable trajectory, values: ");
-            for (auto val : result_score) 
+            for (const double & val : result_score) 
             {
                 ROS_INFO_STREAM("Score: " << val);
             }
@@ -839,25 +839,25 @@ namespace quad_gap
     geometry_msgs::PoseArray Planner::compareToOldTraj(const geometry_msgs::PoseArray & incoming, 
                                                         geometry_msgs::PoseArray& virtual_curr_traj) 
     {
-        auto curr_traj = getCurrentTraj();
+        geometry_msgs::PoseArray  curr_traj = getCurrentTraj();
 
         try 
         {
             // Both Args are in Odom frame
-            auto incom_rbt = gapTrajGenerator_->transformBackTrajectory(incoming, odom2rbt_);
+            geometry_msgs::PoseArray incom_rbt = gapTrajGenerator_->transformBackTrajectory(incoming, odom2rbt_);
             incom_rbt.header.frame_id = cfg_.robot_frame_id;
-            auto virtual_score_path = getOrientDecayedPath(incom_rbt);
-            auto incom_score = trajEvaluator_->scoreTrajectory(virtual_score_path);
+            geometry_msgs::PoseArray virtual_score_path = getOrientDecayedPath(incom_rbt);
+            std::vector<double> incom_score = trajEvaluator_->scoreTrajectory(virtual_score_path);
             // int counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
             
             int counts = std::min(cfg_.planning.num_feasi_check, (int) incom_score.size());
-            auto incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
+            double incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
 
             if (curr_traj.poses.size() == 0) 
             {
                 if (incom_subscore == -std::numeric_limits<double>::infinity()) 
                 {
-                    auto empty_traj = geometry_msgs::PoseArray();
+                    geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
                     setCurrentTraj(empty_traj);
                     virtual_curr_traj = empty_traj;
                     ROS_WARN_STREAM("Old Traj length 0, curr traj score -inf.");
@@ -872,7 +872,7 @@ namespace quad_gap
                 }
             } 
 
-            auto curr_rbt = gapTrajGenerator_->transformBackTrajectory(curr_traj, odom2rbt_);
+            geometry_msgs::PoseArray curr_rbt = gapTrajGenerator_->transformBackTrajectory(curr_traj, odom2rbt_);
             curr_rbt.header.frame_id = cfg_.robot_frame_id;
             int start_position = egoTrajPosition(curr_rbt);
             geometry_msgs::PoseArray reduced_curr_rbt = curr_rbt;
@@ -884,10 +884,10 @@ namespace quad_gap
                 virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path, rbt2odom_);
                 return incoming;
             }
-            auto virtual_curr_score_path = getOrientDecayedPath(reduced_curr_rbt);
-            auto curr_score = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
+            geometry_msgs::PoseArray virtual_curr_score_path = getOrientDecayedPath(reduced_curr_rbt);
+            std::vector<double> curr_score = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
             counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incom_score.size(), curr_score.size()));
-            auto curr_subscore = std::accumulate(curr_score.begin(), curr_score.begin() + counts, double(0));
+            double curr_subscore = std::accumulate(curr_score.begin(), curr_score.begin() + counts, double(0));
             incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
 
             std::vector<std::vector<double>> ret_traj_scores(2);
@@ -903,7 +903,7 @@ namespace quad_gap
             if (curr_subscore == -std::numeric_limits<double>::infinity() && incom_subscore == -std::numeric_limits<double>::infinity()) 
             {
                 ROS_WARN_STREAM("Both Failed");
-                auto empty_traj = geometry_msgs::PoseArray();
+                geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
                 setCurrentTraj(empty_traj);
                 virtual_curr_traj = empty_traj;
                 return empty_traj;
@@ -917,7 +917,7 @@ namespace quad_gap
                 trajectory_pub.publish(incoming);
                 return incoming;
             }
-            auto virtual_score_path_curr = getOrientDecayedPath(curr_rbt);
+            geometry_msgs::PoseArray virtual_score_path_curr = getOrientDecayedPath(curr_rbt);
             virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path_curr, rbt2odom_);
             trajectory_pub.publish(curr_traj);
         } catch (...) 
@@ -930,10 +930,10 @@ namespace quad_gap
     CollisionResults Planner::checkCollision(const geometry_msgs::PoseArray & path)
     {
         // Convert the trajectory from odom to base frame
-        auto path_rbt = gapTrajGenerator_->transformBackTrajectory(path, odom2rbt_);
+        geometry_msgs::PoseArray path_rbt = gapTrajGenerator_->transformBackTrajectory(path, odom2rbt_);
         geometry_msgs::Pose curr_pose;
         curr_pose.orientation.w = 1;
-        auto orig_ref = trajController_->trajGen(path_rbt);
+        TrajPlan orig_ref = trajController_->trajGen(path_rbt);
         orig_ref.header.frame_id = cfg_.robot_frame_id;
         ctrl_idx = trajController_->targetPoseIdx(curr_pose, orig_ref);
 
@@ -1025,7 +1025,7 @@ namespace quad_gap
         tf2::doTransform(currPoseStRobotFrame, currPoseStampedOdomFrame, rbt2odom_);
         geometry_msgs::Pose currPoseOdomFrame = currPoseStampedOdomFrame.pose;
 
-        auto orig_ref = trajController_->trajGen(traj);
+        TrajPlan orig_ref = trajController_->trajGen(traj);
         ctrl_idx = trajController_->targetPoseIdx(currPoseOdomFrame, orig_ref);
         nav_msgs::Odometry ctrl_target_pose;
         ctrl_target_pose.header = orig_ref.header;
@@ -1035,7 +1035,7 @@ namespace quad_gap
         sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
 
         timeKeeper_->startTimer(FEEBDACK);
-        auto cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose, stored_scan_msgs, currPoseStRobotFrame);
+        geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose, stored_scan_msgs, currPoseStRobotFrame);
         timeKeeper_->stopTimer(FEEBDACK);
 
         timeKeeper_->stopTimer(CONTROL);
@@ -1104,18 +1104,18 @@ namespace quad_gap
         timeKeeper_->startTimer(GAP_TRAJ_GEN);
         std::vector<geometry_msgs::PoseArray> traj_set, virtual_traj_set;
         
-        auto score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
+        std::vector<std::vector<double>> score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
         timeKeeper_->stopTimer(GAP_TRAJ_GEN);
 
         timeKeeper_->startTimer(TRAJ_PICK);
         geometry_msgs::PoseArray chosen_virtual_traj_set;
-        auto picked_traj = pickTraj(traj_set, score_set, virtual_traj_set, chosen_virtual_traj_set);
+        geometry_msgs::PoseArray picked_traj = pickTraj(traj_set, score_set, virtual_traj_set, chosen_virtual_traj_set);
         virtual_orient_traj_pub.publish(chosen_virtual_traj_set);
         timeKeeper_->stopTimer(TRAJ_PICK);
 
         timeKeeper_->startTimer(TRAJ_COMP);
         geometry_msgs::PoseArray chosen_final_virtual_traj_set;
-        auto final_traj = compareToOldTraj(picked_traj, chosen_final_virtual_traj_set);
+        geometry_msgs::PoseArray final_traj = compareToOldTraj(picked_traj, chosen_final_virtual_traj_set);
         timeKeeper_->stopTimer(TRAJ_COMP);
 
         timeKeeper_->startTimer(COLL_CHECK);

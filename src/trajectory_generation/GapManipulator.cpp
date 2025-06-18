@@ -28,17 +28,17 @@ namespace quad_gap {
         Eigen::Vector2d m_pt_vec = (pl.cast<double>() + pr.cast<double>()) / 2;
         // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
         double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        auto lr = (pr - pl) / (pr - pl).norm() * (epl / 2) * cfg_->traj.inf_ratio + pl;
-        auto thetalr = car2pol(lr)(1);
+        Eigen::Vector2f lr = (pr - pl) / (pr - pl).norm() * (epl / 2) * cfg_->traj.inf_ratio + pl;
+        float thetalr = car2pol(lr)(1);
         if(pl[1] >= 0 && lr[1] < 0 && pl[0] <= 0 && lr[0] < 0)
             thetalr = thetalr + 2 * M_PI;
-        auto rl = (pl - pr) / (pl - pr).norm() * (epl / 2) * cfg_->traj.inf_ratio + pr;
-        auto thetarl = car2pol(rl)(1);
+        Eigen::Vector2f rl = (pl - pr) / (pl - pr).norm() * (epl / 2) * cfg_->traj.inf_ratio + pr;
+        float thetarl = car2pol(rl)(1);
         if (pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
             thetarl = thetarl - 2 * M_PI;
         
-        auto left_ori = gap->convex.convex_right_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
-        auto right_ori = gap->convex.convex_left_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
+        float left_ori = idx2theta(gap->convex.convex_left_idx);
+        float right_ori = idx2theta(gap->convex.convex_right_idx); 
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
@@ -118,7 +118,7 @@ namespace quad_gap {
         Eigen::Matrix2f r_negpi2;
         r_negpi2 << 0,1,-1,0;
         
-        auto offset = r_negpi2 * (pr - pl);
+        Eigen::Vector2f offset = r_negpi2 * (pr - pl);
         goal_pt += robot_geo_proc_.getRobotMaxRadius() * offset / offset.norm();
 
         // ROS_INFO_STREAM("l gap [" << pl[0] << " , " << pl[1] << "], r gap [" << pr[0] << " , " << pr[1] << "], thetalr: " << thetalr << " thetarl: " << thetarl << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
@@ -154,8 +154,8 @@ namespace quad_gap {
         boost::mutex::scoped_lock lock(egolock);
         double dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
 
-        auto scan = *scan_.get();
-        auto min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
+        sensor_msgs::LaserScan scan = *scan_.get();
+        double min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot
         Eigen::Vector2d orient_vec(1, 0);
@@ -180,7 +180,7 @@ namespace quad_gap {
         int index = (int)(scan.ranges.size()) / 8;
         int lower_bound = std::max(incident_angle - index, 0);
         int upper_bound = std::min(incident_angle + index, int(scan.ranges.size() - 1));
-        auto min_val_round_goal = *std::min_element(scan.ranges.begin() + lower_bound, scan.ranges.begin() + upper_bound);
+        double min_val_round_goal = *std::min_element(scan.ranges.begin() + lower_bound, scan.ranges.begin() + upper_bound);
         return dist2goal < min_val_round_goal;
     }
 
@@ -254,7 +254,7 @@ namespace quad_gap {
             return;
         }
 
-        auto stored_scan_msgs = *scan_.get();
+        sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
         
         bool left = gap->isRightType();
         // Extend of rotation to the radial gap 
@@ -375,8 +375,8 @@ namespace quad_gap {
             ROS_FATAL_STREAM("convertAxialGap outofBound");
         }
 
-        auto farside_iter = std::min_element(min_dist.begin(), min_dist.end());
-        float farside = *farside_iter;
+        // auto farside_iter = ;
+        float farside = *std::min_element(min_dist.begin(), min_dist.end());
 
         Eigen::Matrix3f far_near = near_rbt.inverse() * far_rbt;
         float coefs = far_near.block<2, 1>(0, 2).norm();
