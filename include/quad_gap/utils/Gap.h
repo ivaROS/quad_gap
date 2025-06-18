@@ -153,6 +153,26 @@ namespace quad_gap
                 goal_within = goal_dist < _right_dist && goal_dist < _left_dist;
             }
 
+            int manipLeftIdx() const
+            {
+                return convex.convex_left_idx;
+            }
+
+            int manipRightIdx() const
+            {
+                return convex.convex_right_idx;
+            }
+
+            float manipLeftRange() const
+            {
+                return convex.convex_left_dist;
+            }
+
+            float manipRightRange() const
+            {
+                return convex.convex_right_dist;
+            }
+
             // Getter and Setter for if side is an obstacle
             void setRightObs() 
             {

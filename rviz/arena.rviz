@@ -8,6 +8,9 @@ Panels:
         - /Dynamic Gap1
         - /Dynamic Gap1/Scans1
         - /Dynamic Gap1/Gaps1
+        - /Dynamic Gap1/Gaps1/Marker1
+        - /Dynamic Gap1/Gaps1/Marker2
+        - /Dynamic Gap1/Gaps1/MarkerArray1
         - /Dynamic Gap1/Trajectories1
         - /Dynamic Gap1/Tracking1
       Splitter Ratio: 0.32792791724205017
@@ -280,24 +283,28 @@ Visualization Manager:
           Name: Scans
         - Class: rviz/Group
           Displays:
-            - Class: rviz/MarkerArray
+            - Class: rviz/Marker
               Enabled: true
-              Marker Topic: /rto/qg_arcs
-              Name: MarkerArray
+              Marker Topic: /rto/raw_gaps
+              Name: Marker
               Namespaces:
-                fin: true
                 raw: true
               Queue Size: 100
               Value: true
-            - Class: rviz/MarkerArray
+            - Class: rviz/Marker
               Enabled: true
-              Marker Topic: /rto/qg_sides
-              Name: MarkerArray
+              Marker Topic: /rto/simp_gaps
+              Name: Marker
               Namespaces:
-                extent_line: true
-                fin_agc: true
-                fin_extent: true
-                orig_line: true
+                {}
+              Queue Size: 100
+              Value: true
+            - Class: rviz/Marker
+              Enabled: true
+              Marker Topic: /rto/manip_gaps
+              Name: Marker
+              Namespaces:
+                manip_gaps: true
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -313,7 +320,7 @@ Visualization Manager:
               Marker Topic: /rto/global_goal
               Name: Marker
               Namespaces:
-                {}
+                global_goal: true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -515,7 +522,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 142.2509307861328
+      Scale: 58.13447570800781
       Target Frame: rto/base_link
       X: 0.11252561956644058
       Y: 0.29697540402412415
