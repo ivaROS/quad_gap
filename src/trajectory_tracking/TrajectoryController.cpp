@@ -10,18 +10,19 @@ namespace quad_gap
         last_time = ros::Time::now();
     }
 
-    void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
+    void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan)
     {
         boost::mutex::scoped_lock lock(egocircle_l);
-        msg_ = msg;
+        scan_ = scan;
     }
 
     [[deprecated("Not Used, Deemed Unnecessary")]]
-    std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(int idx) {
-        auto egocircle = *msg_.get();
+    std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
+    {
+        auto egocircle = *scan_.get();
         std::vector<double> dist(egocircle.ranges.size());
 
-        if (!msg_) {
+        if (!scan_) {
             return std::vector<geometry_msgs::Point>(0);
         }
         
@@ -114,22 +115,21 @@ namespace quad_gap
         return retArr;
     }
 
-    bool TrajectoryController::leqThres(const double dist) {
-        return dist <= thres;
-    }
-
-    bool TrajectoryController::geqThres(const double dist) {
+    bool TrajectoryController::geqThres(const double dist)
+    {
         return dist >= thres;
     }
 
-    double TrajectoryController::polDist(float l1, float t1, float l2, float t2) {
+    double TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
+    {
         return abs(double(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
     }
 
-    geometry_msgs::Twist TrajectoryController::controlLaw(
-        geometry_msgs::Pose current, nav_msgs::Odometry desired,
-        sensor_msgs::LaserScan inflated_egocircle, geometry_msgs::PoseStamped init_pose
-    ) {
+    geometry_msgs::Twist TrajectoryController::controlLaw(const geometry_msgs::Pose & current, 
+                                                            const nav_msgs::Odometry & desired,
+                                                            const sensor_msgs::LaserScan & inflated_egocircle, 
+                                                            const geometry_msgs::PoseStamped & init_pose) 
+    {
         // Setup Vars
         boost::mutex::scoped_lock lock(egocircle_l);
         bool holonomic = cfg_->planning.holonomic;
@@ -148,16 +148,15 @@ namespace quad_gap
         float r_norm_offset = cfg_->projection.r_norm_offset; 
         float k_po_turn_ = cfg_->projection.k_po_turn;
 
-        // auto inflated_egocircle = *msg_.get();
+        // auto inflated_egocircle = *scan_.get();
         geometry_msgs::Twist cmd_vel;
         geometry_msgs::Point position = current.position;
         geometry_msgs::Quaternion orientation = current.orientation;
 
-        tf::Quaternion q_c(
-            orientation.x,
-            orientation.y,
-            orientation.z,
-            orientation.w);
+        tf::Quaternion q_c(orientation.x,
+                            orientation.y,
+                            orientation.z,
+                            orientation.w);
         tf::Matrix3x3 m_c(q_c);
         double c_roll, c_pitch, c_yaw;
         m_c.getRPY(c_roll, c_pitch, c_yaw);
@@ -167,11 +166,10 @@ namespace quad_gap
         position = desired.pose.pose.position;
         orientation = desired.pose.pose.orientation;
 
-        tf::Quaternion q_d(
-            orientation.x,
-            orientation.y,
-            orientation.z,
-            orientation.w);
+        tf::Quaternion q_d(orientation.x,
+                            orientation.y,
+                            orientation.z,
+                            orientation.w);
         tf::Matrix3x3 m_d(q_d);
         double d_roll, d_pitch, d_yaw;
         m_d.getRPY(d_roll, d_pitch, d_yaw);
@@ -190,12 +188,14 @@ namespace quad_gap
         double v_lin_x_fb = 0;
         double v_lin_y_fb = 0;
 
-        if (cfg_->man.man_ctrl) {
+        if (cfg_->man.man_ctrl) 
+        {
             ROS_INFO_STREAM("Manual Control");
             v_ang_fb = cfg_->man.man_theta;
             v_lin_x_fb = cfg_->man.man_x;
             v_lin_y_fb = cfg_->man.man_y;
-        } else {
+        } else 
+        {
             v_ang_fb = theta_error * k_turn_;
             v_lin_x_fb = x_error * k_drive_x_;
             v_lin_y_fb = y_error * k_drive_y_;
@@ -220,7 +220,7 @@ namespace quad_gap
             ROS_FATAL_STREAM("Scan range incorrect controlLaw");
         }
 
-        if(projection_operator)
+        if (projection_operator)
         {
             std::vector<double> min_dist_arr(inflated_egocircle.ranges.size());
             for (int i = 0; i < min_dist_arr.size(); i++) {
@@ -421,7 +421,8 @@ namespace quad_gap
         return cmd_vel;
     }
 
-    Eigen::Vector3d TrajectoryController::projection_method(float min_diff_x, float min_diff_y) {
+    Eigen::Vector3d TrajectoryController::projection_method(const float & min_diff_x, const float & min_diff_y) 
+    {
         float r_min = cfg_->projection.r_min;
         float r_norm = cfg_->projection.r_norm;
 
@@ -438,8 +439,7 @@ namespace quad_gap
         return Eigen::Vector3d(norm_si_der_x, norm_si_der_y, si);
     }
 
-    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(
-        double x, double y, double quat_w, double quat_z)
+    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(const double & x, const double & y, const double & quat_w, const double & quat_z)
     {
         std::complex<double> phase(quat_w, quat_z);
         phase = phase * phase;
@@ -460,8 +460,7 @@ namespace quad_gap
         return g;
     }
 
-    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(
-        double x, double y, double theta)
+    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(const double & x, const double & y, const double & theta)
     {
         std::complex<double> phase(std::cos(theta), std::sin(theta));
 
@@ -482,7 +481,8 @@ namespace quad_gap
     }
 
 
-    int TrajectoryController::targetPoseIdx(geometry_msgs::Pose curr_pose, TrajPlan ref_pose) {
+    int TrajectoryController::targetPoseIdx(const geometry_msgs::Pose & curr_pose, const TrajPlan & ref_pose) 
+    {
         // Find pose right ahead
         std::vector<double> pose_diff(ref_pose.poses.size());
         // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
@@ -503,7 +503,7 @@ namespace quad_gap
     }
 
 
-    TrajPlan TrajectoryController::trajGen(geometry_msgs::PoseArray orig_traj)
+    TrajPlan TrajectoryController::trajGen(const geometry_msgs::PoseArray & orig_traj)
     {
         TrajPlan traj;
         traj.header.frame_id = cfg_->odom_frame_id;
@@ -517,18 +517,21 @@ namespace quad_gap
         return traj;
     }
 
-    double TrajectoryController::dist2Pose(float theta, float dist, geometry_msgs::Pose pose) {
+    double TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    {
         float x = dist * std::cos(theta);
         float y = dist * std::sin(theta);
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
 
-    Eigen::Vector2d TrajectoryController::car2pol(Eigen::Vector2d a) {
+    Eigen::Vector2d TrajectoryController::car2pol(const Eigen::Vector2d & a) 
+    {
         return Eigen::Vector2d(a.norm(), float(std::atan2(a(1), a(0))));
     }
 
-    Eigen::Vector2d TrajectoryController::pol2car(Eigen::Vector2d a) {
+    Eigen::Vector2d TrajectoryController::pol2car(const Eigen::Vector2d & a) 
+    {
         return Eigen::Vector2d(cos(a(1)) * a(0), sin(a(1)) * a(0));
     }
 

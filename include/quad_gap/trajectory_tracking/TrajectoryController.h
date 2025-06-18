@@ -27,30 +27,35 @@ namespace quad_gap
         public:
 
             TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            geometry_msgs::Twist controlLaw(geometry_msgs::Pose, nav_msgs::Odometry, sensor_msgs::LaserScan, geometry_msgs::PoseStamped);
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
-            int targetPoseIdx(geometry_msgs::Pose curr_pose, TrajPlan ref_pose);
-            TrajPlan trajGen(geometry_msgs::PoseArray);
+
+            geometry_msgs::Twist controlLaw(const geometry_msgs::Pose & current, 
+                                            const nav_msgs::Odometry & desired,
+                                            const sensor_msgs::LaserScan & inflated_egocircle, 
+                                            const geometry_msgs::PoseStamped & init_pose);
+            
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan);
+
+            int targetPoseIdx(const geometry_msgs::Pose & curr_pose, const TrajPlan & ref_pose);
+
+            TrajPlan trajGen(const geometry_msgs::PoseArray & orig_traj);
 
         private:
-            Eigen::Matrix2cd getComplexMatrix(double, double, double, double);
-            Eigen::Matrix2cd getComplexMatrix(double, double, double);
-            double dist2Pose(float theta, float dist, geometry_msgs::Pose pose);
+            Eigen::Matrix2cd getComplexMatrix(const double & x, const double & y, const double & quat_w, const double & quat_z);
+            Eigen::Matrix2cd getComplexMatrix(const double & x, const double & y, const double & theta);
+            double dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
 
-            std::vector<geometry_msgs::Point> findLocalLine(int idx);
-            double polDist(float l1, float t1, float l2, float t2);
+            std::vector<geometry_msgs::Point> findLocalLine(const int & idx);
+            double polDist(const float & l1, const float & t1, const float & l2, const float & t2);
 
-            bool leqThres(const double dist);
             bool geqThres(const double dist);
 
-
-            Eigen::Vector2d car2pol(Eigen::Vector2d a);
-            Eigen::Vector2d pol2car(Eigen::Vector2d a);
-            Eigen::Vector3d projection_method(float min_diff_x, float min_diff_y);
+            Eigen::Vector2d car2pol(const Eigen::Vector2d & a);
+            Eigen::Vector2d pol2car(const Eigen::Vector2d & a);
+            Eigen::Vector3d projection_method(const float & min_diff_x, const float & min_diff_y);
 
             double thres;
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::LaserScan const> msg_;
+            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             boost::mutex egocircle_l;
             ros::Publisher projection_viz;
             ros::Time last_time;
