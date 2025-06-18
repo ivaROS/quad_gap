@@ -62,7 +62,8 @@ namespace quad_gap
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::Marker & marker, const std::vector<Gap> & gaps, 
+    void GapVisualizer::drawGap(visualization_msgs::Marker & marker, 
+                                const std::vector<Gap *> & gaps, 
                                 const std::string & ns) // , const bool & initial)     
     {
         // ROS_INFO_STREAM("[drawGap] start");
@@ -84,9 +85,9 @@ namespace quad_gap
         float thickness = 0.05;
         marker.scale.x = thickness;     
    
-        for (const Gap & gap : gaps) 
+        for (const Gap * gap : gaps) 
         {
-            if (gap.getFrame().empty())
+            if (gap->getFrame().empty())
             {
                 ROS_WARN_STREAM("[drawGap] Gap frame is empty");
                 return;
@@ -94,7 +95,7 @@ namespace quad_gap
 
             std::string fullNamespace = ns;
 
-            if (gap.isRadial()) 
+            if (gap->isRadial()) 
             {
                 fullNamespace.append("_radial");
             } else 
@@ -111,17 +112,17 @@ namespace quad_gap
                 return;
             }
     
-            marker.header.frame_id = gap.getFrame();
+            marker.header.frame_id = gap->getFrame();
 
-            int leftIdx = gap.LIdx(); // initial ?  : gap.termLIdx(); // initial ? gap.RIdx() : gap.termRIdx(); //
-            int rightIdx = gap.RIdx(); // initial ?  : gap.termRIdx(); // initial ? gap.LIdx() : gap.termLIdx(); //
-            float leftRange = gap.LRange(); // initial ?  : gap.termLRange(); // initial ? gap.RRange() : gap.termRRange();
-            float rightRange = gap.RRange(); // initial ?  : gap.termRRange(); // initial ? gap.LRange() : gap.termLRange();
+            int leftIdx = gap->LIdx(); // initial ?  : gap->termLIdx(); // initial ? gap->RIdx() : gap->termRIdx(); //
+            int rightIdx = gap->RIdx(); // initial ?  : gap->termRIdx(); // initial ? gap->LIdx() : gap->termLIdx(); //
+            float leftRange = gap->LRange(); // initial ?  : gap->termLRange(); // initial ? gap->RRange() : gap->termRRange();
+            float rightRange = gap->RRange(); // initial ?  : gap->termRRange(); // initial ? gap->LRange() : gap->termLRange();
 
             //ROS_INFO_STREAM("leftIdx: " << leftIdx << ", ldist: " << ldist << ", rightIdx: " << rightIdx << ", rightRange: " << rightRange);
             int gapIdxSpan = (leftIdx - rightIdx);
             if (gapIdxSpan < 0)
-                gapIdxSpan += cfg_->scan.full_scan; // 2*gap.half_scan; // taking off int casting here
+                gapIdxSpan += cfg_->scan.full_scan; // 2*gap->half_scan; // taking off int casting here
 
             int num_segments = int(invGapSpanResoln * gapIdxSpan) + 1;
             float distIncrement = (leftRange - rightRange) / num_segments;
@@ -138,7 +139,7 @@ namespace quad_gap
                 marker.points.push_back(p1);
                 marker.colors.push_back(colorIter->second);
                 
-                midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap.half_scan);
+                midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap->half_scan);
                 midGapDist += distIncrement;
 
                 geometry_msgs::Point p2;
@@ -152,7 +153,7 @@ namespace quad_gap
         // ROS_INFO_STREAM("[drawGap] end");
     }
     
-    void GapVisualizer::drawGaps(const std::vector<Gap> & gaps, const std::string & ns) 
+    void GapVisualizer::drawGaps(const std::vector<Gap *> & gaps, const std::string & ns) 
     {
         // First, clearing topic.
         clearMarkerPublisher(rawGapsPublisher);

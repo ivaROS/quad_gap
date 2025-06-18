@@ -365,10 +365,10 @@ namespace quad_gap
         ////////////////////////////////////
 
         timeKeeper_->startTimer(GAP_SIMP);
-        simp_gaps = gapDetector_->gapSimplification(raw_gaps);
+        simp_gaps_ptr = gapDetector_->gapSimplification(raw_gaps);
         timeKeeper_->stopTimer(GAP_SIMP);
 
-        gapVisualizer_->drawGaps(simp_gaps, std::string("simp"));
+        gapVisualizer_->drawGaps(simp_gaps_ptr, std::string("simp"));
 
         // ROS_INFO_STREAM("simp_gaps count:" << simp_gaps.size());
 

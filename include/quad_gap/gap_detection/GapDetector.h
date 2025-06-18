@@ -45,9 +45,21 @@ namespace quad_gap
             */
             void preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan);
 
-            std::vector<Gap> gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);
+            /**
+            * \brief Detect raw set of gaps from incoming laser scan.
+            * 
+            * \param scanPtr pointer to incoming laser scan
+            * \return raw set of gaps
+            */            
+            std::vector<Gap *> gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);
 
-            std::vector<Gap> gapSimplification(const std::vector<Gap> & rawGaps);
+            /**
+            * \brief Condense raw set of gaps into a smaller set of simplified gaps more amenable for navigation.
+            * 
+            * \param rawGaps set of raw gaps
+            * \return set of simplified gaps
+            */              
+            std::vector<Gap *> gapSimplification(const std::vector<Gap *> & rawGaps);
 
         private:
 
@@ -59,12 +71,12 @@ namespace quad_gap
             * \param simplifiedGaps existing set of simplified gaps
             * \return boolean for if raw gap should be merged or not
             */
-            bool mergeSweptGapCondition(const Gap rawGap, 
-                                        const std::vector<Gap> & simplifiedGaps);
+            bool mergeSweptGapCondition(const Gap * rawGap, 
+                                        const std::vector<Gap *> & simplifiedGaps);
 
-            bool equivalentCheck(const Gap & detected_gap);
+            bool equivalentCheck(const Gap * detected_gap);
 
-            bool bridgeCondition(const std::vector<Gap> & rawGaps);
+            bool bridgeCondition(const std::vector<Gap *> & rawGaps);
 
             /**
             * \brief Check if scan range registers an object (finite range value)
@@ -94,8 +106,8 @@ namespace quad_gap
             * \param simplifiedGaps existing set of simplified gaps
             * \return index within simplified gaps that should be merged
             */
-            int checkSimplifiedGapsMergeability(const Gap & rawGap, 
-                                                const std::vector<Gap> & simpGaps);
+            int checkSimplifiedGapsMergeability(const Gap * rawGap, 
+                                                const std::vector<Gap *> & simpGaps);
 
             /**
             * \brief Checking if gap should be classified as radial 

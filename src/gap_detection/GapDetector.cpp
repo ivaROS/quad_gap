@@ -57,20 +57,20 @@ namespace quad_gap
     return canRobotFit;
     }  
 
-    bool GapDetector::equivalentCheck(const Gap & detected_gap)
+    bool GapDetector::equivalentCheck(const Gap * detected_gap)
     {
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
         // Find equivalent passing length
         Eigen::Vector2d orient_vec(1, 0);
-        Eigen::Vector2d m_pt_vec = detected_gap.get_middle_pt_vec();
+        Eigen::Vector2d m_pt_vec = detected_gap->get_middle_pt_vec();
         // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
         double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
 
-        return detected_gap.get_dist_side() > epl;
+        return detected_gap->get_dist_side() > epl;
     }
 
-    bool GapDetector::bridgeCondition(const std::vector<Gap> & rawGaps)
+    bool GapDetector::bridgeCondition(const std::vector<Gap *> & rawGaps)
     {
         bool multipleGaps = rawGaps.size() > 1;
         
@@ -78,15 +78,15 @@ namespace quad_gap
             return false;
 
         // only defined behavior if there are multiple gaps
-        bool firstAndLastGapsBorder = (rawGaps.front().RIdx() == 0 && 
-                                          rawGaps.back().LIdx() == (fullScanRayCount_ - 1));
+        bool firstAndLastGapsBorder = (rawGaps.front()->RIdx() == 0 && 
+                                          rawGaps.back()->LIdx() == (fullScanRayCount_ - 1));
         
         return firstAndLastGapsBorder;
     }
 
-    std::vector<Gap> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)
+    std::vector<Gap *> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)
     {
-        std::vector<Gap> rawGaps;
+        std::vector<Gap *> rawGaps;
         // rawGaps.clear();
 
         scan_ = *scanPtr.get();
@@ -131,13 +131,16 @@ namespace quad_gap
             // If both current and last values are not infinity, meaning this is not a swept gap
             if (radialGapSizeCheck(currRange, prevRange, scan_.angle_increment)) 
             {
-                Gap detected_gap(frame, currIdx - 1, prevRange, true);
-                detected_gap.addLeftInformation(currIdx, currRange);
-                detected_gap.setMinSafeDist(minScanDist_);
+                Gap * detected_gap = new Gap(frame, currIdx - 1, prevRange, true);
+                detected_gap->addLeftInformation(currIdx, currRange);
+                detected_gap->setMinSafeDist(minScanDist_);
 
                 if (equivalentCheck(detected_gap))
                 {
                     rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
+                } else
+                {
+                    delete detected_gap; // If not equivalent, delete the gap
                 }
             }
                 
@@ -150,13 +153,16 @@ namespace quad_gap
                 if (withinSweptGap)
                 {
                     withinSweptGap = false;
-                    Gap detected_gap(frame, gapRIdx, gapRRange);
-                    detected_gap.addLeftInformation(currIdx, currRange);
-                    detected_gap.setMinSafeDist(minScanDist_);
+                    Gap * detected_gap = new Gap(frame, gapRIdx, gapRRange);
+                    detected_gap->addLeftInformation(currIdx, currRange);
+                    detected_gap->setMinSafeDist(minScanDist_);
 
                     if (equivalentCheck(detected_gap))
                     {
                         rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
+                    } else
+                    {
+                        delete detected_gap; // If not equivalent, delete the gap
                     }
                 } else // previously not marked a gap, not marking the gap
                 {
@@ -171,23 +177,27 @@ namespace quad_gap
         // Catch the last gap
         if (withinSweptGap) 
         {
-            Gap detected_gap(frame, gapRIdx, gapRRange);
-            detected_gap.addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
-            detected_gap.setMinSafeDist(minScanDist_);
+            Gap * detected_gap = new Gap(frame, gapRIdx, gapRRange);
+            detected_gap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
+            detected_gap->setMinSafeDist(minScanDist_);
 
-            if (equivalentCheck(detected_gap) || detected_gap._left_idx - detected_gap._right_idx > 500)
+            if (equivalentCheck(detected_gap) || detected_gap->_left_idx - detected_gap->_right_idx > 500)
             {
                 rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
-            }            
+            } else
+            {
+                delete detected_gap; // If not equivalent, delete the gap
+            } 
         }
         
         // Bridge the last gap around
         // Bridge the last gap around
         if (bridgeCondition(rawGaps))
         {
-            rawGaps.back().addLeftInformation(rawGaps.front().LIdx(), rawGaps.front().LRange());
+            rawGaps.back()->addLeftInformation(rawGaps.front()->LIdx(), rawGaps.front()->LRange());
 
             // delete first gap
+            delete *rawGaps.begin();
             rawGaps.erase(rawGaps.begin());
 
             // // Both ends
@@ -208,22 +218,21 @@ namespace quad_gap
         return rawGaps;
     }
 
-
     ////////////////// GAP SIMPLIFICATION ///////////////////////
 
-    int GapDetector::checkSimplifiedGapsMergeability(const Gap & rawGap, 
-                                                     const std::vector<Gap> & simpGaps)
+    int GapDetector::checkSimplifiedGapsMergeability(const Gap * rawGap, 
+                                                     const std::vector<Gap *> & simpGaps)
     {
         int last_mergable = -1;
 
-        float curr_left_dist = rawGap.LRange();
+        float curr_left_dist = rawGap->LRange();
         // int erase_counter = 0;
 
         // float coefs = cfg_->planning.planning_inflated ? 0 : 1;
         for (int j = (int) (simpGaps.size() - 1); j >= 0; j--)
         {
-            int start_idx = std::min(simpGaps[j].LIdx(), rawGap.RIdx());
-            int end_idx = std::max(simpGaps[j].LIdx(), rawGap.RIdx());
+            int start_idx = std::min(simpGaps[j]->LIdx(), rawGap->RIdx());
+            int end_idx = std::max(simpGaps[j]->LIdx(), rawGap->RIdx());
             auto farside_iter = std::min_element(scan_.ranges.begin() + start_idx, scan_.ranges.begin() + end_idx);
             int farside_idx = farside_iter - scan_.ranges.begin();
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
@@ -232,31 +241,32 @@ namespace quad_gap
             Eigen::Vector2d farside_vec(cos(farside_angle), sin(farside_angle));
             Eigen::Vector2d orient_vec(1, 0);
             double erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_left_dist);
-            double erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j].RRange());
-            bool second_test = curr_left_dist <= (*farside_iter - erl_left_dist) && simpGaps[j].RRange() <= (*farside_iter - erl_right_dist);
-            bool dist_diff = simpGaps[j].isRightType() || !simpGaps[j].isRadial();
-            bool idx_diff = rawGap.LIdx() - simpGaps[j].RIdx() < cfg_->gap_manip.max_idx_diff;
-            if (second_test && dist_diff && idx_diff) {
+            double erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
+            bool second_test = curr_left_dist <= (*farside_iter - erl_left_dist) && simpGaps[j]->RRange() <= (*farside_iter - erl_right_dist);
+            bool dist_diff = simpGaps[j]->isRightType() || !simpGaps[j]->isRadial();
+            bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
+            if (second_test && dist_diff && idx_diff) 
+            {
                 last_mergable = j;
             } 
         }
     }
 
-    bool GapDetector::mergeSweptGapCondition(Gap rawGap, 
-                                             const std::vector<Gap> & simplifiedGaps)
+    bool GapDetector::mergeSweptGapCondition(const Gap * rawGap, 
+                                             const std::vector<Gap *> & simplifiedGaps)
     {
         // checking if difference between raw gap left dist and simplified gap right (widest distances, encompassing both gaps)
         // dist is sufficiently small (to fit robot)
-        bool adjacentGapPtDistDiffCheck = std::abs(rawGap.LRange() - simplifiedGaps.back().RRange()) < 3 * cfg_->rbt.r_inscr;
+        bool adjacentGapPtDistDiffCheck = std::abs(rawGap->LRange() - simplifiedGaps.back()->RRange()) < 3 * cfg_->rbt.r_inscr;
 
         // checking if difference is sufficiently small, and that current simplified gap is radial and right dist < left dist
-        return adjacentGapPtDistDiffCheck && simplifiedGaps.back().isRadial() && simplifiedGaps.back().isRightType();
+        return adjacentGapPtDistDiffCheck && simplifiedGaps.back()->isRadial() && simplifiedGaps.back()->isRightType();
     }
 
 
-    std::vector<Gap> GapDetector::gapSimplification(const std::vector<Gap> & rawGaps)
+    std::vector<Gap *> GapDetector::gapSimplification(const std::vector<Gap *> & rawGaps)
     {
-        std::vector<Gap> simpGaps;
+        std::vector<Gap *> simpGaps;
 
         // int right_idx = -1;
         // int left_idx = -1;
@@ -276,11 +286,11 @@ namespace quad_gap
         int last_mergable = -1;
 
         // for (int i = 0; i < (int) rawGaps.size(); i++)
-        for (const Gap & rawGap : rawGaps)
+        for (Gap * rawGap : rawGaps)
         {
             if (markToStart)
             {
-                if (rawGap.isRadial() && rawGap.isRightType())
+                if (rawGap->isRadial() && rawGap->isRightType())
                 {
                     // Wait until the first mergable gap aka swept left type gap
                     markToStart = false;
@@ -289,9 +299,9 @@ namespace quad_gap
                 simpGaps.push_back(rawGap);
             } else 
             {
-                if (rawGap.isRadial())
+                if (rawGap->isRadial())
                 {
-                    if (rawGap.isRightType())
+                    if (rawGap->isRightType())
                     {
                         simpGaps.push_back(rawGap);
                     }
@@ -302,7 +312,7 @@ namespace quad_gap
                         if (last_mergable != -1) 
                         {
                             simpGaps.erase(simpGaps.begin() + last_mergable + 1, simpGaps.end());
-                            simpGaps.back().addLeftInformation(rawGap.LIdx(), rawGap.LRange());
+                            simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                         } else 
                         {
                             simpGaps.push_back(rawGap);
@@ -312,7 +322,7 @@ namespace quad_gap
                 {
                     if (mergeSweptGapCondition(rawGap, simpGaps))
                     {
-                        simpGaps.back().addLeftInformation(rawGap.LIdx(), rawGap.LRange());
+                        simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                     } else {
                         simpGaps.push_back(rawGap);
                     }
@@ -324,7 +334,7 @@ namespace quad_gap
                     // simpGaps.push_back(rawGap);
                 // }
             // }
-            // last_type_left = rawGap.isRightType();
+            // last_type_left = rawGap->isRightType();
         }
 
         // rawGaps.clear();
