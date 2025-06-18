@@ -596,7 +596,9 @@ namespace quad_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(std::vector<Gap> vec, std::vector<geometry_msgs::PoseArray>& res, std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
+    std::vector<std::vector<double>> Planner::initialTrajGen(const std::vector<Gap> & vec, 
+                                                                std::vector<geometry_msgs::PoseArray>& res, 
+                                                                std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
         std::vector<geometry_msgs::PoseArray> ret_traj(vec.size());
@@ -639,7 +641,7 @@ namespace quad_gap
         return ret_traj_scores;
     }
 
-    geometry_msgs::PoseArray Planner::getOrientDecayedPath(geometry_msgs::PoseArray orig_path)
+    geometry_msgs::PoseArray Planner::getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path)
     {
         // The original path should be in robot frame
         assert(orig_path.header.frame_id == cfg_.robot_frame_id);
@@ -719,7 +721,11 @@ namespace quad_gap
         return decayed_path;
     }
 
-    geometry_msgs::PoseArray Planner::pickTraj(std::vector<geometry_msgs::PoseArray> prr, std::vector<std::vector<double>> score, std::vector<geometry_msgs::PoseArray> virtual_path, geometry_msgs::PoseArray& chosen_virtual_path) {
+    geometry_msgs::PoseArray Planner::pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
+                                                const std::vector<std::vector<double>> & score, 
+                                                const std::vector<geometry_msgs::PoseArray> & virtual_path, 
+                                                geometry_msgs::PoseArray& chosen_virtual_path) 
+    {
         ROS_INFO_STREAM_NAMED("qg_trajCount", "qg_trajCount, " << prr.size());
         if (prr.size() == 0) {
             ROS_WARN_STREAM("No traj synthesized");
@@ -760,7 +766,8 @@ namespace quad_gap
         return prr.at(idx);
     }
 
-    geometry_msgs::PoseArray Planner::compareToOldTraj(geometry_msgs::PoseArray incoming, geometry_msgs::PoseArray& virtual_curr_traj) 
+    geometry_msgs::PoseArray Planner::compareToOldTraj(const geometry_msgs::PoseArray & incoming, 
+                                                        geometry_msgs::PoseArray& virtual_curr_traj) 
     {
         auto curr_traj = getCurrentTraj();
 
@@ -880,7 +887,8 @@ namespace quad_gap
     //     return cc_results;
     // }
 
-    int Planner::egoTrajPosition(geometry_msgs::PoseArray curr) {
+    int Planner::egoTrajPosition(const geometry_msgs::PoseArray & curr) 
+    {
         std::vector<double> pose_diff(curr.poses.size());
         // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
         for (size_t i = 0; i < pose_diff.size(); i++) // i will always be positive, so this is fine
@@ -894,12 +902,14 @@ namespace quad_gap
         return std::min(closest_pose, int(curr.poses.size() - 1));
     }
 
-    void Planner::setCurrentTraj(geometry_msgs::PoseArray curr_traj) {
+    void Planner::setCurrentTraj(const geometry_msgs::PoseArray & curr_traj) 
+    {
         curr_executing_traj = curr_traj;
         return;
     }
 
-    geometry_msgs::PoseArray Planner::getCurrentTraj() {
+    geometry_msgs::PoseArray Planner::getCurrentTraj() 
+    {
         return curr_executing_traj;
     }
 
@@ -922,7 +932,7 @@ namespace quad_gap
         replan = false;
     }
 
-    geometry_msgs::Twist Planner::ctrlGeneration(geometry_msgs::PoseArray traj) 
+    geometry_msgs::Twist Planner::ctrlGeneration(const geometry_msgs::PoseArray & traj) 
     {
         
         if (!haveTFs_)
@@ -1042,12 +1052,12 @@ namespace quad_gap
         return picked_traj;
     }
 
-    void Planner::pubPickedTraj(geometry_msgs::PoseArray picked_traj)
+    void Planner::pubPickedTraj(const geometry_msgs::PoseArray & picked_traj)
     {
         trajectory_pub.publish(picked_traj);
     }
 
-    geometry_msgs::PoseArray Planner::getLocalPath(geometry_msgs::PoseArray input_path)
+    geometry_msgs::PoseArray Planner::getLocalPath(const geometry_msgs::PoseArray & input_path)
     {
         return gapTrajGenerator_->transformBackTrajectory(input_path, odom2rbt_);
     }
@@ -1073,7 +1083,8 @@ namespace quad_gap
         return false;
     }
 
-    bool Planner::recordAndCheckVel(geometry_msgs::Twist cmd_vel) {
+    bool Planner::recordAndCheckVel(const geometry_msgs::Twist & cmd_vel) 
+    {
         double val = std::abs(cmd_vel.linear.x) + std::abs(cmd_vel.linear.y) + std::abs(cmd_vel.angular.z);
         log_vel_comp.push_back(val);
         double cum_vel_sum = std::accumulate(log_vel_comp.begin(), log_vel_comp.end(), double(0));

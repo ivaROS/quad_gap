@@ -151,7 +151,7 @@ namespace quad_gap
             * @param pose_arr_odom
             * @return cmd_vel by assigning to pass by reference
             */
-            geometry_msgs::Twist ctrlGeneration(geometry_msgs::PoseArray traj);
+            geometry_msgs::Twist ctrlGeneration(const geometry_msgs::PoseArray & traj);
             
             /**
             * Take current observed gaps and perform gap conversion
@@ -164,7 +164,9 @@ namespace quad_gap
             * 
             *
             */
-            std::vector<std::vector<double>> initialTrajGen(std::vector<Gap>, std::vector<geometry_msgs::PoseArray>&, std::vector<geometry_msgs::PoseArray>& virtual_decayed);
+            std::vector<std::vector<double>> initialTrajGen(const std::vector<Gap> & vec, 
+                                                            std::vector<geometry_msgs::PoseArray>& res, 
+                                                            std::vector<geometry_msgs::PoseArray>& virtual_decayed);
 
             /**
             * Callback function to config object
@@ -179,23 +181,33 @@ namespace quad_gap
             * @param Vector of corresponding trajectory scores
             * @return the best trajectory
             */
-            geometry_msgs::PoseArray pickTraj(std::vector<geometry_msgs::PoseArray>, std::vector<std::vector<double>>, std::vector<geometry_msgs::PoseArray> virtual_path, geometry_msgs::PoseArray& chosen_virtual_path);
+            geometry_msgs::PoseArray pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
+                                                const std::vector<std::vector<double>> & score, 
+                                                const std::vector<geometry_msgs::PoseArray> & virtual_path, 
+                                                geometry_msgs::PoseArray& chosen_virtual_path);
 
             /**
             * Compare to the old trajectory and pick the best one
             * @param incoming trajectory
             * @return the best trajectory  
             */
-            geometry_msgs::PoseArray compareToOldTraj(geometry_msgs::PoseArray, geometry_msgs::PoseArray& virtual_curr_traj);
+            geometry_msgs::PoseArray compareToOldTraj(const geometry_msgs::PoseArray & incoming, 
+                                                        geometry_msgs::PoseArray& virtual_curr_traj);
 
-            geometry_msgs::PoseArray getOrientDecayedPath(geometry_msgs::PoseArray);
+            geometry_msgs::PoseArray getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path);
 
             // CollisionResults checkCollision(const geometry_msgs::PoseArray path);
 
             /**
+            * Gets the current position along the currently executing Trajectory
+            */
+            int egoTrajPosition(const geometry_msgs::PoseArray & curr);
+
+            /**
             * Setter and Getter of Current Trajectory, this is performed in the compareToOldTraj function
             */
-            void setCurrentTraj(geometry_msgs::PoseArray);        
+            void setCurrentTraj(const geometry_msgs::PoseArray & curr_traj);   
+
             geometry_msgs::PoseArray getCurrentTraj();
 
             /**
@@ -206,17 +218,11 @@ namespace quad_gap
 
             geometry_msgs::PoseArray getSinglePath();
 
-            void pubPickedTraj(geometry_msgs::PoseArray picked_traj);
+            void pubPickedTraj(const geometry_msgs::PoseArray & picked_traj);
 
-            geometry_msgs::PoseArray getLocalPath(geometry_msgs::PoseArray input_path);
+            geometry_msgs::PoseArray getLocalPath(const geometry_msgs::PoseArray & input_path);
 
             bool reachedTrajEnd();
-
-            /**
-            * Gets the current position along the currently executing Trajectory
-            */
-            int egoTrajPosition(geometry_msgs::PoseArray curr);
-
 
             /**
             * Reset Planner, clears current observedSet
@@ -230,7 +236,7 @@ namespace quad_gap
             * @param command velocity
             * @return False if robot has been stuck for the past cfg.planning.halt_size iterations
             */
-            bool recordAndCheckVel(geometry_msgs::Twist cmd_vel);
+            bool recordAndCheckVel(const geometry_msgs::Twist & cmd_vel);
             
             // void setCCWrapper(const std::shared_ptr<pips_trajectory_testing::PipsCCWrapper>& cc_wrapper)
             // {
