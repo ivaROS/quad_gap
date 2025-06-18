@@ -9,11 +9,25 @@ namespace quad_gap
             using Visualizer::Visualizer;
         public: 
             TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            void rawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & plan);
-            void trajScore(const geometry_msgs::PoseArray & p_arr, const std::vector<double> & p_score);
-            void pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr);
-            void pubAllScore(const std::vector<geometry_msgs::PoseArray> & prr, 
-                                const std::vector<std::vector<double>> & cost);
+            void drawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlan);
+
+            // void pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr);
+            void drawCurrentTrajectory(const geometry_msgs::PoseArray & traj);
+
+            /**
+            * \brief Visualize counter for planning loop
+            * \param planningLoopIdx counter for planning loop
+            */
+            void drawPlanningLoopIdx(const int & planningLoopIdx);
+
+            /**
+            * \brief Visualize occurrence of a trajectory switch for planner
+            * \param trajSwitchIndex trajectory switch count
+            * \param chosenTraj new trajectory that planner is switching to
+            */
+            void drawTrajectorySwitchCount(const int & trajSwitchIndex, const geometry_msgs::PoseArray & path);
+
+            void drawGapTrajectories(const std::vector<geometry_msgs::PoseArray> & pose_arrays);
 
             /**
             * \brief Visualize snippet of global plan that is within current robot view
@@ -22,9 +36,13 @@ namespace quad_gap
             void drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::PoseStamped> & globalPlanSnippet);
 
         private: 
-            ros::Publisher goal_selector_traj_vis;
-            ros::Publisher trajectory_score;
-            ros::Publisher all_traj_viz;
+
+            ros::Publisher trajSwitchIdxPublisher; /**< Publisher for planner trajectory switch count */
+            ros::Publisher planLoopIdxPublisher; /**< Publisher for planning loop idx */
+            ros::Publisher currentTrajectoryPublisher_; /**< ROS publisher for currently tracked trajectory */
+
+            ros::Publisher globalPlanPublisher;
+            ros::Publisher gapTrajectoriesPublisher;
             ros::Publisher globalPlanSnippetPublisher; /**< Publisher for visible snippet of global plan */
             
     };

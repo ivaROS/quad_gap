@@ -509,7 +509,7 @@ namespace quad_gap
         // Store New Global Plan to Goal Selector
         globalPlanManager_->updateGlobalPathMapFrame(globalPlanMapFrame);
         
-        trajVisualizer_->rawGlobalPlan(globalPlanManager_->getGlobalPathOdomFrame());
+        trajVisualizer_->drawGlobalPlan(globalPlanManager_->getGlobalPathOdomFrame());
 
         // Find Local Goal
         globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
@@ -637,8 +637,8 @@ namespace quad_gap
             ROS_FATAL_STREAM("initialTrajGen");
         }
         
-        trajVisualizer_->pubAllScore(ret_traj, ret_traj_scores);
-        trajVisualizer_->pubAllTraj(ret_traj);
+        // trajVisualizer_->pubAllScore(ret_traj, ret_traj_scores);
+        trajVisualizer_->drawGapTrajectories(ret_traj);
         res = ret_traj;
         virtual_decayed = virtual_traj;
         return ret_traj_scores;
@@ -824,7 +824,7 @@ namespace quad_gap
             std::vector<geometry_msgs::PoseArray> viz_traj(2);
             viz_traj.at(0) = incom_rbt;
             viz_traj.at(1) = reduced_curr_rbt;
-            trajVisualizer_->pubAllScore(viz_traj, ret_traj_scores);
+            // trajVisualizer_->pubAllScore(viz_traj, ret_traj_scores);
 
             ROS_INFO_STREAM("Curr Score: " << curr_subscore << ", incom Score:" << incom_subscore);
 
