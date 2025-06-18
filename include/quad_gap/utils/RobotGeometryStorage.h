@@ -16,7 +16,7 @@ namespace quad_gap
         public:
             RobotGeometryStorage() {};
 
-            RobotGeometryStorage(std::string config_file)
+            RobotGeometryStorage(const std::string & config_file)
             {
                 loadConfigFile(config_file);
                 initialized_ = true;
@@ -27,7 +27,7 @@ namespace quad_gap
                 initialized_ = false;
             };
 
-            void loadConfigFile(std::string config_file)
+            void loadConfigFile(const std::string & config_file)
             {
                 YAML::Node config = YAML::LoadFile(config_file);
 
@@ -47,7 +47,7 @@ namespace quad_gap
                 // std::cout << vec_dot_product_.size() << " " << equivalent_radius_.size() << " " << equivalent_pass_len_.size() << std::endl;
             }
 
-            double getInterp(double vec_dot_product, std::vector<double>& target_vec)
+            double getInterp(const double & vec_dot_product, const std::vector<double> & target_vec)
             {
                 auto it = std::lower_bound (vec_dot_product_.begin(), vec_dot_product_.end(), vec_dot_product);
                 if(it == vec_dot_product_.begin())
@@ -68,12 +68,12 @@ namespace quad_gap
                 }
             }
 
-            double getInterpEquivR(double vec_dot_product)
+            double getInterpEquivR(const double & vec_dot_product)
             {
                 return getInterp(vec_dot_product, equivalent_radius_);
             }
 
-            double getInterpEquivPL(double vec_dot_product)
+            double getInterpEquivPL(const double & vec_dot_product)
             {
                 return getInterp(vec_dot_product, equivalent_pass_len_);
             }    

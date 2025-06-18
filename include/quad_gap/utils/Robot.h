@@ -2,17 +2,21 @@
 
 namespace quad_gap
 {
-    enum RobotShape { circle, box};
+    enum RobotShape { circle, box };
 
     struct Robot
     {
         RobotShape shape;
         double radius = 0, length = 0, width = 0, diagonal_length = 0;
         double avg_lin_speed, avg_rot_speed;
-
         Robot(){};
-        
-        Robot(RobotShape in_shape, double robot_length, double robot_width=0, double robot_avg_lin_speed=0.2, double robot_avg_rot_speed=0.5)
+
+
+        Robot(const RobotShape & in_shape, 
+                const double & robot_length, 
+                const double & robot_width=0, 
+                const double & robot_avg_lin_speed=0.2, 
+                const double & robot_avg_rot_speed=0.5)
         {
             shape = in_shape;
             switch (shape)

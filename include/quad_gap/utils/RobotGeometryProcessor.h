@@ -20,7 +20,7 @@ namespace quad_gap
                 initialized_ = false;
             }
 
-            RobotGeometryProcessor(Robot robot, double decay_factor = 0)
+            RobotGeometryProcessor(const Robot & robot, const double & decay_factor = 0)
             {
                 robot_ = robot;
                 if(robot_.shape == RobotShape::circle)
@@ -30,7 +30,7 @@ namespace quad_gap
                 initialized_ = true;
             }
 
-            bool initialized() {return initialized_;}
+            bool initialized() { return initialized_; }
 
             double getEquivalentR(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& pt_direct)
             {
@@ -71,6 +71,7 @@ namespace quad_gap
 
                 Eigen::Vector2d o_vec = orientation_vec;
                 Eigen::Vector2d m_vec = motion_vec;
+
                 if (o_vec.norm() != 1)
                     o_vec = o_vec / o_vec.norm();
                 
@@ -164,6 +165,7 @@ namespace quad_gap
 
                 Eigen::Vector2d o_vec = orientation_vec;
                 Eigen::Vector2d m_vec = motion_vec;
+
                 if(o_vec.norm() != 1)
                     o_vec = o_vec / o_vec.norm();
                 
@@ -232,14 +234,16 @@ namespace quad_gap
                 }
             }
 
-            double getDecayEquivalentPL(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& motion_vec, double dist)
+            double getDecayEquivalentPL(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& motion_vec, const double & dist)
             {
                 double max_epl = getEquivalentPL(orientation_vec, motion_vec);
                 double min_epl = robot_.width;
                 return (max_epl - min_epl) * exp(-decay_factor_ * dist) + min_epl;
             }
 
-            double getLinearDecayEquivalentPL(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& motion_vec, double dist)
+            double getLinearDecayEquivalentPL(const Eigen::Vector2d & orientation_vec, 
+                                                Eigen::Vector2d & motion_vec, 
+                                                const double & dist)
             {
                 double t = dist / robot_.avg_lin_speed;
                 double ang = t * robot_.avg_rot_speed;
@@ -257,7 +261,9 @@ namespace quad_gap
                 return epl;
             }
 
-            double getLinearDecayEquivalentRL(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& motion_vec, double dist)
+            double getLinearDecayEquivalentRL(const Eigen::Vector2d & orientation_vec, 
+                                                Eigen::Vector2d& motion_vec, 
+                                                const double & dist)
             {
                 double t = dist / robot_.avg_lin_speed;
                 double ang = t * robot_.avg_rot_speed;
@@ -276,7 +282,7 @@ namespace quad_gap
                 return erl;
             }
 
-            double getNearestDistance(Eigen::Vector2d& orientation_vec, Eigen::Vector2d& pt)
+            double getNearestDistance(const Eigen::Vector2d & orientation_vec, const Eigen::Vector2d & pt)
             {
                 // The pt is the relative vector from robot origin.
 
@@ -354,11 +360,10 @@ namespace quad_gap
 
             double getRobotMinRadius()
             {
-                if(robot_.shape == RobotShape::circle)
+                if (robot_.shape == RobotShape::circle)
                 {
                     return robot_.radius;
-                }
-                else if(robot_.shape == RobotShape::box)
+                } else if (robot_.shape == RobotShape::box)
                 {
                     return robot_.width / 2;
                 } else
@@ -369,11 +374,10 @@ namespace quad_gap
 
             double getRobotHalfLength()
             {
-                if(robot_.shape == RobotShape::circle)
+                if (robot_.shape == RobotShape::circle)
                 {
                     return robot_.radius;
-                }
-                else if(robot_.shape == RobotShape::box)
+                } else if (robot_.shape == RobotShape::box)
                 {
                     return robot_.length / 2;
                 } else
@@ -387,8 +391,7 @@ namespace quad_gap
                 if (robot_.shape == RobotShape::circle)
                 {
                     return robot_.radius;
-                }
-                else if(robot_.shape == RobotShape::box)
+                } else if (robot_.shape == RobotShape::box)
                 {
                     return robot_.width / 2;
                 } else

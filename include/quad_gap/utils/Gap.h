@@ -26,23 +26,23 @@ namespace quad_gap
 
             ~Gap() {};
 
-            void setLIdx(int left_idx)
+            void setLIdx(const int & left_idx)
             {
                 _left_idx = left_idx;
             }
 
-            void setRIdx(int right_idx)
+            void setRIdx(const int & right_idx)
             {
                 _right_idx = right_idx;
             }
 
             // Setter and Getter for LR Distance and Index
-            void setLDist(float left_dist)
+            void setLDist(const float & left_dist)
             {
                 _left_dist = left_dist;
             }
 
-            void setRDist(float right_dist) 
+            void setRDist(const float & right_dist) 
             {
                 _right_dist = right_dist;
             }
@@ -68,7 +68,7 @@ namespace quad_gap
             }
 
             // Concluding the Gap after constructing with left information
-            void addLeftInformation(int left_idx, float left_dist) 
+            void addLeftInformation(const int & left_idx, const float & left_dist) 
             {
                 _left_idx = left_idx;
                 _left_dist = left_dist;
@@ -96,7 +96,8 @@ namespace quad_gap
                 y = (_right_dist) * sin(idx2theta(_right_idx));
             }
 
-            void getRadialExLCartesian(float &x, float &y){
+            void getRadialExLCartesian(float &x, float &y)
+            {
                 x = (convex_left_dist) * cos(idx2theta(convex_left_idx));
                 y = (convex_left_dist) * sin(idx2theta(convex_left_idx));
             }
@@ -107,7 +108,7 @@ namespace quad_gap
                 y = (convex_right_dist) * sin(idx2theta(convex_right_idx));
             }
 
-            void setAGCIdx(int right_idx, int left_idx) 
+            void setAGCIdx(const int & right_idx, const int & left_idx) 
             {
                 agc_right_idx = right_idx;
                 agc_left_idx = left_idx;
@@ -127,7 +128,7 @@ namespace quad_gap
                 y = (agc_right_dist) * sin(idx2theta(agc_right_idx));
             }
 
-            void compareGoalDist(double goal_dist) 
+            void compareGoalDist(const double & goal_dist) 
             {
                 goal_within = goal_dist < _right_dist && goal_dist < _left_dist;
             }
@@ -179,14 +180,14 @@ namespace quad_gap
                 return right_type;
             }
 
-            void resetFrame(std::string frame) 
+            void resetFrame(const std::string & frame) 
             {
                 _frame = frame;
             }
 
-            void setMinSafeDist(float _dist) 
+            void setMinSafeDist(const float & dist) 
             {
-                min_safe_dist = _dist;
+                min_safe_dist = dist;
             }
 
             float getMinSafeDist() const
@@ -249,20 +250,23 @@ namespace quad_gap
             bool _radial = false;
             bool right_type = false;
 
-            struct converted {
+            struct converted 
+            {
                 int convex_right_idx = 0;
                 int convex_left_idx = 511;
                 float convex_right_dist = 3;
                 float convex_left_dist = 3;
             } convex;
 
-            struct GapMode {
+            struct GapMode 
+            {
                 bool reduced = false;
                 bool convex = false;
                 bool agc = false;
             } mode;
 
-            struct Goal {
+            struct Goal 
+            {
                 float x, y;
                 bool set = false;
                 bool discard = false;
