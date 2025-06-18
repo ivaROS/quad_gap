@@ -71,10 +71,10 @@ namespace quad_gap
             * \param simplifiedGaps existing set of simplified gaps
             * \return boolean for if raw gap should be merged or not
             */
-            bool mergeSweptGapCondition(const Gap * rawGap, 
+            bool mergeSweptGapCondition(Gap * rawGap, 
                                         const std::vector<Gap *> & simplifiedGaps);
 
-            bool equivalentCheck(const Gap * detected_gap);
+            bool equivalentCheck(Gap * detected_gap);
 
             bool bridgeCondition(const std::vector<Gap *> & rawGaps);
 
@@ -106,7 +106,7 @@ namespace quad_gap
             * \param simplifiedGaps existing set of simplified gaps
             * \return index within simplified gaps that should be merged
             */
-            int checkSimplifiedGapsMergeability(const Gap * rawGap, 
+            int checkSimplifiedGapsMergeability(Gap * rawGap, 
                                                 const std::vector<Gap *> & simpGaps);
 
             /**

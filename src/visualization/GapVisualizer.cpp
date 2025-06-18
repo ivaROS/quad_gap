@@ -85,7 +85,7 @@ namespace quad_gap
         float thickness = 0.05;
         marker.scale.x = thickness;     
    
-        for (const Gap * gap : gaps) 
+        for (Gap * gap : gaps) 
         {
             if (gap->getFrame().empty())
             {
@@ -216,7 +216,7 @@ namespace quad_gap
     };
 
     void GapVisualizer::drawManipGap(visualization_msgs::Marker & marker, 
-                                        const std::vector<Gap> & gaps, 
+                                        const std::vector<Gap *> & gaps, 
                                         // const std::string & ns,
                                         bool & circle)
     {
@@ -236,27 +236,27 @@ namespace quad_gap
         float thickness = 0.05;
         marker.scale.x = thickness;     
 
-        for (const Gap & gap : gaps) 
+        for (Gap * gap : gaps) 
         {
-            if (gap.getFrame().empty())
+            if (gap->getFrame().empty())
             {
                 ROS_WARN_STREAM("[drawManipGap] Gap frame is empty");
                 return;
             }
 
             std::string ns;
-            if (gap.mode.reduced) 
+            if (gap->mode.reduced) 
             {
                 ns = "simp_swept";
                 // viz_jitter += 0.1;
             }
             
-            if (gap.mode.convex) 
+            if (gap->mode.convex) 
             {
                 ns = "simp_extent";
             }
     
-            if (gap.mode.agc) 
+            if (gap->mode.agc) 
             {
                 ns = "simp_agc";
             }
@@ -267,19 +267,19 @@ namespace quad_gap
                 return;
             }
 
-            marker.header.frame_id = gap.getFrame();
+            marker.header.frame_id = gap->getFrame();
 
-            int leftIdx = gap.manipLeftIdx();
-            int rightIdx = gap.manipRightIdx();
-            float leftRange = gap.manipLeftRange();
-            float rightRange = gap.manipRightRange();
+            int leftIdx = gap->manipLeftIdx();
+            int rightIdx = gap->manipRightIdx();
+            float leftRange = gap->manipLeftRange();
+            float rightRange = gap->manipRightRange();
 
             // ROS_INFO_STREAM("leftIdx: " << leftIdx << ", leftRange: " << leftRange);
             // ROS_INFO_STREAM("rightIdx: " << rightIdx << ", rightRange: " << rightRange);
 
             int gapIdxSpan = (leftIdx - rightIdx);
             if (gapIdxSpan < 0)
-                gapIdxSpan += cfg_->scan.full_scan; // 2*gap.half_scan; // taking off int casting here
+                gapIdxSpan += cfg_->scan.full_scan; // 2*gap->half_scan; // taking off int casting here
 
             // ROS_INFO_STREAM("gapIdxSpan: " << gapIdxSpan);
 
@@ -303,7 +303,7 @@ namespace quad_gap
                 marker.points.push_back(p1);
                 marker.colors.push_back(colorIter->second);
                 
-                midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap.half_scan);
+                midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap->half_scan);
                 midGapDist += distIncrement;
 
                 // ROS_INFO_STREAM("midGapIdx: " << midGapIdx);
@@ -318,9 +318,9 @@ namespace quad_gap
             }
 
 
-            if (gap.mode.convex) 
+            if (gap->mode.convex) 
             {
-                float r = gap.getMinSafeDist();
+                float r = gap->getMinSafeDist();
                 if (r < 0) {
                     ROS_WARN_STREAM("Gap min safe dist not recorded");
                 }
@@ -362,18 +362,18 @@ namespace quad_gap
                 }
     
                 // this_marker.ns = "extent_line";
-                getline(gap.convex.convex_right_idx, 
-                        gap.convex.convex_right_dist, 
-                        gap.qB, 
+                getline(gap->convex.convex_right_idx, 
+                        gap->convex.convex_right_dist, 
+                        gap->qB, 
                         // lines, 
                         // linel, 
                         // liner, 
                         marker, 
                         convex_color);
                 
-                getline(gap.convex.convex_left_idx, 
-                        gap.convex.convex_left_dist, 
-                        gap.qB, 
+                getline(gap->convex.convex_left_idx, 
+                        gap->convex.convex_left_dist, 
+                        gap->qB, 
                         // lines, 
                         // linel, 
                         // liner, 
@@ -383,8 +383,8 @@ namespace quad_gap
 
 
                 // this_marker.ns = "orig_line";
-                getline(gap._right_idx, 
-                        gap._right_dist, 
+                getline(gap->_right_idx, 
+                        gap->_right_dist, 
                         origin, 
                         // lines, 
                         // linel, 
@@ -392,8 +392,8 @@ namespace quad_gap
                         marker, 
                         colorMap["simp_agc"]);
 
-                getline(gap._left_idx, 
-                        gap._left_dist, 
+                getline(gap->_left_idx, 
+                        gap->_left_dist, 
                         origin, 
                         // lines, 
                         // linel, 
@@ -580,7 +580,7 @@ namespace quad_gap
 
     // }
 
-    void GapVisualizer::drawManipGaps(const std::vector<Gap> & gaps) 
+    void GapVisualizer::drawManipGaps(const std::vector<Gap *> & gaps) 
     {
         // First, clearing topic.
         clearMarkerPublisher(manipGapsPublisher);

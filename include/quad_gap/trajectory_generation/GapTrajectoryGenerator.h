@@ -57,14 +57,14 @@ namespace quad_gap
 
             void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
 
-            geometry_msgs::PoseArray generateTrajectory(const Gap & gap, const geometry_msgs::PoseStamped & curr_pose);
+            geometry_msgs::PoseArray generateTrajectory(Gap * gap, const geometry_msgs::PoseStamped & curr_pose);
 
-            bool findBezierControlPts(const Gap & selectedGap, 
+            bool findBezierControlPts(Gap * selectedGap, 
                                         Bezier::Bezier<2>&, 
                                         const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                         const geometry_msgs::TransformStamped & odom2rbt);
 
-            geometry_msgs::PoseArray generateBezierTrajectory(const Gap & selectedGap, 
+            geometry_msgs::PoseArray generateBezierTrajectory(Gap * selectedGap, 
                                                                 const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                                 const geometry_msgs::TransformStamped & odom2rbt);
             

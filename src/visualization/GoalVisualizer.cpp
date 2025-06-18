@@ -86,9 +86,9 @@ namespace quad_gap
     }
 
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::Marker & marker, const Gap & gap) 
+    void GoalVisualizer::drawGapGoal(visualization_msgs::Marker & marker, Gap * gap) 
     {
-        if (!gap.goal.set) 
+        if (!gap->goal.set) 
         {
             return;
         }
@@ -96,8 +96,8 @@ namespace quad_gap
         // visualization_msgs::Marker lg_marker;
 
         geometry_msgs::Point lg_point;
-        lg_point.x = gap.goal.x;
-        lg_point.y = gap.goal.y;
+        lg_point.x = gap->goal.x;
+        lg_point.y = gap->goal.y;
         lg_point.z = 0.0005;
 
         marker.points.push_back(lg_point);
@@ -108,7 +108,7 @@ namespace quad_gap
 
     }
 
-    void GoalVisualizer::drawGapGoals(const std::vector<Gap> & gaps) 
+    void GoalVisualizer::drawGapGoals(const std::vector<Gap *> & gaps) 
     {
         // First, clearing topic.
         clearMarkerPublisher(gapGoalPublisher);
@@ -123,7 +123,7 @@ namespace quad_gap
 
         visualization_msgs::Marker marker;
 
-        marker.header.frame_id = gaps.at(0)._frame;
+        marker.header.frame_id = gaps.at(0)->_frame;
         marker.header.stamp = ros::Time::now();
         marker.ns = "gap_goal";
         marker.id = 0;
@@ -138,7 +138,7 @@ namespace quad_gap
         marker.scale.z = 0.0001;
         // marker.lifetime = ros::Duration(0);
 
-        for (const Gap & gap : gaps) 
+        for (Gap * gap : gaps) 
         {
             drawGapGoal(marker, gap);
         }

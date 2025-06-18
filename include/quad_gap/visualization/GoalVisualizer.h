@@ -12,7 +12,7 @@ namespace quad_gap
 
             // void localGoal(const geometry_msgs::PoseStamped);
 
-            void drawGapGoals(const std::vector<Gap> & gaps);
+            void drawGapGoals(const std::vector<Gap *> & gaps);
 
             /**
             * \brief Visualize global goal
@@ -24,7 +24,7 @@ namespace quad_gap
 
         private: 
     
-            void drawGapGoal(visualization_msgs::Marker & marker, const Gap & gap);  
+            void drawGapGoal(visualization_msgs::Marker & marker, Gap * gap);  
 
             ros::Publisher globalPathLocalWaypointPublisher; /**< Publisher for global path local waypoint */
             ros::Publisher globalGoalPublisher; /**< Publisher for global goal */

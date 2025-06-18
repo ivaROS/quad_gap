@@ -18,7 +18,7 @@ namespace quad_gap
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = msg;
     }
-    void TrajectoryEvaluator::updateGapContainer(const std::vector<Gap> & observed_gaps) 
+    void TrajectoryEvaluator::updateGapContainer(const std::vector<Gap *> & observed_gaps) 
     {
         boost::mutex::scoped_lock lock(gap_mutex);
         gaps.clear();
@@ -48,10 +48,10 @@ namespace quad_gap
         int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
         ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
         ROS_DEBUG_STREAM(globalPathLocalWaypointRobotFrame_.pose.position);
-        auto costFn = [](Gap g, int goal_idx) -> double
+        auto costFn = [](Gap * g, int goal_idx) -> double
         {
-            int leftdist = std::abs(g._right_idx - goal_idx);
-            int rightdist = std::abs(g._left_idx - goal_idx);
+            int leftdist = std::abs(g->_right_idx - goal_idx);
+            int rightdist = std::abs(g->_left_idx - goal_idx);
             return std::min(leftdist, rightdist);
         };
 
@@ -194,14 +194,14 @@ namespace quad_gap
     //     return searchIdx;
     // }
 
-    Gap TrajectoryEvaluator::returnAndScoreGaps() 
+    Gap * TrajectoryEvaluator::returnAndScoreGaps() 
     {
         boost::mutex::scoped_lock gaplock(gap_mutex);
         std::vector<double> cost = scoreGaps();
         auto decision_iter = std::min_element(cost.begin(), cost.end());
         int gap_idx = std::distance(cost.begin(), decision_iter);
         // ROS_INFO_STREAM("Selected Gap Index " << gap_idx);
-        auto selected_gap = gaps.at(gap_idx);
+        Gap * selected_gap = gaps.at(gap_idx);
         return selected_gap;
     }
 

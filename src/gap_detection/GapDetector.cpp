@@ -57,7 +57,7 @@ namespace quad_gap
     return canRobotFit;
     }  
 
-    bool GapDetector::equivalentCheck(const Gap * detected_gap)
+    bool GapDetector::equivalentCheck(Gap * detected_gap)
     {
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
@@ -220,7 +220,7 @@ namespace quad_gap
 
     ////////////////// GAP SIMPLIFICATION ///////////////////////
 
-    int GapDetector::checkSimplifiedGapsMergeability(const Gap * rawGap, 
+    int GapDetector::checkSimplifiedGapsMergeability(Gap * rawGap, 
                                                      const std::vector<Gap *> & simpGaps)
     {
         int last_mergable = -1;
@@ -252,15 +252,15 @@ namespace quad_gap
         }
     }
 
-    bool GapDetector::mergeSweptGapCondition(const Gap * rawGap, 
-                                             const std::vector<Gap *> & simplifiedGaps)
+    bool GapDetector::mergeSweptGapCondition(Gap * rawGap, 
+                                             const std::vector<Gap *> & simpGaps)
     {
         // checking if difference between raw gap left dist and simplified gap right (widest distances, encompassing both gaps)
         // dist is sufficiently small (to fit robot)
-        bool adjacentGapPtDistDiffCheck = std::abs(rawGap->LRange() - simplifiedGaps.back()->RRange()) < 3 * cfg_->rbt.r_inscr;
+        bool adjacentGapPtDistDiffCheck = std::abs(rawGap->LRange() - simpGaps.back()->RRange()) < 3 * cfg_->rbt.r_inscr;
 
         // checking if difference is sufficiently small, and that current simplified gap is radial and right dist < left dist
-        return adjacentGapPtDistDiffCheck && simplifiedGaps.back()->isRadial() && simplifiedGaps.back()->isRightType();
+        return adjacentGapPtDistDiffCheck && simpGaps.back()->isRadial() && simpGaps.back()->isRightType();
     }
 
 
@@ -304,13 +304,15 @@ namespace quad_gap
                     if (rawGap->isRightType())
                     {
                         simpGaps.push_back(rawGap);
-                    }
-                    else
+                    } else
                     {
                         last_mergable = checkSimplifiedGapsMergeability(rawGap, simpGaps);
 
                         if (last_mergable != -1) 
                         {
+                            for (auto gapIter = simpGaps.begin() + last_mergable + 1; gapIter != simpGaps.end(); gapIter++)
+                                delete *gapIter;
+
                             simpGaps.erase(simpGaps.begin() + last_mergable + 1, simpGaps.end());
                             simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                         } else 

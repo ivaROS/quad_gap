@@ -8,15 +8,15 @@ namespace quad_gap {
         num_of_scan = (int)(scan_.get()->ranges.size());
     }
 
-    void GapManipulator::setGapWaypoint(Gap& gap, const geometry_msgs::PoseStamped & localgoal)
+    void GapManipulator::setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal)
     {
         // TODO: assume there is no idx that will pass 0
         float x1, x2, y1, y2;
-        x1 = (gap.convex.convex_right_dist) * cos(idx2theta(gap.convex.convex_right_idx));
-        y1 = (gap.convex.convex_right_dist) * sin(idx2theta(gap.convex.convex_right_idx));
+        x1 = (gap->convex.convex_right_dist) * cos(idx2theta(gap->convex.convex_right_idx));
+        y1 = (gap->convex.convex_right_dist) * sin(idx2theta(gap->convex.convex_right_idx));
 
-        x2 = (gap.convex.convex_left_dist) * cos(idx2theta(gap.convex.convex_left_idx));
-        y2 = (gap.convex.convex_left_dist) * sin(idx2theta(gap.convex.convex_left_idx));
+        x2 = (gap->convex.convex_left_dist) * cos(idx2theta(gap->convex.convex_left_idx));
+        y2 = (gap->convex.convex_left_dist) * sin(idx2theta(gap->convex.convex_left_idx));
 
         Eigen::Vector2f pl(x1, y1);
         Eigen::Vector2f pr(x2, y2);
@@ -37,8 +37,8 @@ namespace quad_gap {
         if (pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
             thetarl = thetarl - 2 * M_PI;
         
-        auto left_ori = gap.convex.convex_right_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
-        auto right_ori = gap.convex.convex_left_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
+        auto left_ori = gap->convex.convex_right_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
+        auto right_ori = gap->convex.convex_left_idx * scan_.get()->angle_increment + scan_.get()->angle_min;
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
@@ -52,20 +52,21 @@ namespace quad_gap {
             small_gap = dist < 2 * epl;
         }
 
-        // ROS_INFO_STREAM(gap.mode.reduced << " " << gap.convex.convex_right_idx << " " << gap.convex.convex_left_idx << " " << pl[0] << " " << pl[1] << " " << pr[0] << " " << pr[1] << " " << thetarl << " " << thetalr);
+        // ROS_INFO_STREAM(gap->mode.reduced << " " << gap->convex.convex_right_idx << " " << gap->convex.convex_left_idx << " " << pl[0] << " " << pl[1] << " " << pr[0] << " " << pr[1] << " " << thetarl << " " << thetalr);
 
-        if (thetarl < thetalr || small_gap) {
-            gap.goal.x = (x1 + x2) / 2;
-            gap.goal.y = (y1 + y2) / 2;
-            gap.goal.discard = thetarl < thetalr;
-            gap.goal.set = true;
+        if (thetarl < thetalr || small_gap) 
+        {
+            gap->goal.x = (x1 + x2) / 2;
+            gap->goal.y = (y1 + y2) / 2;
+            gap->goal.discard = thetarl < thetalr;
+            gap->goal.set = true;
             return;
         }
         
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         float confined_theta = std::min(thetarl, std::max(thetalr, goal_orientation));
-        float confined_r = (gap.convex.convex_left_dist - gap.convex.convex_right_dist) * (confined_theta - thetalr) / (thetarl - thetalr)
-            + gap.convex.convex_right_dist;
+        float confined_r = (gap->convex.convex_left_dist - gap->convex.convex_right_dist) * (confined_theta - thetalr) / (thetarl - thetalr)
+            + gap->convex.convex_right_dist;
         float xg = confined_r * cos(confined_theta);
         float yg = confined_r * sin(confined_theta);
         Eigen::Vector2f anchor(xg, yg);
@@ -124,8 +125,8 @@ namespace quad_gap {
         // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
         // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
 
-        // float r1 = gap.convex.convex_right_dist;
-        // float r2 = gap.convex.convex_left_dist;
+        // float r1 = gap->convex.convex_right_dist;
+        // float r2 = gap->convex.convex_left_dist;
         // double r_close = (double) std::min(r1, r2);
         // double goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
@@ -134,17 +135,17 @@ namespace quad_gap {
 
         if (checkGoalVisibility(localgoal)) 
         {
-            gap.goal.x = localgoal.pose.position.x;
-            gap.goal.y = localgoal.pose.position.y;
-            gap.goal.set = true;
-            gap.goal.goalwithin = true;
+            gap->goal.x = localgoal.pose.position.x;
+            gap->goal.y = localgoal.pose.position.y;
+            gap->goal.set = true;
+            gap->goal.goalwithin = true;
             return;
         }
 
 
-        gap.goal.x = goal_pt(0);
-        gap.goal.y = goal_pt(1);
-        gap.goal.set = true;
+        gap->goal.x = goal_pt(0);
+        gap->goal.y = goal_pt(1);
+        gap->goal.set = true;
 
     }
 
@@ -184,10 +185,10 @@ namespace quad_gap {
     }
 
     // In place modification
-    void GapManipulator::reduceGap(Gap& gap, const geometry_msgs::PoseStamped & localgoal) 
+    void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::PoseStamped & localgoal) 
     {
-        int right_idx = gap.RIdx();
-        int left_idx = gap.LIdx();
+        int right_idx = gap->RIdx();
+        int left_idx = gap->LIdx();
         
         if (!scan_) 
             return; 
@@ -228,26 +229,26 @@ namespace quad_gap {
 
         // ROS_INFO_STREAM(right_idx << " " << left_idx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
 
-        float left_dist = gap.LRange();
-        float right_dist = gap.RRange();
+        float left_dist = gap->LRange();
+        float right_dist = gap->RRange();
         float new_left_dist = float(new_r - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
         float new_right_dist = float(new_l - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
 
-        gap.convex.convex_left_idx = new_r;
-        gap.convex.convex_right_idx = new_l;
+        gap->convex.convex_left_idx = new_r;
+        gap->convex.convex_right_idx = new_l;
 
-        gap.convex.convex_left_dist = new_left_dist + cfg_->gap_viz.viz_jitter;
-        gap.convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
+        gap->convex.convex_left_dist = new_left_dist + cfg_->gap_viz.viz_jitter;
+        gap->convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
 
-        gap.life_time = 50;
-        gap.mode.reduced = true;
+        gap->life_time = 50;
+        gap->mode.reduced = true;
         return;
     }
 
-    void GapManipulator::convertAxialGap(Gap& gap) 
+    void GapManipulator::convertAxialGap(Gap * gap) 
     {
         // Return if not radial gap or disabled
-        if (!gap.isRadial() || !cfg_->gap_manip.radial_convert) 
+        if (!gap->isRadial() || !cfg_->gap_manip.radial_convert) 
         {
             // ROS_INFO_STREAM("Swept gap.");
             return;
@@ -255,7 +256,7 @@ namespace quad_gap {
 
         auto stored_scan_msgs = *scan_.get();
         
-        bool left = gap.isRightType();
+        bool left = gap->isRightType();
         // Extend of rotation to the radial gap 
         // amp-ed by a **small** ratio to ensure the local goal does not exactly fall on the
         // visibility line
@@ -263,18 +264,18 @@ namespace quad_gap {
 
         int right_idx, left_idx;
         float right_dist, left_dist;
-        if (gap.mode.reduced)
+        if (gap->mode.reduced)
         {
-            left_idx = gap.convex.convex_left_idx;
-            left_dist = gap.convex.convex_left_dist;
-            right_idx = gap.convex.convex_right_idx;
-            right_dist = gap.convex.convex_right_dist;
+            left_idx = gap->convex.convex_left_idx;
+            left_dist = gap->convex.convex_left_dist;
+            right_idx = gap->convex.convex_right_idx;
+            right_dist = gap->convex.convex_right_dist;
         } else
         {
-            left_idx = gap.LIdx();
-            left_dist = gap.LRange();
-            right_idx = gap.RIdx();
-            right_dist = gap.RRange();
+            left_idx = gap->LIdx();
+            left_dist = gap->LRange();
+            right_idx = gap->RIdx();
+            right_dist = gap->RRange();
         }
 
         float x1, x2, y1, y2;
@@ -299,10 +300,10 @@ namespace quad_gap {
         
         if (left) 
         {
-            // near_idx = gap.RIdx();
-            // far_idx = gap.LIdx();
-            // near_dist = gap.RRange();
-            // far_dist = gap.LRange();
+            // near_idx = gap->RIdx();
+            // far_idx = gap->LIdx();
+            // near_dist = gap->RRange();
+            // far_dist = gap->LRange();
             near_idx = right_idx;
             far_idx = left_idx;
             near_dist = right_dist;
@@ -338,8 +339,8 @@ namespace quad_gap {
         // Rotation Completed
         // Get minimum dist range val from start to target index location
         // For wraparound
-        int offset = left ? gap._left_idx : idx;
-        int upperbound = left ? idx : gap._right_idx;
+        int offset = left ? gap->_left_idx : idx;
+        int upperbound = left ? idx : gap->_right_idx;
         int intermediate_pt = offset + 1;
         int second_inter_pt = intermediate_pt;
         int size = upperbound - offset;
@@ -347,7 +348,7 @@ namespace quad_gap {
 
         if ((upperbound - offset) < 3) {
             // Arbitrary value
-            gap.goal.discard = true;
+            gap->goal.discard = true;
             return;
         }
 
@@ -389,23 +390,25 @@ namespace quad_gap {
         idx = theta2idx(theta);
 
         // Recalculate end point location based on length
-        gap.convex.convex_right_idx = left ? near_idx : idx;
-        gap.convex.convex_right_dist = left ? near_dist : r;
-        gap.convex.convex_left_idx = left ? idx : near_idx;
-        gap.convex.convex_left_dist = left ? r : near_dist;
+        gap->convex.convex_right_idx = left ? near_idx : idx;
+        gap->convex.convex_right_dist = left ? near_dist : r;
+        gap->convex.convex_left_idx = left ? idx : near_idx;
+        gap->convex.convex_left_dist = left ? r : near_dist;
 
-        if (left && gap.convex.convex_left_idx < gap.convex.convex_right_idx) {
-            gap.goal.discard = true;
+        if (left && gap->convex.convex_left_idx < gap->convex.convex_right_idx) 
+        {
+            gap->goal.discard = true;
         }
 
-        if (!left && gap.convex.convex_left_idx < gap.convex.convex_right_idx) {
-            gap.goal.discard = true;
+        if (!left && gap->convex.convex_left_idx < gap->convex.convex_right_idx) 
+        {
+            gap->goal.discard = true;
         }
 
-        gap.mode.agc = true;
+        gap->mode.agc = true;
     }
 
-    void GapManipulator::radialExtendGap(Gap& selected_gap) 
+    void GapManipulator::radialExtendGap(Gap * selected_gap) 
     {
         if (!cfg_->gap_manip.radial_extend) 
         {
@@ -414,14 +417,14 @@ namespace quad_gap {
         }
         // TODO: check if the idx are correct when they cross the 0.
 
-        float s = selected_gap.getMinSafeDist();
+        float s = selected_gap->getMinSafeDist();
 
         float x1, x2, y1, y2;
-        x1 = (selected_gap.convex.convex_right_dist) * cos(idx2theta(selected_gap.convex.convex_right_idx));
-        y1 = (selected_gap.convex.convex_right_dist) * sin(idx2theta(selected_gap.convex.convex_right_idx));
+        x1 = (selected_gap->convex.convex_right_dist) * cos(idx2theta(selected_gap->convex.convex_right_idx));
+        y1 = (selected_gap->convex.convex_right_dist) * sin(idx2theta(selected_gap->convex.convex_right_idx));
 
-        x2 = (selected_gap.convex.convex_left_dist) * cos(idx2theta(selected_gap.convex.convex_left_idx));
-        y2 = (selected_gap.convex.convex_left_dist) * sin(idx2theta(selected_gap.convex.convex_left_idx));
+        x2 = (selected_gap->convex.convex_left_dist) * cos(idx2theta(selected_gap->convex.convex_left_idx));
+        y2 = (selected_gap->convex.convex_left_dist) * sin(idx2theta(selected_gap->convex.convex_left_idx));
 
         Eigen::Vector2f gL(x1, y1);
         Eigen::Vector2f gR(x2, y2);
@@ -462,18 +465,18 @@ namespace quad_gap {
         Eigen::Vector2f polqLn = car2pol(qLn);
         Eigen::Vector2f polqRn = car2pol(qRn);
 
-        selected_gap.convex.convex_right_idx = theta2idx(polqLn(1));
-        selected_gap.convex.convex_left_idx = theta2idx(polqRn(1));
-        selected_gap.convex.convex_right_dist = polqLn(0);
-        selected_gap.convex.convex_left_dist = polqRn(0);
-        selected_gap.mode.convex = true;
+        selected_gap->convex.convex_right_idx = theta2idx(polqLn(1));
+        selected_gap->convex.convex_left_idx = theta2idx(polqRn(1));
+        selected_gap->convex.convex_right_dist = polqLn(0);
+        selected_gap->convex.convex_left_dist = polqRn(0);
+        selected_gap->mode.convex = true;
 
-        selected_gap.qB = qB;
-        ROS_DEBUG_STREAM("l: " << selected_gap._right_idx << " to " << selected_gap.convex.convex_right_idx
-         << ", r: " << selected_gap._left_idx << " to " << selected_gap.convex.convex_left_idx);
+        selected_gap->qB = qB;
+        ROS_DEBUG_STREAM("l: " << selected_gap->_right_idx << " to " << selected_gap->convex.convex_right_idx
+         << ", r: " << selected_gap->_left_idx << " to " << selected_gap->convex.convex_left_idx);
         
-        ROS_DEBUG_STREAM("right_dist: " << selected_gap._right_dist << " to " << selected_gap.convex.convex_right_dist
-        << ", left_dist: " << selected_gap._left_dist << " to " << selected_gap.convex.convex_left_dist);
+        ROS_DEBUG_STREAM("right_dist: " << selected_gap->_right_dist << " to " << selected_gap->convex.convex_right_dist
+        << ", left_dist: " << selected_gap->_left_dist << " to " << selected_gap->convex.convex_left_dist);
 
         return;
     }

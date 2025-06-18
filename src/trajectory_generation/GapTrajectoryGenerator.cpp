@@ -2,7 +2,8 @@
 
 namespace quad_gap
 {
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(const Gap & selectedGap, const geometry_msgs::PoseStamped & curr_pose) 
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap * selectedGap, 
+                                                                    const geometry_msgs::PoseStamped & curr_pose) 
     {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray posearr;
@@ -13,18 +14,18 @@ namespace quad_gap
         // posearr.header.frame_id = cfg_->traj.synthesized_frame ? cfg_->sensor_frame_id : cfg_->robot_frame_id;
         posearr.header.frame_id = cfg_->robot_frame_id;
 
-        if (selectedGap.goal.discard) 
+        if (selectedGap->goal.discard) 
         {
             return posearr;
         }
 
         state_type x = {curr_pose.pose.position.x + 1e-5, curr_pose.pose.position.y + 1e-6}; 
 
-        if (selectedGap.goal.goalwithin) 
+        if (selectedGap->goal.goalwithin) 
         {
             // ROS_INFO_STREAM("Goal to Goal");
-            g2g inte_g2g(selectedGap.goal.x * coefs,
-                         selectedGap.goal.y * coefs);
+            g2g inte_g2g(selectedGap->goal.x * coefs,
+                         selectedGap->goal.y * coefs);
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
             inte_g2g, x, 0.0,
             cfg_->traj.integrate_maxt,
@@ -34,27 +35,27 @@ namespace quad_gap
         }
 
         float x_left, x_right, y_left, y_right;
-        float theta_left = idx2theta(selectedGap.convex.convex_left_idx);
-        float theta_right = idx2theta(selectedGap.convex.convex_right_idx);
-        x_right = selectedGap.convex.convex_right_dist * cos(theta_right);
-        y_right = selectedGap.convex.convex_right_dist * sin(theta_right);
-        x_left = selectedGap.convex.convex_left_dist * cos(theta_left);
-        y_left = selectedGap.convex.convex_left_dist * sin(theta_left);
+        float theta_left = idx2theta(selectedGap->convex.convex_left_idx);
+        float theta_right = idx2theta(selectedGap->convex.convex_right_idx);
+        x_right = selectedGap->convex.convex_right_dist * cos(theta_right);
+        y_right = selectedGap->convex.convex_right_dist * sin(theta_right);
+        x_left = selectedGap->convex.convex_left_dist * cos(theta_left);
+        y_left = selectedGap->convex.convex_left_dist * sin(theta_left);
 
-        float goal_x = selectedGap.goal.x;
-        float goal_y = selectedGap.goal.y;
+        float goal_x = selectedGap->goal.x;
+        float goal_y = selectedGap->goal.y;
 
-        if (selectedGap.mode.convex) 
+        if (selectedGap->mode.convex) 
         {
-            x = {- selectedGap.qB(0) - 1e-6, - selectedGap.qB(1) + 1e-6};
-            x_right -= selectedGap.qB(0);
-            x_left -= selectedGap.qB(0);
-            y_right -= selectedGap.qB(1);
-            y_left -= selectedGap.qB(1);
-            goal_x -= selectedGap.qB(0);
-            goal_y -= selectedGap.qB(1);
-            // selectedGap.goal.x -= selectedGap.qB(0);
-            // selectedGap.goal.y -= selectedGap.qB(1);
+            x = {- selectedGap->qB(0) - 1e-6, - selectedGap->qB(1) + 1e-6};
+            x_right -= selectedGap->qB(0);
+            x_left -= selectedGap->qB(0);
+            y_right -= selectedGap->qB(1);
+            y_left -= selectedGap->qB(1);
+            goal_x -= selectedGap->qB(0);
+            goal_y -= selectedGap->qB(1);
+            // selectedGap->goal.x -= selectedGap->qB(0);
+            // selectedGap->goal.y -= selectedGap->qB(1);
 
         }
         
@@ -62,21 +63,21 @@ namespace quad_gap
                             y_right * coefs, y_left * coefs,
                             goal_x * coefs,
                             goal_y * coefs,
-                            // selectedGap.getRightObs(),
-                            // selectedGap.getLeftObs(),
-                            selectedGap.isRadial(),
+                            // selectedGap->getRightObs(),
+                            // selectedGap->getLeftObs(),
+                            selectedGap->isRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
             inte, x, 0.0,
             cfg_->traj.integrate_maxt,
             cfg_->traj.integrate_stept, corder);
 
-        if (selectedGap.mode.convex) 
+        if (selectedGap->mode.convex) 
         {
             for (auto & p : posearr.poses) 
             {
-                p.position.x += selectedGap.qB(0);
-                p.position.y += selectedGap.qB(1);
+                p.position.x += selectedGap->qB(0);
+                p.position.y += selectedGap->qB(1);
             }
         }
 
@@ -89,22 +90,22 @@ namespace quad_gap
     //     return traj_set;
     // }
 
-    bool GapTrajGenerator::findBezierControlPts(const Gap & selectedGap, 
+    bool GapTrajGenerator::findBezierControlPts(Gap * selectedGap, 
                                                 Bezier::Bezier<2>& bezier_curve, 
                                                 const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                 const geometry_msgs::TransformStamped & odom2rbt)
     {
         // Find the intersections of triangle and circle
         float x_right, x_left, y_right, y_left;
-        x_right = (selectedGap.convex.convex_right_dist) * cos(idx2theta(selectedGap.convex.convex_right_idx));
-        y_right = (selectedGap.convex.convex_right_dist) * sin(idx2theta(selectedGap.convex.convex_right_idx));
-        x_left = (selectedGap.convex.convex_left_dist) * cos(idx2theta(selectedGap.convex.convex_left_idx));
-        y_left = (selectedGap.convex.convex_left_dist) * sin(idx2theta(selectedGap.convex.convex_left_idx));
+        x_right = (selectedGap->convex.convex_right_dist) * cos(idx2theta(selectedGap->convex.convex_right_idx));
+        y_right = (selectedGap->convex.convex_right_dist) * sin(idx2theta(selectedGap->convex.convex_right_idx));
+        x_left = (selectedGap->convex.convex_left_dist) * cos(idx2theta(selectedGap->convex.convex_left_idx));
+        y_left = (selectedGap->convex.convex_left_dist) * sin(idx2theta(selectedGap->convex.convex_left_idx));
 
-        float goal_x = selectedGap.goal.x;
-        float goal_y = selectedGap.goal.y;
+        float goal_x = selectedGap->goal.x;
+        float goal_y = selectedGap->goal.y;
 
-        // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << selectedGap.goal.goalwithin);
+        // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << selectedGap->goal.goalwithin);
 
         // Check if goal is in the middle
         double ang_r_conv = std::atan2(y_right, x_right);
@@ -115,7 +116,7 @@ namespace quad_gap
 
         Eigen::Vector2f l_vec(x_right, y_right);
         Eigen::Vector2f r_vec(x_left, y_left);
-        float circ_r = selectedGap.getMinSafeDist();
+        float circ_r = selectedGap->getMinSafeDist();
         // assert(circ_r <= l_vec.norm() && circ_r <= r_vec.norm());
 
         if (circ_r > l_vec.norm() || circ_r > r_vec.norm())
@@ -672,7 +673,7 @@ namespace quad_gap
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(const Gap & selectedGap, 
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap * selectedGap, 
                                                                         const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                                         const geometry_msgs::TransformStamped & odom2rbt)
     {
@@ -682,7 +683,8 @@ namespace quad_gap
         // posearr.header.frame_id = cfg_->traj.synthesized_frame ? cfg_->sensor_frame_id : cfg_->robot_frame_id;
         posearr.header.frame_id = cfg_->robot_frame_id;
 
-        if (selectedGap.goal.discard) {
+        if (selectedGap->goal.discard) 
+        {
             ROS_WARN_STREAM("This waypoint is discard.");
             return posearr;
         }

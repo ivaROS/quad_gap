@@ -41,10 +41,10 @@ namespace quad_gap
 
             void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
-            void setGapWaypoint(Gap & gap, const geometry_msgs::PoseStamped & localgoal);
-            void reduceGap(Gap & gap, const geometry_msgs::PoseStamped & localgoal);
-            void convertAxialGap(Gap & gap);
-            void radialExtendGap(Gap & gap);
+            void setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal);
+            void reduceGap(Gap * gap, const geometry_msgs::PoseStamped & localgoal);
+            void convertAxialGap(Gap * gap);
+            void radialExtendGap(Gap * gap);
         
         private:
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;

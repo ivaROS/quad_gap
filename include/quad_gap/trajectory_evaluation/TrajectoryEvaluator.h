@@ -48,13 +48,13 @@ namespace quad_gap {
             }
             
             void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
-            void updateGapContainer(const std::vector<Gap>& observed_gaps);
+            void updateGapContainer(const std::vector<Gap *> & observed_gaps);
 
             void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
                                                             const geometry_msgs::TransformStamped & odom2rbt);
             
             std::vector<double> scoreGaps();
-            Gap returnAndScoreGaps();
+            Gap * returnAndScoreGaps();
             
             // Full Scoring
             std::vector<double> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
@@ -71,7 +71,7 @@ namespace quad_gap {
 
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
-            std::vector<Gap> gaps;
+            std::vector<Gap *> gaps;
             geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame_;
 
             boost::mutex globalPlanMutex_; /**< mutex locking thread for updating current global plan */

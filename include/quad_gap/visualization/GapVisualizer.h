@@ -13,14 +13,14 @@ namespace quad_gap
             void initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg);
 
             void drawGaps(const std::vector<Gap *> & gaps, const std::string & ns);
-            void drawManipGaps(const std::vector<Gap> & gaps);
+            void drawManipGaps(const std::vector<Gap *> & gaps);
 
         private:
             void drawGap(visualization_msgs::Marker & marker, 
                             const std::vector<Gap *> & gaps, 
                             const std::string & ns);
             void drawManipGap(visualization_msgs::Marker & marker, 
-                                const std::vector<Gap> & gaps, 
+                                const std::vector<Gap *> & gaps, 
                                 // const std::string & ns,
                                 bool & circle);
 

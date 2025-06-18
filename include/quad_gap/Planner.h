@@ -83,6 +83,8 @@ namespace quad_gap
     class Planner
     {
         public:
+            ~Planner();
+
             /**
             * \brief initialize Planner class
             * 
@@ -159,13 +161,13 @@ namespace quad_gap
             * @param None, directly taken from private variable space
             * @return gap_set, simplfied radial prioritized gaps
             */
-            std::vector<Gap> gapManipulate(const std::vector<Gap> & planning_gaps);
+            std::vector<Gap *> gapManipulate(const std::vector<Gap *> & planning_gaps);
 
             /**
             * 
             *
             */
-            std::vector<std::vector<double>> initialTrajGen(const std::vector<Gap> & vec, 
+            std::vector<std::vector<double>> initialTrajGen(const std::vector<Gap *> & vec, 
                                                             std::vector<geometry_msgs::PoseArray>& res, 
                                                             std::vector<geometry_msgs::PoseArray>& virtual_decayed);
 
@@ -276,7 +278,7 @@ namespace quad_gap
 
         private:
 
-            std::vector<Gap> deepCopyCurrentSimplifiedGaps();
+            std::vector<Gap *> deepCopyCurrentSimplifiedGaps();
 
             boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
 
@@ -298,7 +300,6 @@ namespace quad_gap
             
             std::shared_ptr<tf2_ros::Buffer> tfBuffer;
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
-            tf2_ros::TransformBroadcaster goal_br;
 
             ros::NodeHandle nh, pnh;
             ros::Publisher local_traj_pub;
@@ -320,9 +321,9 @@ namespace quad_gap
             geometry_msgs::PoseStamped final_goal_odom;
 
             // Gaps:
-            std::vector<Gap *> raw_gaps;
-            std::vector<Gap> simp_gaps;
-            std::vector<Gap *> simp_gaps_ptr;
+            std::vector<Gap *> currRawGaps_;
+            std::vector<Gap *> currSimpGaps_;
+            // std::vector<Gap *> currSimpGaps__ptr;
 
             // Helper modules
             GapDetector * gapDetector_  = NULL; 
@@ -367,7 +368,7 @@ namespace quad_gap
 
             geometry_msgs::PoseArray curr_executing_traj;
 
-            boost::circular_buffer<double> log_vel_comp;
+            boost::circular_buffer<double> cmdVelBuffer;
 
             ros::Subscriber tfSub_; /**< Subscriber to TF tree */
             ros::Subscriber laserSub_; /**< Subscriber to robot laser */

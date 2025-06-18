@@ -8,6 +8,53 @@
 
 namespace quad_gap
 {
+    Planner::~Planner()
+    {
+        for (Gap * rawGap : currRawGaps_)
+            delete rawGap;
+        currRawGaps_.clear();
+
+        for (Gap * simplifiedGap : currSimpGaps_)
+            delete simplifiedGap;
+        currSimpGaps_.clear();   
+        
+        if (gapDetector_)
+            delete gapDetector_;
+
+        if (gapManipulator_)
+            delete gapManipulator_;
+
+        if (trajEvaluator_)
+            delete trajEvaluator_;    
+
+        if (trajController_)
+            delete trajController_;
+
+        if (globalPlanManager_)
+            delete globalPlanManager_;
+
+        if (gapVisualizer_)
+            delete gapVisualizer_;
+
+        if (goalVisualizer_)
+            delete goalVisualizer_;
+
+        if (trajVisualizer_)
+            delete trajVisualizer_;
+
+        // if (robot_geo_proc_)
+        //     delete robot_geo_proc_;
+
+        // if (robot_geo_storage_)
+        //     delete robot_geo_storage_;
+
+        if (timeKeeper_)
+            delete timeKeeper_;
+
+        // if (tfListener_)
+        //     delete tfListener_;
+    }
+
     bool Planner::initialize(const std::string & name)
     {
         if (initialized_)
@@ -199,7 +246,7 @@ namespace quad_gap
         reconfigure_server_ = std::make_shared<ReconfigureServer>(pnh);
         reconfigure_server_->setCallback(boost::bind(&Planner::configCB, this, _1, _2));
 
-        log_vel_comp.set_capacity(cfg_.planning.halt_size);
+        cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
         return true;
     }
 
@@ -355,22 +402,22 @@ namespace quad_gap
         ///////////////////////////////
 
         timeKeeper_->startTimer(GAP_DET);
-        raw_gaps = gapDetector_->gapDetection(scan);
+        currRawGaps_ = gapDetector_->gapDetection(scan);
         timeKeeper_->stopTimer(GAP_DET);
 
-        gapVisualizer_->drawGaps(raw_gaps, std::string("raw"));
+        gapVisualizer_->drawGaps(currRawGaps_, std::string("raw"));
 
         ////////////////////////////////////
         //////// GAP SIMPLIFICATION ////////
         ////////////////////////////////////
 
         timeKeeper_->startTimer(GAP_SIMP);
-        simp_gaps_ptr = gapDetector_->gapSimplification(raw_gaps);
+        currSimpGaps_ = gapDetector_->gapSimplification(currRawGaps_);
         timeKeeper_->stopTimer(GAP_SIMP);
 
-        gapVisualizer_->drawGaps(simp_gaps_ptr, std::string("simp"));
+        gapVisualizer_->drawGaps(currSimpGaps_, std::string("simp"));
 
-        // ROS_INFO_STREAM("simp_gaps count:" << simp_gaps.size());
+        // ROS_INFO_STREAM("currSimpGaps_ count:" << currSimpGaps_.size());
 
         hasLaserScan_ = true;
 
@@ -580,11 +627,10 @@ namespace quad_gap
     //     return;
     // }
 
-    std::vector<Gap> Planner::gapManipulate(const std::vector<Gap> & planning_gaps) 
+    std::vector<Gap *> Planner::gapManipulate(const std::vector<Gap *> & planning_gaps) 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
-        std::vector<Gap> manip_set;
-        manip_set = planning_gaps;
+        std::vector<Gap *> manip_set = planning_gaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
@@ -609,31 +655,32 @@ namespace quad_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(const std::vector<Gap> & vec, 
+    std::vector<std::vector<double>> Planner::initialTrajGen(const std::vector<Gap *> & gaps, 
                                                                 std::vector<geometry_msgs::PoseArray>& res, 
                                                                 std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
-        std::vector<geometry_msgs::PoseArray> ret_traj(vec.size());
-        std::vector<geometry_msgs::PoseArray> virtual_traj(vec.size());
-        std::vector<std::vector<double>> ret_traj_scores(vec.size());
+        std::vector<geometry_msgs::PoseArray> ret_traj(gaps.size());
+        std::vector<geometry_msgs::PoseArray> virtual_traj(gaps.size());
+        std::vector<std::vector<double>> ret_traj_scores(gaps.size());
 
         geometry_msgs::PoseStamped rbt_local_pose;
         rbt_local_pose.header.frame_id = cfg_.robot_frame_id;
         rbt_local_pose.header.stamp = rbt2odom_.header.stamp;
         rbt_local_pose.pose.orientation.w = 1;
-        ROS_INFO_STREAM("Gap number: " << vec.size());
-        try {
-            for (size_t i = 0; i < vec.size(); i++) {
+        ROS_INFO_STREAM("Gap number: " << gaps.size());
+        try 
+        {
+            for (size_t i = 0; i < gaps.size(); i++) 
+            {
                 // Generate trajectory in robot frame.
                 geometry_msgs::PoseArray tmp;
-                if(use_bezier_)
+                if (use_bezier_)
                 {
-                    tmp = gapTrajGenerator_->generateBezierTrajectory(vec.at(i), rbtVelRbtFrame_, odom2rbt_);
-                }
-                else
+                    tmp = gapTrajGenerator_->generateBezierTrajectory(gaps.at(i), rbtVelRbtFrame_, odom2rbt_);
+                } else
                 {
-                    tmp = gapTrajGenerator_->generateTrajectory(vec.at(i), rbt_local_pose);
+                    tmp = gapTrajGenerator_->generateTrajectory(gaps.at(i), rbt_local_pose);
                 }
                 
                 tmp = gapTrajGenerator_->forwardPassTrajectory(tmp);
@@ -643,7 +690,8 @@ namespace quad_gap
                 ret_traj_scores.at(i) = trajEvaluator_->scoreTrajectory(virtual_score_path);
                 ret_traj.at(i) = gapTrajGenerator_->transformBackTrajectory(tmp, rbt2odom_);
             }
-        } catch (...) {
+        } catch (...) 
+        {
             ROS_FATAL_STREAM("initialTrajGen");
         }
         
@@ -745,35 +793,44 @@ namespace quad_gap
             return geometry_msgs::PoseArray();
         }
 
-        if (prr.size() != score.size()) {
+        if (prr.size() != score.size()) 
+        {
             ROS_FATAL_STREAM("pickTraj size mismatch: prr = " << prr.size() << " != score =" << score.size());
             return geometry_msgs::PoseArray();
         }
 
         std::vector<double> result_score(prr.size());
         
-        try {
-            if (omp_get_dynamic()) omp_set_dynamic(0);
-            for (size_t i = 0; i < result_score.size(); i++) {
+        try 
+        {
+            if (omp_get_dynamic()) 
+                omp_set_dynamic(0);
+            
+            for (size_t i = 0; i < result_score.size(); i++) 
+            {
                 int counts = std::min(cfg_.planning.num_feasi_check, int(score.at(i).size()));
                 result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin() + counts, double(0));
                 result_score.at(i) = prr.at(i).poses.size() == 0 ? -std::numeric_limits<double>::infinity() : result_score.at(i);
                 ROS_DEBUG_STREAM("Score: " << result_score.at(i));
             }
-        } catch (...) {
+        } catch (...) 
+        {
             ROS_FATAL_STREAM("pickTraj");
         }
 
         auto iter = std::max_element(result_score.begin(), result_score.end());
         int idx = std::distance(result_score.begin(), iter);
 
-        if (result_score.at(idx) == -std::numeric_limits<double>::infinity()) {
+        if (result_score.at(idx) == -std::numeric_limits<double>::infinity()) 
+        {
             ROS_WARN_STREAM("No executable trajectory, values: ");
-            for (auto val : result_score) {
+            for (auto val : result_score) 
+            {
                 ROS_INFO_STREAM("Score: " << val);
             }
             ROS_INFO_STREAM("------------------");
         }
+
         chosen_virtual_path = virtual_path.at(idx);
         ROS_INFO_STREAM("Picked [" << idx << "] traj" );
         return prr.at(idx);
@@ -784,7 +841,8 @@ namespace quad_gap
     {
         auto curr_traj = getCurrentTraj();
 
-        try {
+        try 
+        {
             // Both Args are in Odom frame
             auto incom_rbt = gapTrajGenerator_->transformBackTrajectory(incoming, odom2rbt_);
             incom_rbt.header.frame_id = cfg_.robot_frame_id;
@@ -795,14 +853,17 @@ namespace quad_gap
             int counts = std::min(cfg_.planning.num_feasi_check, (int) incom_score.size());
             auto incom_subscore = std::accumulate(incom_score.begin(), incom_score.begin() + counts, double(0));
 
-            if (curr_traj.poses.size() == 0) {
-                if (incom_subscore == -std::numeric_limits<double>::infinity()) {
+            if (curr_traj.poses.size() == 0) 
+            {
+                if (incom_subscore == -std::numeric_limits<double>::infinity()) 
+                {
                     auto empty_traj = geometry_msgs::PoseArray();
                     setCurrentTraj(empty_traj);
                     virtual_curr_traj = empty_traj;
                     ROS_WARN_STREAM("Old Traj length 0, curr traj score -inf.");
                     return empty_traj;
-                } else {
+                } else 
+                {
                     setCurrentTraj(incoming);
                     virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path, rbt2odom_);
                     trajectory_pub.publish(incoming);
@@ -816,7 +877,8 @@ namespace quad_gap
             int start_position = egoTrajPosition(curr_rbt);
             geometry_msgs::PoseArray reduced_curr_rbt = curr_rbt;
             reduced_curr_rbt.poses = std::vector<geometry_msgs::Pose>(curr_rbt.poses.begin() + start_position, curr_rbt.poses.end());
-            if (reduced_curr_rbt.poses.size() < 2) {
+            if (reduced_curr_rbt.poses.size() < 2) 
+            {
                 ROS_WARN_STREAM("Old Traj short");
                 setCurrentTraj(incoming);
                 virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path, rbt2odom_);
@@ -838,7 +900,8 @@ namespace quad_gap
 
             ROS_INFO_STREAM("Curr Score: " << curr_subscore << ", incom Score:" << incom_subscore);
 
-            if (curr_subscore == -std::numeric_limits<double>::infinity() && incom_subscore == -std::numeric_limits<double>::infinity()) {
+            if (curr_subscore == -std::numeric_limits<double>::infinity() && incom_subscore == -std::numeric_limits<double>::infinity()) 
+            {
                 ROS_WARN_STREAM("Both Failed");
                 auto empty_traj = geometry_msgs::PoseArray();
                 setCurrentTraj(empty_traj);
@@ -846,7 +909,8 @@ namespace quad_gap
                 return empty_traj;
             }
 
-            if (incom_subscore > curr_subscore + counts) {
+            if (incom_subscore > curr_subscore + counts) 
+            {
                 ROS_WARN_STREAM("Swap to new for better score: " << incom_subscore << " > " << curr_subscore << " + " << counts);
                 setCurrentTraj(incoming);
                 virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path, rbt2odom_);
@@ -856,7 +920,8 @@ namespace quad_gap
             auto virtual_score_path_curr = getOrientDecayedPath(curr_rbt);
             virtual_curr_traj = gapTrajGenerator_->transformBackTrajectory(virtual_score_path_curr, rbt2odom_);
             trajectory_pub.publish(curr_traj);
-        } catch (...) {
+        } catch (...) 
+        {
             ROS_FATAL_STREAM("compareToOldTraj");
         }
         return curr_traj;
@@ -928,11 +993,12 @@ namespace quad_gap
 
     void Planner::reset()
     {
-        simp_gaps.clear();
+        // currSimpGaps_.clear();
         setCurrentTraj(geometry_msgs::PoseArray());
-        ROS_INFO_STREAM("log_vel_comp size: " << log_vel_comp.size());
-        log_vel_comp.clear();
-        ROS_INFO_STREAM("log_vel_comp size after clear: " << log_vel_comp.size() << ", is full: " << log_vel_comp.capacity());
+
+        ROS_INFO_STREAM("cmdVelBuffer size: " << cmdVelBuffer.size());
+        cmdVelBuffer.clear();
+        ROS_INFO_STREAM("cmdVelBuffer size after clear: " << cmdVelBuffer.size() << ", is full: " << cmdVelBuffer.capacity());
         return;
     }
 
@@ -982,19 +1048,19 @@ namespace quad_gap
         
         // set_capacity destroys everything if different from original size, 
         // resize only if the new size is greater
-        log_vel_comp.clear();
-        log_vel_comp.set_capacity(cfg_.planning.halt_size);
+        cmdVelBuffer.clear();
+        cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
     }
 
 
-    std::vector<Gap> Planner::deepCopyCurrentSimplifiedGaps()
+    std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps()
     {
         boost::mutex::scoped_lock gapset(gapset_mutex);
 
-        std::vector<Gap> planningGaps;
+        std::vector<Gap *> planningGaps;
 
-        for (const Gap & gap : simp_gaps)
-            planningGaps.push_back(Gap(gap));
+        for (Gap * gap : currSimpGaps_)
+            planningGaps.push_back(new Gap(*gap));
 
         return planningGaps;
     }
@@ -1021,7 +1087,7 @@ namespace quad_gap
 
         isGoalReached();
 
-        std::vector<Gap> planningGaps = deepCopyCurrentSimplifiedGaps();
+        std::vector<Gap *> planningGaps = deepCopyCurrentSimplifiedGaps();
 
         int gapCount = planningGaps.size();
         if (gapCount == 0)
@@ -1032,7 +1098,7 @@ namespace quad_gap
         }
 
         timeKeeper_->startTimer(GAP_MANIP);
-        std::vector<Gap> gap_set = gapManipulate(planningGaps);
+        std::vector<Gap *> gap_set = gapManipulate(planningGaps);
         timeKeeper_->stopTimer(GAP_MANIP);
 
         timeKeeper_->startTimer(GAP_TRAJ_GEN);
@@ -1074,6 +1140,10 @@ namespace quad_gap
         }
         timeKeeper_->stopTimer(COLL_CHECK);
 
+        // delete set of planning gaps
+        for (Gap * planningGap : planningGaps)
+            delete planningGap;
+
         timeKeeper_->stopTimer(PLAN);
         timeKeeper_->computeAverageNumberGaps(gapCount);        
 
@@ -1083,9 +1153,9 @@ namespace quad_gap
     bool Planner::recordAndCheckVel(const geometry_msgs::Twist & cmd_vel) 
     {
         double val = std::abs(cmd_vel.linear.x) + std::abs(cmd_vel.linear.y) + std::abs(cmd_vel.angular.z);
-        log_vel_comp.push_back(val);
-        double cum_vel_sum = std::accumulate(log_vel_comp.begin(), log_vel_comp.end(), double(0));
-        bool ret_val = cum_vel_sum > 1.0 || !log_vel_comp.full();
+        cmdVelBuffer.push_back(val);
+        double cum_vel_sum = std::accumulate(cmdVelBuffer.begin(), cmdVelBuffer.end(), double(0));
+        bool ret_val = cum_vel_sum > 1.0 || !cmdVelBuffer.full();
         if (!ret_val && !cfg_.man.man_ctrl) {
             ROS_FATAL_STREAM("--------------------------Planning Failed--------------------------");
             reset();
