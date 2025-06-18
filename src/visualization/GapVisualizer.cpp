@@ -17,8 +17,8 @@ namespace quad_gap
         std_msgs::ColorRGBA std_color;
         std_msgs::ColorRGBA raw_radial;
         std_msgs::ColorRGBA raw_swept;
-        std_msgs::ColorRGBA fin_radial;
-        std_msgs::ColorRGBA fin_swept;
+        std_msgs::ColorRGBA simp_radial;
+        std_msgs::ColorRGBA simp_swept;
         std_msgs::ColorRGBA extent;
         std_msgs::ColorRGBA agc;
 
@@ -33,15 +33,15 @@ namespace quad_gap
         raw_swept.g = 0.2;
         raw_swept.b = 0.1;
 
-        fin_radial.a = 1;
-        fin_radial.r = 1;
-        fin_radial.g = 0.9;
-        fin_radial.b = 0.3;
+        simp_radial.a = 1;
+        simp_radial.r = 1;
+        simp_radial.g = 0.9;
+        simp_radial.b = 0.3;
 
-        fin_swept.a = 1;
-        fin_swept.r = 0.4;
-        fin_swept.g = 0;
-        fin_swept.b = 0.9;
+        simp_swept.a = 1;
+        simp_swept.r = 0.4;
+        simp_swept.g = 0;
+        simp_swept.b = 0.9;
 
         extent.a = 1;
         extent.r = 0;
@@ -55,10 +55,10 @@ namespace quad_gap
 
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_radial", raw_radial));
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_swept", raw_swept));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("fin_radial", fin_radial));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("fin_swept", fin_swept));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("fin_extent", extent));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("fin_agc", agc));
+        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_radial", simp_radial));
+        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_swept", simp_swept));
+        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_extent", extent));
+        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_agc", agc));
 
     }
 
@@ -246,18 +246,18 @@ namespace quad_gap
             std::string ns;
             if (gap.mode.reduced) 
             {
-                ns = "fin_swept";
+                ns = "simp_swept";
                 // viz_jitter += 0.1;
             }
             
             if (gap.mode.convex) 
             {
-                ns = "fin_extent";
+                ns = "simp_extent";
             }
     
             if (gap.mode.agc) 
             {
-                ns = "fin_agc";
+                ns = "simp_agc";
             }
             auto colorIter = colorMap.find(ns);
             if (colorIter == colorMap.end()) 
@@ -324,9 +324,9 @@ namespace quad_gap
                     ROS_WARN_STREAM("Gap min safe dist not recorded");
                 }
     
-                std_msgs::ColorRGBA convex_color = colorMap["fin_extent"];
+                std_msgs::ColorRGBA convex_color = colorMap["simp_extent"];
     
-                // this_marker.ns = "fin_extent";
+                // this_marker.ns = "simp_extent";
     
                 // The Circle
                 if (!circle) 
@@ -389,7 +389,7 @@ namespace quad_gap
                         // linel, 
                         // liner, 
                         marker, 
-                        colorMap["fin_agc"]);
+                        colorMap["simp_agc"]);
 
                 getline(gap._left_idx, 
                         gap._left_dist, 
@@ -398,7 +398,7 @@ namespace quad_gap
                         // linel, 
                         // liner, 
                         marker, 
-                        colorMap["fin_agc"]);
+                        colorMap["simp_agc"]);
             }            
         }
 
@@ -425,16 +425,16 @@ namespace quad_gap
 
     //     std::string ns;
     //     if (g.mode.reduced) {
-    //         ns = "fin_swept";
+    //         ns = "simp_swept";
     //         viz_jitter += 0.1;
     //     }
         
     //     if (g.mode.convex) {
-    //         ns = "fin_extent";
+    //         ns = "simp_extent";
     //     }
 
     //     if (g.mode.agc) {
-    //         ns = "fin_agc";
+    //         ns = "simp_agc";
     //     }
         
     //     int num_gaps = (g.convex.convex_left_idx - g.convex.convex_right_idx) / cfg_->gap_viz.min_resoln + 1;
@@ -509,9 +509,9 @@ namespace quad_gap
     //             ROS_WARN_STREAM("Gap min safe dist not recorded");
     //         }
 
-    //         auto convex_color = colorMap["fin_extent"];
+    //         auto convex_color = colorMap["simp_extent"];
 
-    //         this_marker.ns = "fin_extent";
+    //         this_marker.ns = "simp_extent";
 
     //         // The Circle
     //         if (!circle) 
@@ -571,9 +571,9 @@ namespace quad_gap
 
     //             this_marker.ns = "orig_line";
     //             getline(g._right_idx, g._right_dist, origin, 
-    //                 lines, linel, liner, this_marker, colorMap["fin_agc"], vis_arr, id++);
+    //                      lines, linel, liner, this_marker, colorMap["simp_agc"], vis_arr, id++);
     //             getline(g._left_idx, g._left_dist, origin, 
-    //                 lines, linel, liner, this_marker, colorMap["fin_agc"], vis_arr, id++);
+    //                      lines, linel, liner, this_marker, colorMap["simp_agc"], vis_arr, id++);
     //         }
     //     }
 

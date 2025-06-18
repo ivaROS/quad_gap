@@ -359,7 +359,7 @@ namespace quad_gap
         ////////////////////////////////////
 
         observed_gaps = gapDetector_->gapSimplification(raw_gaps);
-        gapVisualizer_->drawGaps(observed_gaps, std::string("fin"));
+        gapVisualizer_->drawGaps(observed_gaps, std::string("simp"));
 
         // ROS_INFO_STREAM("observed_gaps count:" << observed_gaps.size());
 

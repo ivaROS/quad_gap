@@ -14,6 +14,12 @@ Panels:
         - /Dynamic Gap1/Gaps1/Marker4
         - /Dynamic Gap1/Gaps1/Marker6
         - /Dynamic Gap1/Trajectories1
+        - /Dynamic Gap1/Trajectories1/PoseArray1
+        - /Dynamic Gap1/Trajectories1/PoseArray2
+        - /Dynamic Gap1/Trajectories1/PoseArray3
+        - /Dynamic Gap1/Trajectories1/MarkerArray1
+        - /Dynamic Gap1/Trajectories1/MarkerArray2
+        - /Dynamic Gap1/Trajectories1/MarkerArray3
         - /Dynamic Gap1/Tracking1
       Splitter Ratio: 0.32792791724205017
     Tree Height: 787
@@ -396,34 +402,17 @@ Visualization Manager:
               Topic: /rto/picked_virtual_traj
               Unreliable: false
               Value: true
-            - Alpha: 1
-              Arrow Length: 0.30000001192092896
-              Axes Length: 0.30000001192092896
-              Axes Radius: 0.009999999776482582
-              Class: rviz/PoseArray
-              Color: 255; 25; 0
-              Enabled: true
-              Head Length: 0.07000000029802322
-              Head Radius: 0.029999999329447746
-              Name: PoseArray
-              Queue Size: 10
-              Shaft Length: 0.23000000417232513
-              Shaft Radius: 0.009999999776482582
-              Shape: Arrow (Flat)
-              Topic: /rto/goal_select_traj
-              Unreliable: false
-              Value: true
             - Class: rviz/MarkerArray
               Enabled: true
-              Marker Topic: /rto/traj_score
+              Marker Topic: /rto/entire_global_plan
               Name: MarkerArray
               Namespaces:
-                trajScore: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
               Enabled: true
-              Marker Topic: /rto/all_traj_vis
+              Marker Topic: /rto/candidate_trajectories
               Name: MarkerArray
               Namespaces:
                 allTraj: true
@@ -524,10 +513,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 53.289039611816406
+      Scale: 69.62983703613281
       Target Frame: rto/base_link
-      X: 1.2627795934677124
-      Y: 2.0167791843414307
+      X: 1.9550522565841675
+      Y: -1.549143671989441
     Saved: ~
 Window Geometry:
   Displays:

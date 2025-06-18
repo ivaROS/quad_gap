@@ -87,7 +87,8 @@ add_library(quad_gap
   src/trajectory_generation/GapManipulator.cpp
   src/trajectory_tracking/TrajectoryController.cpp
   src/Planner.cpp
-  src/QuadGapPlanner.cpp  
+  src/QuadGapPlanner.cpp 
+  src/TimeKeeper.cpp 
   ) 
 
 add_dependencies(quad_gap ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
