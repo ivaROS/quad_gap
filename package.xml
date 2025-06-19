@@ -15,7 +15,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>base_local_planner</build_depend>
-  <build_depend>dynamic_reconfigure</build_depend>
+  <!-- <build_depend>dynamic_reconfigure</build_depend> -->
   <build_depend>geometry_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -27,7 +27,7 @@
   <build_depend>pips_trajectory_msgs</build_depend>
 
   <build_export_depend>base_local_planner</build_export_depend>
-  <build_export_depend>dynamic_reconfigure</build_export_depend>
+  <!-- <build_export_depend>dynamic_reconfigure</build_export_depend> -->
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>nav_msgs</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
@@ -37,7 +37,7 @@
   <build_export_depend>pips_trajectory_msgs</build_export_depend>
 
   <exec_depend>base_local_planner</exec_depend>
-  <exec_depend>dynamic_reconfigure</exec_depend>
+  <!-- <exec_depend>dynamic_reconfigure</exec_depend> -->
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>

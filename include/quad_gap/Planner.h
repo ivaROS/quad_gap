@@ -359,8 +359,8 @@ namespace quad_gap
             TrajPlan ni_ref, orig_ref;
 
             // Dynamic Reconfigure
-            boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
-            dynamic_reconfigure::Server<qgConfig>::CallbackType f;
+            // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
+            // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
 
             bool replan = true;
             

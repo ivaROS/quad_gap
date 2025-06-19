@@ -16,7 +16,7 @@ namespace quad_gap
         scan_ = scan;
     }
 
-    [[deprecated("Not Used, Deemed Unnecessary")]]
+    // [[deprecated("Not Used, Deemed Unnecessary")]]
     std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
     {
         sensor_msgs::LaserScan egocircle = *scan_.get();

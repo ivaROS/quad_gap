@@ -243,55 +243,89 @@ namespace quad_gap
         rbtPoseRbtFrame_.pose.orientation.w = 1;
         rbtPoseRbtFrame_.header.frame_id = cfg_.robot_frame_id;
 
-        reconfigure_server_ = std::make_shared<ReconfigureServer>(pnh);
-        reconfigure_server_->setCallback(boost::bind(&Planner::configCB, this, _1, _2));
+        // reconfigure_server_ = std::make_shared<ReconfigureServer>(pnh);
+        // reconfigure_server_->setCallback(boost::bind(&Planner::configCB, this, _1, _2));
+
+        // Set collision checker
+        collision_checker_enable_ = cfg_.collision_checker.collision_checker_enable;
+        if(!collision_checker_enable_)
+        {
+            ROS_WARN_STREAM("Collision checking is disabled.");
+            // return;
+        }
+
+        if(cfg_.collision_checker.cc_type == CollisionChecker_depth)
+        {
+            ROS_INFO_STREAM("New cc type = depth");
+            cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+        }
+        else if(cfg_.collision_checker.cc_type == CollisionChecker_depth_ego)
+        {
+            ROS_INFO_STREAM("New cc type = depth ego");
+            cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+        }
+        else if(cfg_.collision_checker.cc_type == CollisionChecker_egocircle)
+        {
+            ROS_INFO_STREAM("New cc type = egocircle");
+            cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+        }
+
+        traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
+        
+        cc_wrapper_->init();
+        cc_wrapper_->autoUpdate();
+
+        traj_tester_->init();
+        traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
+        
+        cc_type_ = cfg_.collision_checker.cc_type;
 
         cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
         return true;
     }
 
-    void Planner::configCB(CollisionCheckerConfig &config, uint32_t level)
-    {
-        ROS_INFO_STREAM("CC Reconfigure Request: "); // TODO: print out the cc type and other parameter values
+    // void Planner::configCB(CollisionCheckerConfig &config, uint32_t level)
+    // {
+    //     ROS_INFO_STREAM("CC Reconfigure Request: "); // TODO: print out the cc type and other parameter values
 
-        Lock lock(connect_mutex_);
+    //     Lock lock(connect_mutex_);
 
-        collision_checker_enable_ = config.cc_enable;
-        if(!collision_checker_enable_)
-        {
-            ROS_WARN_STREAM("Collision checking is disabled.");
-            return;
-        }
+    //     collision_checker_enable_ = config.cc_enable;
+    //     if(!collision_checker_enable_)
+    //     {
+    //         ROS_WARN_STREAM("Collision checking is disabled.");
+    //         return;
+    //     }
 
-        if(config.cc_type != cc_type_)
-        {
-            if(config.cc_type == CollisionChecker_depth)
-            {
-                ROS_INFO_STREAM("New cc type = depth");
-                cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-            }
-            else if(config.cc_type == CollisionChecker_depth_ego)
-            {
-                ROS_INFO_STREAM("New cc type = depth ego");
-                cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-            }
-            else if(config.cc_type == CollisionChecker_egocircle)
-            {
-                ROS_INFO_STREAM("New cc type = egocircle");
-                cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-            }
+    //     if(config.cc_type != cc_type_)
+    //     {
+    //         if(config.cc_type == CollisionChecker_depth)
+    //         {
+    //             ROS_INFO_STREAM("New cc type = depth");
+    //             cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+    //         }
+    //         else if(config.cc_type == CollisionChecker_depth_ego)
+    //         {
+    //             ROS_INFO_STREAM("New cc type = depth ego");
+    //             cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+    //         }
+    //         else if(config.cc_type == CollisionChecker_egocircle)
+    //         {
+    //             ROS_INFO_STREAM("New cc type = egocircle");
+    //             cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
+    //         }
 
-            traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
+    //         traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
             
-            cc_wrapper_->init();
-            cc_wrapper_->autoUpdate();
+    //         cc_wrapper_->init();
+    //         cc_wrapper_->autoUpdate();
 
-            traj_tester_->init();
-            traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
+    //         traj_tester_->init();
+    //         traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
             
-            cc_type_ = config.cc_type;
-        }
-    }
+    //         cc_type_ = config.cc_type;
+    //     }
+    // }
 
     bool Planner::isGoalReached()
     {

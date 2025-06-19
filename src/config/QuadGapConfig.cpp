@@ -13,13 +13,36 @@ namespace quad_gap
 
         if (model == "rto")
         {
-            // nh.param("map_frame_id", map_frame_id, map_frame_id);
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting model to: " << model);
+
+            ROS_INFO_STREAM_NAMED("Parameters", "map_frame_id is: " << map_frame_id);
+
             odom_frame_id = model + "/odom";
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting odom_frame_id to: " << odom_frame_id);
+
             robot_frame_id = model + "/base_link";
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting robot_frame_id to: " << robot_frame_id);
+
             sensor_frame_id = model + "/hokuyo_link";
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting sensor_frame_id to: " << sensor_frame_id);
 
             odom_topic = "odom"; // model + "/odom";
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting odom_topic to: " << odom_topic);
+
             scan_topic = "scan"; // model + "/scan";
+            ROS_INFO_STREAM_NAMED("Parameters", "Setting scan_topic to: " << scan_topic);
+
+            ///////////
+            // Robot //
+            ///////////
+            ros_throw_param_load(nh, "robot_radius", rbt.r_inscr);
+
+            ///////////
+            // Goal //
+            ///////////
+            ros_throw_param_load(nh, "lin_goal_tolerance", goal.lin_goal_tolerance);
+            ros_throw_param_load(nh, "waypoint_tolerance", goal.waypoint_tolerance);
+            ros_throw_param_load(nh, "yaw_goal_tolerance", goal.yaw_goal_tolerance);
 
             // Gap Visualization
             nh.param("min_resoln", gap_viz.min_resoln, gap_viz.min_resoln);
@@ -101,89 +124,6 @@ namespace quad_gap
             throw std::runtime_error("Model " + model + " not implemented!");
         }
 
-    }
-
-    void QuadGapConfig::reconfigure(qgConfig& cfg)
-    {
-        // This locks the lock within this function
-        boost::mutex::scoped_lock lock(config_mutex);
-        gap_viz.min_resoln = cfg.min_resoln;
-        gap_viz.close_gap_vis = cfg.close_gap_vis;
-        gap_viz.follow_the_gap_vis = cfg.follow_the_gap_vis;
-        gap_viz.fig_gen = cfg.fig_gen;
-        gap_viz.viz_jitter = cfg.viz_jitter;
-        gap_viz.debug_viz = cfg.debug_viz;
-
-        // Gap Manipulation
-        gap_manip.gap_diff = cfg.gap_diff;
-        gap_manip.epsilon2 = cfg.epsilon2;
-        gap_manip.epsilon1 = cfg.epsilon1;
-        gap_manip.sigma = cfg.sigma;
-        gap_manip.rot_ratio = cfg.rot_ratio;
-        gap_manip.reduction_threshold = cfg.reduction_threshold;
-        gap_manip.reduction_target = cfg.reduction_target;        
-        gap_manip.max_idx_diff = cfg.max_idx_diff;
-        gap_manip.radial_extend = cfg.radial_extend;
-        gap_manip.radial_convert = cfg.radial_convert;
-
-        // Control Params
-        control.k_drive_x = cfg.k_drive_x;
-        control.k_drive_y = cfg.k_drive_y;
-        control.k_turn = cfg.k_turn;
-        control.v_ang_const = cfg.v_ang_const;
-        control.v_lin_x_const = cfg.v_lin_x_const;
-        control.v_lin_y_const = cfg.v_lin_y_const;
-        control.ctrl_ahead_pose = cfg.ctrl_ahead_pose;
-        control.vx_absmax = cfg.vx_absmax;
-        control.vy_absmax = cfg.vy_absmax;
-        control.ang_absmax = cfg.ang_absmax;
-
-        // Projection Params
-        projection.k_po = cfg.k_po;
-        projection.k_po_turn = cfg.k_po_turn;
-        projection.r_min = cfg.r_min;
-        projection.r_norm = cfg.r_norm;
-        projection.r_norm_offset = cfg.r_norm_offset;
-
-        // Waypoint Params
-        waypoint.global_plan_lookup_increment = cfg.global_plan_lookup_increment;
-        waypoint.global_plan_change_tolerance = cfg.global_plan_change_tolerance;
-
-        // Goal Param
-        goal.lin_goal_tolerance = cfg.lin_goal_tolerance;
-        goal.waypoint_tolerance = cfg.waypoint_tolerance;
-
-        // General Planning Mode Params
-        planning.feasi_inflated = cfg.feasi_inflated;
-        planning.projection_inflated = cfg.projection_inflated;
-        // planning.planning_inflated = cfg.planning_inflated;
-        planning.holonomic = cfg.holonomic;
-        planning.full_fov = cfg.full_fov;
-        planning.projection_operator = cfg.projection_operator;
-        planning.niGen_s = cfg.niGen_s;
-        planning.num_feasi_check = cfg.num_feasi_check;
-        planning.far_feasible = cfg.far_feasible;
-
-        traj.synthesized_frame = cfg.synthesized_frame;
-        traj.scale = cfg.scale;
-        traj.integrate_maxt = cfg.integrate_maxt;
-        traj.integrate_stept = cfg.integrate_stept;
-        traj.rmax = cfg.rmax;
-        traj.inf_ratio = cfg.inf_ratio;
-        traj.terminal_weight = cfg.terminal_weight;
-        traj.waypoint_ratio = cfg.waypoint_ratio;
-        traj.bezier_cp_scale = cfg.bezier_cp_scale;
-        traj.robot_geo_scale = cfg.robot_geo_scale;
-        traj.bezier_interp = cfg.bezier_interp;
-        traj.bezier_unit_time = cfg.bezier_unit_time;
-
-        man.man_ctrl = cfg.man_ctrl;
-        man.man_x = cfg.man_x;
-        man.man_y = cfg.man_y;
-        man.man_theta = cfg.man_theta;
-        man.line = cfg.line;
-
-        rbt.r_inscr = cfg.r_inscr;
     }
 
     void QuadGapConfig::updateParamFromScan(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)

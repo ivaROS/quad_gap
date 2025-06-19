@@ -15,31 +15,31 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   base_local_planner
   pluginlib
-  dynamic_reconfigure
   geometry_msgs
   nav_msgs
   roscpp
   rospy
   std_msgs
-  # benchmarking_tools
   pips_trajectory_msgs
-  dynamic_reconfigure
   message_generation
   mbf_costmap_core
-  # pips
   pips_trajectory_testing
   turtlebot_trajectory_testing
   pips_egocylindrical
   pips_egocircle
+  # dynamic_reconfigure
+  # dynamic_reconfigure
+  # benchmarking_tools
+  # pips
 )
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 
-generate_dynamic_reconfigure_options(
-  cfg/qg.cfg
-  cfg/CollisionChecker.cfg
-)
+# generate_dynamic_reconfigure_options(
+#   cfg/qg.cfg
+#   cfg/CollisionChecker.cfg
+# )
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -72,7 +72,7 @@ catkin_package(
     yaml-cpp
   DEPENDS OpenMP 
   CATKIN_DEPENDS 
-    base_local_planner dynamic_reconfigure geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs message_runtime pips_trajectory_msgs #   pips_egocircle
+    base_local_planner geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs message_runtime pips_trajectory_msgs #   pips_egocircle dynamic_reconfigure
 )
 
 add_library(quad_gap

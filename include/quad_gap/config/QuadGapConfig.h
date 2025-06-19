@@ -22,15 +22,17 @@ namespace quad_gap
             // std::string acc_topic = "TBD"; /**< IMU ROS topic */
             std::string scan_topic = "TBD"; /**< Laser scan ROS topic */
 
-            struct GapVisualization 
+            struct Robot 
             {
-                int min_resoln = 1;
-                bool close_gap_vis = false;
-                bool follow_the_gap_vis = false;
-                bool fig_gen = false;
-                double viz_jitter = 0.1;
-                bool debug_viz = true;
-            } gap_viz;
+                float r_inscr = 0.18;
+            } rbt;
+
+            struct Goal 
+            {
+                double lin_goal_tolerance = 0.2;
+                double waypoint_tolerance = 0.1;     
+                double yaw_goal_tolerance = 0.1;        
+            } goal;
 
             /**
             * \brief Hyperparameters for laser scan
@@ -49,19 +51,19 @@ namespace quad_gap
                 float range_max = -1e10; /**< Maximum detectable range in scan */
             } scan;            
 
-            struct GapManipulation 
+            struct PlanningMode 
             {
-                double gap_diff = 0.1;
-                double epsilon2 = 0.18;
-                double epsilon1 = 0.18;
-                double sigma = 1.0;
-                double reduction_threshold = M_PI / 2;
-                double reduction_target = M_PI / 4;
-                int max_idx_diff = 256;
-                bool radial_extend = true;
-                bool radial_convert = true;
-                double rot_ratio = 1.5;
-            } gap_manip;
+                bool feasi_inflated = false;  
+                bool projection_inflated = false;
+                // bool planning_inflated;
+                bool holonomic = false;
+                bool full_fov = false;
+                bool projection_operator = true;
+                bool niGen_s = false;
+                bool far_feasible = false;
+                int num_feasi_check = 10;
+                int halt_size = 5;              
+            } planning;
 
             struct ControlParams 
             {
@@ -77,6 +79,29 @@ namespace quad_gap
                 double ang_absmax = 0.2;             
             } control;
             
+            struct ManualControl 
+            {
+                bool man_ctrl = false;
+                float man_x = 0;
+                float man_y = 0;
+                float man_theta = 0;
+                bool line = false;
+            } man;
+
+            struct GapManipulation 
+            {
+                double gap_diff = 0.1;
+                double epsilon2 = 0.18;
+                double epsilon1 = 0.18;
+                double sigma = 1.0;
+                double reduction_threshold = M_PI / 2;
+                double reduction_target = M_PI / 4;
+                int max_idx_diff = 256;
+                bool radial_extend = true;
+                bool radial_convert = true;
+                double rot_ratio = 1.5;
+            } gap_manip;
+
             struct ProjectionParam 
             {
                 double k_po = 0.8;
@@ -91,27 +116,6 @@ namespace quad_gap
                 int global_plan_lookup_increment = 75;
                 double global_plan_change_tolerance = 0.1;
             } waypoint;
-
-            struct PlanningMode 
-            {
-                bool feasi_inflated = false;  
-                bool projection_inflated = false;
-                // bool planning_inflated;
-                bool holonomic = false;
-                bool full_fov = false;
-                bool projection_operator = true;
-                bool niGen_s = false;
-                bool far_feasible = false;
-                int num_feasi_check = 10;
-                int halt_size = 5;              
-            } planning;
-
-            struct Goal 
-            {
-                double lin_goal_tolerance = 0.2;
-                double waypoint_tolerance = 0.1;     
-                double yaw_goal_tolerance = 0.1;        
-            } goal;
 
             struct Trajectory 
             {
@@ -131,19 +135,24 @@ namespace quad_gap
                 double bezier_unit_time = 0.1;             
             } traj;
 
-            struct Robot 
-            {
-                float r_inscr = 0.18;
-            } rbt;
 
-            struct ManualControl 
+            struct CollisionChecker
             {
-                bool man_ctrl = false;
-                float man_x = 0;
-                float man_y = 0;
-                float man_theta = 0;
-                bool line = false;
-            } man;
+                bool collision_checker_enable = true;
+                int cc_type = -1; // assuming depth: 0, depth_ego: 1, egocircle: 2
+
+            } collision_checker;
+
+            struct GapVisualization 
+            {
+                int min_resoln = 1;
+                bool close_gap_vis = false;
+                bool follow_the_gap_vis = false;
+                bool fig_gen = false;
+                double viz_jitter = 0.1;
+                bool debug_viz = true;
+            } gap_viz;
+
 
             void loadRosParamFromNodeHandle(const std::string & name);
 
