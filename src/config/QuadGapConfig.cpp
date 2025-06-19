@@ -44,81 +44,81 @@ namespace quad_gap
             ros_throw_param_load(nh, "waypoint_tolerance", goal.waypoint_tolerance);
             ros_throw_param_load(nh, "yaw_goal_tolerance", goal.yaw_goal_tolerance);
 
-            // Gap Visualization
-            nh.param("min_resoln", gap_viz.min_resoln, gap_viz.min_resoln);
-            nh.param("close_gap", gap_viz.close_gap_vis, gap_viz.close_gap_vis);
-            nh.param("follow_the_gap", gap_viz.follow_the_gap_vis, gap_viz.follow_the_gap_vis);
-            nh.param("fig_gen", gap_viz.fig_gen, gap_viz.fig_gen);
-            nh.param("viz_jitter", gap_viz.viz_jitter, gap_viz.viz_jitter);
-            nh.param("debug_viz", gap_viz.debug_viz, gap_viz.debug_viz);
+            //////////
+            // Scan //
+            //////////
 
-            // Gap Manipulation
-            nh.param("gap_diff", gap_manip.gap_diff, gap_manip.gap_diff);
-            nh.param("epsilon2", gap_manip.epsilon2, gap_manip.epsilon2);
-            nh.param("epsilon1", gap_manip.epsilon1, gap_manip.epsilon1);
-            nh.param("sigma", gap_manip.sigma, gap_manip.sigma);
-            nh.param("rot_ratio", gap_manip.rot_ratio, gap_manip.rot_ratio);
-            nh.param("reduction_threshold", gap_manip.reduction_threshold, gap_manip.reduction_threshold);
-            nh.param("reduction_target", gap_manip.reduction_target, gap_manip.reduction_target);        
-            nh.param("max_idx_diff", gap_manip.max_idx_diff, gap_manip.max_idx_diff);
-            nh.param("radial_extend", gap_manip.radial_extend, gap_manip.radial_extend);
-            nh.param("radial_convert", gap_manip.radial_convert, gap_manip.radial_convert);
+            // Populated later in updateParamFromScan
 
-            // Control Params
-            nh.param("k_drive_x",control.k_drive_x, control.k_drive_x);
-            nh.param("k_drive_y",control.k_drive_y, control.k_drive_y);
-            nh.param("k_turn",control.k_turn, control.k_turn);
-            nh.param("v_ang_const",control.v_ang_const, control.v_ang_const);
-            nh.param("v_lin_x_const",control.v_lin_x_const, control.v_lin_x_const);
-            nh.param("v_lin_y_const",control.v_lin_y_const, control.v_lin_y_const);
-            nh.param("ctrl_ahead_pose",control.ctrl_ahead_pose, control.ctrl_ahead_pose);
+            ///////////////////
+            // Planning Mode //
+            ///////////////////
+            ros_throw_param_load(nh, "holonomic", planning.holonomic);
+            ros_throw_param_load(nh, "projection_operator", planning.projection_operator);
+            ros_throw_param_load(nh, "num_feasi_check", planning.num_feasi_check);
+            ros_throw_param_load(nh, "halt_size", planning.halt_size);
 
-            nh.param("vx_absmax",control.vx_absmax, control.vx_absmax);
-            nh.param("vy_absmax",control.vy_absmax, control.vy_absmax);
-            nh.param("ang_absmax",control.ang_absmax, control.ang_absmax);
+            ////////////////////
+            // Control Params //
+            ////////////////////
+            ros_throw_param_load(nh, "k_drive_x", control.k_drive_x);
+            ros_throw_param_load(nh, "k_drive_y", control.k_drive_y);
+            ros_throw_param_load(nh, "k_turn", control.k_turn);
+            ros_throw_param_load(nh, "v_ang_const", control.v_ang_const);
+            ros_throw_param_load(nh, "v_lin_x_const", control.v_lin_x_const);
+            ros_throw_param_load(nh, "v_lin_y_const", control.v_lin_y_const);
+            ros_throw_param_load(nh, "ctrl_ahead_pose", control.ctrl_ahead_pose);
+            ros_throw_param_load(nh, "vx_absmax", control.vx_absmax);
+            ros_throw_param_load(nh, "vy_absmax", control.vy_absmax);
+            ros_throw_param_load(nh, "ang_absmax", control.ang_absmax);
 
-            // Projection Params
-            nh.param("k_po", projection.k_po, projection.k_po);
-            nh.param("k_po_turn", projection.k_po, projection.k_po);
-            nh.param("r_min", projection.r_min, projection.r_min);
-            nh.param("r_norm", projection.r_norm, projection.r_norm);
-            nh.param("r_norm_offset", projection.r_norm_offset, projection.r_norm_offset);
+            ///////////////////////////
+            // Manual Control Params //
+            ///////////////////////////
+            ros_throw_param_load(nh, "man_ctrl", man.man_ctrl);
+            ros_throw_param_load(nh, "man_x", man.man_x);
+            ros_throw_param_load(nh, "man_y", man.man_y);
+            ros_throw_param_load(nh, "man_theta", man.man_theta);
+            ros_throw_param_load(nh, "line", man.line);
 
-            // Waypoint Params
-            nh.param("global_plan_lookup_increment", waypoint.global_plan_lookup_increment, waypoint.global_plan_lookup_increment);
-            nh.param("global_plan_change_tolerance", waypoint.global_plan_change_tolerance, waypoint.global_plan_change_tolerance);
+            ///////////////////////
+            // Gap Manipulation //
+            ///////////////////////
+            ros_throw_param_load(nh, "sigma", gap_manip.sigma);
+            ros_throw_param_load(nh, "rot_ratio", gap_manip.rot_ratio);
+            ros_throw_param_load(nh, "reduction_threshold", gap_manip.reduction_threshold);
+            ros_throw_param_load(nh, "reduction_target", gap_manip.reduction_target);
+            ros_throw_param_load(nh, "max_idx_diff", gap_manip.max_idx_diff);
+            ros_throw_param_load(nh, "radial_extend", gap_manip.radial_extend);
+            ros_throw_param_load(nh, "radial_convert", gap_manip.radial_convert);
 
-            // Goal Param
-            nh.param("lin_goal_tolerance", goal.lin_goal_tolerance, goal.lin_goal_tolerance);
-            nh.param("waypoint_tolerance", goal.waypoint_tolerance, goal.waypoint_tolerance);
+            ///////////////////////
+            // Projection Params //
+            ///////////////////////
+            ros_throw_param_load(nh, "k_po", projection.k_po);
+            ros_throw_param_load(nh, "k_po_turn", projection.k_po_turn);
+            ros_throw_param_load(nh, "r_min", projection.r_min);
+            ros_throw_param_load(nh, "r_norm", projection.r_norm);
+            ros_throw_param_load(nh, "r_norm_offset", projection.r_norm_offset);
 
-            // General Planning Mode Params
-            nh.param("feasi_inflated", planning.feasi_inflated, planning.feasi_inflated);
-            nh.param("projection_inflated", planning.projection_inflated, planning.projection_inflated);
-            // nh.param("planning_inflated", planning.planning_inflated, planning.planning_inflated);
-            nh.param("holonomic", planning.holonomic, planning.holonomic);
-            nh.param("full_fov", planning.full_fov, planning.full_fov);
-            nh.param("projection_operator", planning.projection_operator, planning.projection_operator);
-            nh.param("niGen_s", planning.niGen_s, planning.niGen_s);
-            nh.param("num_feasi_check", planning.num_feasi_check, planning.num_feasi_check);
-            nh.param("num_feasi_check", planning.far_feasible, planning.far_feasible);
+            ///////////////////////
+            // Trajectory Params //
+            ///////////////////////
+            ros_throw_param_load(nh, "integrate_maxt", traj.integrate_maxt);
+            ros_throw_param_load(nh, "integrate_stept", traj.integrate_stept);
+            ros_throw_param_load(nh, "rmax", traj.rmax);
+            ros_throw_param_load(nh, "inf_ratio", traj.inf_ratio);
+            ros_throw_param_load(nh, "terminal_weight", traj.terminal_weight);
+            ros_throw_param_load(nh, "robot_geo_scale", traj.robot_geo_scale);
+            ros_throw_param_load(nh, "bezier_interp", traj.bezier_interp);
+            ros_throw_param_load(nh, "bezier_unit_time", traj.bezier_unit_time);
 
-            // Trajectory
-            nh.param("synthesized_frame", traj.synthesized_frame, traj.synthesized_frame);
-            nh.param("scale", traj.scale, traj.scale);
-            nh.param("integrate_maxt", traj.integrate_maxt, traj.integrate_maxt);
-            nh.param("integrate_stept", traj.integrate_stept, traj.integrate_stept);
-            nh.param("rmax", traj.rmax, traj.rmax);
-            nh.param("inf_ratio", traj.inf_ratio, traj.inf_ratio);
-            nh.param("terminal_weight", traj.terminal_weight, traj.terminal_weight);
-            nh.param("waypoint_ratio", traj.waypoint_ratio, traj.waypoint_ratio);
-            nh.param("bezier_cp_scale", traj.bezier_cp_scale, traj.bezier_cp_scale);
-            nh.param("robot_geo_scale", traj.robot_geo_scale, traj.robot_geo_scale);
-            nh.param("bezier_interp", traj.bezier_interp, traj.bezier_interp);
-            nh.param("bezier_unit_time", traj.bezier_unit_time, traj.bezier_unit_time);
-            
-            // Robot
-            nh.param("r_inscr", rbt.r_inscr, rbt.r_inscr);
+            ///////////////////////
+            // Collision Checker //
+            ///////////////////////
+            ros_throw_param_load(nh, "collision_checker_enable", collision_checker.collision_checker_enable);
+            ros_throw_param_load(nh, "cc_type", collision_checker.cc_type);
+
         } else
         {
             throw std::runtime_error("Model " + model + " not implemented!");

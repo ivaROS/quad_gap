@@ -5,11 +5,84 @@
 #include <Eigen/Geometry>
 #include <vector>
 #include <tf/tf.h>
-#include <chrono>
 
 namespace quad_gap 
 {
+    ///////////////////////////
+    // ROS PARAMETER LOADING //
+    ///////////////////////////
 
+    // inline void ros_throw_if(const bool & condition, const std::string & message)
+    // {
+    //     if (condition)
+    //     {
+    //         ROS_ERROR_STREAM_NAMED("Parameters", message);
+    //         throw std::runtime_error(message);
+    //     }
+    // }
+    
+    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, bool & param)
+    {
+        // format: key, value, default value
+
+        if (!nh.getParam(param_name, param))
+        {
+            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            throw std::runtime_error("Couldn't find parameter: " + param_name);
+        } else
+        {
+            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+        }
+    }
+    
+    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, std::string & param)
+    {
+        if (!nh.getParam(param_name, param))
+        {
+            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            throw std::runtime_error("Couldn't find parameter: " + param_name);
+        } else
+        {
+            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+        }
+    }
+
+    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, double & param)
+    {
+        if (!nh.getParam(param_name, param))
+        {
+            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            throw std::runtime_error("Couldn't find parameter: " + param_name);
+        } else
+        {
+            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+        }
+    }
+
+    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, float & param)
+    {
+        if (!nh.getParam(param_name, param))
+        {
+            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            throw std::runtime_error("Couldn't find parameter: " + param_name);
+        } else
+        {
+            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+        }
+    }
+
+    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, int & param)
+    {
+        if (!nh.getParam(param_name, param))
+        {
+            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            throw std::runtime_error("Couldn't find parameter: " + param_name);
+        } else
+        {
+            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+        }
+    }    
+    
     //////////////////////////////
     //        VARIABLES         //
     //////////////////////////////
@@ -27,6 +100,12 @@ namespace quad_gap
     static Eigen::Matrix2f Rpi2 = (Eigen::Matrix2f() << 0.0, -1.0, 1.0, 0.0).finished(); /**< Rotation matrix for pi/2 */
  
     static Eigen::Matrix2f Rnegpi2 = (Eigen::Matrix2f() << 0.0, 1.0, -1.0, 0.0).finished(); /**< Rotation matrix for -pi/2 */
+
+    enum trajFlags {    NONE = -1,
+                        GAP = 0,
+                        UNGAP = 1,
+                        IDLING = 2
+                        };
 
     enum gapEndConditions { UNSET = -1, 
                             COLLISION = 0, 
@@ -51,6 +130,44 @@ namespace quad_gap
     //////////////////////////////
     //         CHECKING         // 
     //////////////////////////////
+
+    inline bool checkPtIdx(const int & idx)
+    {
+        // check for negative index
+        if (idx < 0)
+            return false;
+
+        // check for out of bounds index
+        if (idx >= 2*half_num_scan)
+            return false;
+
+        // check for nan
+        if (std::isnan(idx))
+            return false;
+
+        // check for inf
+        if (std::isinf(idx))
+            return false;
+
+        return true;
+    }
+
+    inline bool checkPtRange(const float & range)
+    {
+        // check for negative range
+        if (range < 0.0)
+            return false;
+
+        // check for nan
+        if (std::isnan(range))
+            return false;
+
+        // check for inf
+        if (std::isinf(range))
+            return false;
+
+        return true;
+    }
 
     inline bool checkModelState(const Eigen::Vector4f & state)
     {
@@ -144,8 +261,8 @@ namespace quad_gap
             //     raw_idx += eps;
 
             
-        ROS_INFO_STREAM_NAMED("Gap", "theta2idx raw_idx: " << raw_idx);
-        ROS_INFO_STREAM_NAMED("Gap", "theta2idx std::round(raw_idx): " << std::round(raw_idx));
+        // ROS_INFO_STREAM_NAMED("Gap", "theta2idx raw_idx: " << raw_idx);
+        // ROS_INFO_STREAM_NAMED("Gap", "theta2idx std::round(raw_idx): " << std::round(raw_idx));
 
         return int(std::round(raw_idx));
     }
@@ -171,6 +288,18 @@ namespace quad_gap
         return std::atan2(2.0 * (quat.w * quat.z + quat.x * quat.y), 
                             1 - 2.0 * (quat.y * quat.y + quat.z * quat.z));
     }
+
+    inline Eigen::Matrix2f getRotMat(const float & theta)
+    {
+        Eigen::Matrix2f rotMat;
+        rotMat(0, 0) = std::cos(theta);
+        rotMat(0, 1) = -std::sin(theta);
+        rotMat(1, 0) = std::sin(theta);
+        rotMat(1, 1) = std::cos(theta);
+
+        return rotMat;
+    }
+
     //////////////////////////////
     //     ANGLE CONVERSIONS    // 
     //////////////////////////////
@@ -182,7 +311,7 @@ namespace quad_gap
     * \return signed angle from left gap point to right gap point
     */
     inline float getSignedLeftToRightAngle(const Eigen::Vector2f & leftVect, 
-                                    const Eigen::Vector2f & rightVect) 
+                                            const Eigen::Vector2f & rightVect) 
     {
         float determinant = leftVect[1]*rightVect[0] - leftVect[0]*rightVect[1];
         float dotProduct = leftVect[0]*rightVect[0] + leftVect[1]*rightVect[1];
@@ -199,7 +328,7 @@ namespace quad_gap
     * \return angle swept from left gap point to right gap point
     */
     inline float getSweptLeftToRightAngle(const Eigen::Vector2f & leftVect,
-                                   const Eigen::Vector2f & rightVect) 
+                                            const Eigen::Vector2f & rightVect) 
     {
         float leftToRightAngle = getSignedLeftToRightAngle(leftVect, rightVect);
 
@@ -239,8 +368,8 @@ namespace quad_gap
     * \return distance from scan point to robot pose
     */
     inline float dist2Pose(const float & theta, 
-                    const float & range, 
-                    const geometry_msgs::Pose & pose) 
+                            const float & range, 
+                            const geometry_msgs::Pose & pose) 
     {
         // ego circle point in local frame, pose in local frame
         // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "   theta: " << theta << ", range: " << range);
@@ -250,6 +379,26 @@ namespace quad_gap
         float dist = sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2)); 
         // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "   dist: " << dist);
         return dist;
+    }
+
+    /** 
+    * \brief Calculates the euclidean distance between the left and right gap points using the law of cosines
+    * \return distance between left and right gap points
+    */
+    inline float getGapEuclideanDist(const int & leftIdx, const float & leftRange, const int & rightIdx, const float & rightRange) 
+    {
+        int checkLeftIdx = leftIdx; // leftGapPt_->getOrigIdx(); // 
+        int checkRightIdx = rightIdx; // rightGapPt_->getOrigIdx(); // ;
+
+        float checkLeftRange = leftRange; // leftGapPt_->getOrigRange(); // 
+        float checkRightRange = rightRange; // rightGapPt_->getOrigRange(); // 
+
+        float resoln = M_PI / half_num_scan;
+        float gapAngle = (checkLeftIdx - checkRightIdx) * angle_increment;
+        if (gapAngle < 0)
+            gapAngle += TWO_M_PI;
+
+        return sqrt(pow(checkRightRange, 2) + pow(checkLeftRange, 2) - 2 * checkRightRange * checkLeftRange * cos(gapAngle));
     }
 
     //////////////////////////////
@@ -304,21 +453,5 @@ namespace quad_gap
     inline Eigen::Vector2d epsilonDivide(const Eigen::Vector2d & numerator, const double & denominator)
     {
         return numerator / (denominator + eps); 
-    }
-
-    //////////////////////////////
-    //          TIMING          //
-    //////////////////////////////
-
-    /**
-    * \brief Calculate time that has elapsed in seconds since given start time
-    * \param startTime start time
-    * \return elapsed time in seconds
-    */
-    inline float timeTaken(const std::chrono::steady_clock::time_point & startTime)
-    {
-        float timeTakenInMilliseconds = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - startTime).count();
-        float timeTakenInSeconds = timeTakenInMilliseconds * 1.0e-6;
-        return timeTakenInSeconds;
     }
 }

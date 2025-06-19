@@ -80,13 +80,6 @@ namespace quad_gap {
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */
             boost::mutex gap_mutex;
 
-            int search_idx = -1;
-
-            // double r_inscr; 
-            // double rmax;
-            // double cobs;
-            // double w;
-            // double terminal_weight;
             RobotGeometryProcessor robot_geo_proc_;
     };
 }

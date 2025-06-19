@@ -5,11 +5,6 @@ namespace quad_gap
     TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
     {
         cfg_ = & cfg;
-        // r_inscr = cfg_->rbt.r_inscr;
-        // rmax = cfg_->traj.rmax;
-        // cobs = cfg_->traj.cobs;
-        // w = cfg_->traj.w;
-        // terminal_weight = cfg_->traj.terminal_weight;
         robot_geo_proc_ = robot_geo_proc;
     }
 

@@ -9,6 +9,8 @@
 #include <sensor_msgs/LaserScan.h>
 #include <boost/shared_ptr.hpp>
 
+#include <quad_gap/utils/Utils.h>  
+
 namespace quad_gap 
 {
     class QuadGapConfig 
@@ -53,14 +55,8 @@ namespace quad_gap
 
             struct PlanningMode 
             {
-                bool feasi_inflated = false;  
-                bool projection_inflated = false;
-                // bool planning_inflated;
                 bool holonomic = false;
-                bool full_fov = false;
                 bool projection_operator = true;
-                bool niGen_s = false;
-                bool far_feasible = false;
                 int num_feasi_check = 10;
                 int halt_size = 5;              
             } planning;
@@ -90,9 +86,6 @@ namespace quad_gap
 
             struct GapManipulation 
             {
-                double gap_diff = 0.1;
-                double epsilon2 = 0.18;
-                double epsilon1 = 0.18;
                 double sigma = 1.0;
                 double reduction_threshold = M_PI / 2;
                 double reduction_target = M_PI / 4;
@@ -111,16 +104,8 @@ namespace quad_gap
                 double k_po_turn = 1;
             } projection;
 
-            struct Waypoint 
-            {
-                int global_plan_lookup_increment = 75;
-                double global_plan_change_tolerance = 0.1;
-            } waypoint;
-
             struct Trajectory 
             {
-                bool synthesized_frame = false;
-                double scale = 1;
                 double integrate_maxt = 50;
                 double integrate_stept = 1e-2;
                 double rmax = 0.3;
@@ -128,8 +113,6 @@ namespace quad_gap
                 double w = 3;
                 double inf_ratio = 1.2;
                 double terminal_weight = 10;
-                double waypoint_ratio = 1.5;
-                double bezier_cp_scale = 1;
                 double robot_geo_scale = 1;
                 bool bezier_interp = true;
                 double bezier_unit_time = 0.1;             
@@ -142,17 +125,6 @@ namespace quad_gap
                 int cc_type = -1; // assuming depth: 0, depth_ego: 1, egocircle: 2
 
             } collision_checker;
-
-            struct GapVisualization 
-            {
-                int min_resoln = 1;
-                bool close_gap_vis = false;
-                bool follow_the_gap_vis = false;
-                bool fig_gen = false;
-                double viz_jitter = 0.1;
-                bool debug_viz = true;
-            } gap_viz;
-
 
             void loadRosParamFromNodeHandle(const std::string & name);
 

@@ -127,15 +127,15 @@ namespace quad_gap
         std::string _frame_id;
         double _coefs;
 
-        write_trajectory(geometry_msgs::PoseArray& posearr, std::string frame_id, double coefs)
-        : _posearr(posearr), _frame_id(frame_id), _coefs(coefs) { }
+        write_trajectory(geometry_msgs::PoseArray& posearr, std::string frame_id)
+        : _posearr(posearr), _frame_id(frame_id) { }
 
         void operator()( const state_type &x , double t )
         {
             geometry_msgs::PoseStamped pose;
             pose.header.frame_id = _frame_id;
-            pose.pose.position.x = x[0] / _coefs;
-            pose.pose.position.y = x[1] / _coefs;
+            pose.pose.position.x = x[0];
+            pose.pose.position.y = x[1];
             pose.pose.position.z = 0;
 
             pose.pose.orientation.x = 0;

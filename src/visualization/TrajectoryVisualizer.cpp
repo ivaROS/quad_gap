@@ -224,44 +224,6 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         gapTrajectoriesPublisher.publish(gapTrajMarkerArray);
     }
 
-    // void TrajectoryVisualizer::pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr) 
-    // {
-    //     // First, clearing topic.
-    //     clearMarkerArrayPublisher(gapTrajectoriesPublisher);
-
-    //     if (!cfg_->gap_viz.debug_viz) return;
-    //     visualization_msgs::MarkerArray vis_traj_arr;
-    //     visualization_msgs::Marker lg_marker;
-    //     if (prr.size() == 0)
-    //     {
-    //         ROS_WARN_STREAM("traj count length 0");
-    //         return;
-    //     }
-
-    //     // The above makes this safe
-    //     lg_marker.header.frame_id = prr.at(0).header.frame_id;
-    //     lg_marker.header.stamp = ros::Time::now();
-    //     lg_marker.ns = "allTraj";
-    //     lg_marker.type = visualization_msgs::Marker::ARROW;
-    //     lg_marker.action = visualization_msgs::Marker::ADD;
-    //     lg_marker.scale.x = 0.1;
-    //     lg_marker.scale.y = cfg_->gap_viz.fig_gen ? 0.02 : 0.01;// 0.01;
-    //     lg_marker.scale.z = 0.1;
-    //     lg_marker.color.a = 1;
-    //     lg_marker.color.r = 0.5;
-    //     lg_marker.color.g = 0.5;
-    //     lg_marker.lifetime = ros::Duration(0.25);
-
-    //     for (auto & arr : prr) {
-    //         for (auto pose : arr.poses) {
-    //             lg_marker.id = int (vis_traj_arr.markers.size());
-    //             lg_marker.pose = pose;
-    //             vis_traj_arr.markers.push_back(lg_marker);
-    //         }
-    //     }
-    //     gapTrajectoriesPublisher.publish(vis_traj_arr);
-    // }
-
     void TrajectoryVisualizer::drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::PoseStamped> & globalPlanSnippet) 
     {
         // First, clearing topic.

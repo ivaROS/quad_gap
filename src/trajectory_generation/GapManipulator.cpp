@@ -237,8 +237,8 @@ namespace quad_gap {
         gap->convex.convex_left_idx = new_r;
         gap->convex.convex_right_idx = new_l;
 
-        gap->convex.convex_left_dist = new_left_dist + cfg_->gap_viz.viz_jitter;
-        gap->convex.convex_right_dist = new_right_dist + cfg_->gap_viz.viz_jitter;
+        gap->convex.convex_left_dist = new_left_dist;
+        gap->convex.convex_right_dist = new_right_dist;
 
         gap->life_time = 50;
         gap->mode.reduced = true;
@@ -260,7 +260,6 @@ namespace quad_gap {
         // Extend of rotation to the radial gap 
         // amp-ed by a **small** ratio to ensure the local goal does not exactly fall on the
         // visibility line
-        // float rot_val = (float) std::atan2(cfg_->gap_manip.epsilon2 * cfg_->gap_manip.rot_ratio, cfg_->gap_manip.epsilon1);
 
         int right_idx, left_idx;
         float right_dist, left_dist;

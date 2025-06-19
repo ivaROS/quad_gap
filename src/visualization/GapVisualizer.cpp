@@ -159,9 +159,6 @@ namespace quad_gap
         clearMarkerPublisher(rawGapsPublisher);
         clearMarkerPublisher(simpGapsPublisher);
 
-        // if (!cfg_->gap_viz.debug_viz) 
-        //     return;
-
         visualization_msgs::Marker marker;
         drawGap(marker, gaps, ns); // , true);
 
@@ -248,7 +245,6 @@ namespace quad_gap
             if (gap->mode.reduced) 
             {
                 ns = "simp_swept";
-                // viz_jitter += 0.1;
             }
             
             if (gap->mode.convex) 
@@ -405,181 +401,6 @@ namespace quad_gap
 
     }    
 
-    // void GapVisualizer::drawManipGap(visualization_msgs::MarkerArray & vis_arr, const Gap & g, bool & circle) 
-    // {
-    //     // if AGC: Color is Red
-    //     // if Convex: color is Brown, viz_jitter + 0.1
-    //     // if RadialExtension: color is green, draw additional circle
-    //     if (!cfg_->gap_viz.debug_viz) return;
-
-    //     if (!g.mode.reduced && !g.mode.convex && !g.mode.agc) 
-    //     {
-    //         return;
-    //     }
-
-    //     float viz_jitter = (float) cfg_->gap_viz.viz_jitter;
-    //     int viz_offset = 0;
-    //     if (viz_jitter > 0 && g.isRadial())
-    //     {
-    //         viz_offset = g.isRightType() ? -2 : 2;
-    //     }
-
-    //     std::string ns;
-    //     if (g.mode.reduced) {
-    //         ns = "simp_swept";
-    //         viz_jitter += 0.1;
-    //     }
-        
-    //     if (g.mode.convex) {
-    //         ns = "simp_extent";
-    //     }
-
-    //     if (g.mode.agc) {
-    //         ns = "simp_agc";
-    //     }
-        
-    //     int num_gaps = (g.convex.convex_left_idx - g.convex.convex_right_idx) / cfg_->gap_viz.min_resoln + 1;
-    //     float dist_step = (g.convex.convex_left_dist - g.convex.convex_right_dist) / num_gaps;
-    //     int sub_gap_right_idx = g.convex.convex_right_idx + viz_offset;
-    //     float sub_gap_right_dist = g.convex.convex_right_dist;
-
-    //     visualization_msgs::Marker this_marker;
-    //     this_marker.header.frame_id = g._frame;
-    //     this_marker.header.stamp = ros::Time();
-    //     this_marker.ns = ns;
-    //     this_marker.type = visualization_msgs::Marker::LINE_STRIP;
-    //     this_marker.action = visualization_msgs::Marker::ADD;
-
-    //     auto color_value = colorMap.find(ns);
-    //     if (color_value == colorMap.end()) 
-    //     {
-    //         ROS_FATAL_STREAM("[drawManipGaps] Visualization Color not found, return without drawing");
-    //         return;
-    //     }
-
-    //     this_marker.colors = color_value->second;
-    //     double thickness = cfg_->gap_viz.fig_gen ? 0.05 : 0.01;
-    //     this_marker.scale.x = thickness;
-    //     this_marker.scale.y = 0.1;
-    //     this_marker.scale.z = 0.1;
-
-    //     geometry_msgs::Point linel;
-    //     geometry_msgs::Point liner;
-    //     liner.z = 0.1;
-    //     linel.z = 0.1;
-    //     std::vector<geometry_msgs::Point> lines;
-
-    //     int id = (int) vis_arr.markers.size();
-    //     // ROS_INFO_STREAM("ID: "<< id);
-
-    //     this_marker.lifetime = ros::Duration(0.25);
-
-    //     for (int i = 0; i < num_gaps - 1; i++)
-    //     {
-    //         lines.clear();
-    //         linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
-    //         linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
-    //         sub_gap_right_idx += cfg_->gap_viz.min_resoln;
-    //         sub_gap_right_dist += dist_step;
-    //         liner.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
-    //         liner.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
-    //         lines.push_back(linel);
-    //         lines.push_back(liner);
-
-    //         this_marker.points = lines;
-    //         this_marker.id = id++;
-    //         vis_arr.markers.push_back(this_marker);
-    //     }
-
-    //     // close the last
-    //     lines.clear();
-    //     linel.x = (sub_gap_right_dist + viz_jitter) * cos(idx2theta(sub_gap_right_idx));
-    //     linel.y = (sub_gap_right_dist + viz_jitter) * sin(idx2theta(sub_gap_right_idx));
-    //     liner.x = (g.convex.convex_left_dist + viz_jitter) * cos(idx2theta(g.convex.convex_left_idx));
-    //     liner.y = (g.convex.convex_left_dist + viz_jitter) * sin(idx2theta(g.convex.convex_left_idx));
-    //     lines.push_back(linel);
-    //     lines.push_back(liner);
-    //     this_marker.points = lines;
-    //     this_marker.id = id++;
-    //     this_marker.lifetime = ros::Duration(g.life_time);
-    //     vis_arr.markers.push_back(this_marker);
-
-    //     if (g.mode.convex) {
-    //         float r = g.getMinSafeDist();
-    //         if (r < 0) {
-    //             ROS_WARN_STREAM("Gap min safe dist not recorded");
-    //         }
-
-    //         auto convex_color = colorMap["simp_extent"];
-
-    //         this_marker.ns = "simp_extent";
-
-    //         // The Circle
-    //         if (!circle) 
-    //         {
-    //             for (int i = 0; i < 50; i++) 
-    //             {
-    //                 lines.clear();
-    //                 linel.x = r * cos(M_PI / 25 * float(i));
-    //                 linel.y = r * sin(M_PI / 25 * float(i));
-    //                 liner.x = r * cos(M_PI / 25 * float(i + 1));
-    //                 liner.y = r * sin(M_PI / 25 * float(i + 1));
-    //                 lines.push_back(linel);
-    //                 lines.push_back(liner);
-    //                 this_marker.points = lines;
-    //                 this_marker.colors = convex_color;
-    //                 this_marker.id = id++;
-    //                 this_marker.lifetime = ros::Duration();
-    //                 vis_arr.markers.push_back(this_marker);
-    //             }
-    //             circle = true;
-    //         }
-
-    //         auto getline = [] (const int & idx, const float & dist,
-    //                             const Eigen::Vector2f & qB,
-    //                             std::vector<geometry_msgs::Point>& lines,
-    //                             geometry_msgs::Point& linel,
-    //                             geometry_msgs::Point& liner,
-    //                             visualization_msgs::Marker& this_marker,
-    //                             const std_msgs::ColorRGBA & convex_color,
-    //                             visualization_msgs::MarkerArray& vis_arr,
-    //                             const int & id
-    //                             ) -> void {
-    //                                 lines.clear();
-    //                                 linel.x = qB(0);
-    //                                 linel.y = qB(1);
-    //                                 linel.z = 0.1;
-    //                                 liner.x = dist * cos(idx2theta(idx));
-    //                                 liner.y = dist * sin(idx2theta(idx));
-    //                                 liner.z = 0.1;
-    //                                 lines.push_back(linel);
-    //                                 lines.push_back(liner);
-    //                                 this_marker.points = lines;
-    //                                 this_marker.colors = convex_color;
-    //                                 this_marker.id = id;
-    //                                 this_marker.lifetime = ros::Duration(0.2);
-    //                                 vis_arr.markers.push_back(this_marker);
-    //                             };
-
-    //         {
-    //             this_marker.ns = "extent_line";
-    //             getline(g.convex.convex_right_idx, g.convex.convex_right_dist, g.qB, 
-    //                 lines, linel, liner, this_marker, convex_color, vis_arr, id++);
-    //             getline(g.convex.convex_left_idx, g.convex.convex_left_dist, g.qB, 
-    //                 lines, linel, liner, this_marker, convex_color, vis_arr, id++);
-    //             Eigen::Vector2f origin(0, 0);
-
-
-    //             this_marker.ns = "orig_line";
-    //             getline(g._right_idx, g._right_dist, origin, 
-    //                      lines, linel, liner, this_marker, colorMap["simp_agc"], vis_arr, id++);
-    //             getline(g._left_idx, g._left_dist, origin, 
-    //                      lines, linel, liner, this_marker, colorMap["simp_agc"], vis_arr, id++);
-    //         }
-    //     }
-
-    // }
-
     void GapVisualizer::drawManipGaps(const std::vector<Gap *> & gaps) 
     {
         // First, clearing topic.
@@ -592,20 +413,4 @@ namespace quad_gap
 
         manipGapsPublisher.publish(marker);
     }
-
-    // void GapVisualizer::drawManipGaps(const std::vector<Gap> & vec) 
-    // {
-    //     // First, clearing topic.
-    //     clearMarkerArrayPublisher(manipGapsPublisher);
-
-    //     if (!cfg_->gap_viz.debug_viz) return;
-    //     visualization_msgs::MarkerArray vis_arr;
-    //     bool circle = false;
-        
-    //     for (const Gap & gap : vec) 
-    //     {
-    //         drawManipGap(vis_arr, gap, circle);
-    //     }
-    //     manipGapsPublisher.publish(vis_arr);
-    // }
 }

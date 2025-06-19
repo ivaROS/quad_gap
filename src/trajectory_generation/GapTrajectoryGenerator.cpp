@@ -9,9 +9,7 @@ namespace quad_gap
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
         
-        double coefs = cfg_->traj.scale;
-        write_trajectory corder(posearr, cfg_->robot_frame_id, coefs);
-        // posearr.header.frame_id = cfg_->traj.synthesized_frame ? cfg_->sensor_frame_id : cfg_->robot_frame_id;
+        write_trajectory corder(posearr, cfg_->robot_frame_id);
         posearr.header.frame_id = cfg_->robot_frame_id;
 
         if (selectedGap->goal.discard) 
@@ -24,8 +22,8 @@ namespace quad_gap
         if (selectedGap->goal.goalwithin) 
         {
             // ROS_INFO_STREAM("Goal to Goal");
-            g2g inte_g2g(selectedGap->goal.x * coefs,
-                         selectedGap->goal.y * coefs);
+            g2g inte_g2g(selectedGap->goal.x,
+                         selectedGap->goal.y);
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
             inte_g2g, x, 0.0,
             cfg_->traj.integrate_maxt,
@@ -59,10 +57,10 @@ namespace quad_gap
 
         }
         
-        polar_gap_field inte(x_right * coefs, x_left * coefs,
-                            y_right * coefs, y_left * coefs,
-                            goal_x * coefs,
-                            goal_y * coefs,
+        polar_gap_field inte(x_right, x_left,
+                            y_right, y_left,
+                            goal_x,
+                            goal_y,
                             // selectedGap->getRightObs(),
                             // selectedGap->getLeftObs(),
                             selectedGap->isRadial(),
@@ -190,16 +188,6 @@ namespace quad_gap
 
                 if (dist_inter_orient >= robot_geo_thresh_dist)
                 {
-                    // Second control point
-                    // if(ideal_min_cp_length < circ_r)
-                    // {
-                    //     float cp_length = circ_r * float(cfg_->traj.bezier_cp_scale);
-                    //     cp = cp_length * rbt_orient_vec;
-                    // }
-                    // else
-                    // {
-                    //     cp = ideal_min_cp_length * rbt_orient_vec;
-                    // }
                     if (ideal_min_cp_length > cp_max_length)
                         cp = cp_max_length * rbt_orient_vec;
                     else
@@ -680,7 +668,6 @@ namespace quad_gap
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
         
-        // posearr.header.frame_id = cfg_->traj.synthesized_frame ? cfg_->sensor_frame_id : cfg_->robot_frame_id;
         posearr.header.frame_id = cfg_->robot_frame_id;
 
         if (selectedGap->goal.discard) 

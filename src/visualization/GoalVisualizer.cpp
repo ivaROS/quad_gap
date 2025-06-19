@@ -113,8 +113,6 @@ namespace quad_gap
         // First, clearing topic.
         clearMarkerPublisher(gapGoalPublisher);
 
-        // if (!cfg_->gap_viz.debug_viz) return;
-
         if (gaps.empty()) 
         {
             ROS_WARN_STREAM_NAMED("Visualizer", "[drawGapGoals] No gaps to visualize");

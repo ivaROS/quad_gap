@@ -133,10 +133,9 @@ namespace quad_gap
         // Setup Vars
         boost::mutex::scoped_lock lock(egocircle_l);
         bool holonomic = cfg_->planning.holonomic;
-        bool full_fov = cfg_->planning.full_fov;
         bool projection_operator = cfg_->planning.projection_operator;
         double k_turn_ = cfg_->control.k_turn;
-        if (holonomic && full_fov) k_turn_ = 0.8;
+        if (holonomic) k_turn_ = 0.8;
         double k_drive_x_ = cfg_->control.k_drive_x;
         double k_drive_y_ = cfg_->control.k_drive_y;
         double k_po_ = cfg_->projection.k_po;
