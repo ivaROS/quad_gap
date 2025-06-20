@@ -14,70 +14,87 @@ namespace quad_gap
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [reduceGap()]");
 
-        int left_idx = gap->LIdx();
-        int right_idx = gap->RIdx();
+        int leftIdx = gap->manipLeftIdx();
+        float leftRange = gap->manipLeftRange();
+        int rightIdx = gap->manipRightIdx();
+        float rightRange = gap->manipRightRange();
 
-        // ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
-        // ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-AGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");    
+        float leftTheta = idx2theta(leftIdx);
+        float rightTheta = idx2theta(rightIdx);
+        float xLeft = leftRange * cos(leftTheta);
+        float yLeft = leftRange * sin(leftTheta);
+        float xRight = rightRange * cos(rightTheta);
+        float yRight = rightRange * sin(rightTheta);
 
-        
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-reduce gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-reduce gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");    
+
         if (!scan_) 
             return; 
 
-        float angular_size = (left_idx - right_idx) * (scan_.get()->angle_increment);
+        float angularSize = (leftIdx - rightIdx) * (scan_.get()->angle_increment);
 
-        if (angular_size < cfg_->gap_manip.reduction_threshold)
+        if (angularSize < cfg_->gap_manip.reduction_threshold)
         {
             return;
         }
 
         int gap_size = cfg_->gap_manip.reduction_target / scan_.get()->angle_increment;
-        int l_biased_r = right_idx + gap_size;
-        int r_biased_l = left_idx - gap_size;
+        int leftBiasedRightIdx = rightIdx + gap_size;
+        int rightBiasedLeftIdx = leftIdx - gap_size;
 
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
-        int goal_idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
+        int goal_idx = theta2idx(goal_orientation);
 
         int acceptable_dist = int(round(gap_size / 2));
 
-        int new_l, new_r;
-        if (goal_idx + acceptable_dist > left_idx)
+        int newLeftIdx, newRightIdx;
+        if (goal_idx + acceptable_dist > leftIdx)
         {
             // r-biased Gap
-            new_r = left_idx;
-            new_l = r_biased_l;
-        } else if (goal_idx - acceptable_dist < right_idx) 
+            newLeftIdx = leftIdx;
+            newRightIdx = rightBiasedLeftIdx;
+        } else if (goal_idx - acceptable_dist < rightIdx) 
         {
             // l-biased gap
-            new_r = l_biased_r;
-            new_l = right_idx;
+            newLeftIdx = leftBiasedRightIdx;
+            newRightIdx = rightIdx;
         } else 
         {
             // Lingering in center
-            new_l = goal_idx - acceptable_dist;
-            new_r = goal_idx + acceptable_dist;
+            newLeftIdx = goal_idx + acceptable_dist;
+            newRightIdx = goal_idx - acceptable_dist;
         }
 
-        // ROS_INFO_STREAM(right_idx << " " << left_idx << " " << l_biased_r << " " << r_biased_l << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << new_l << " " << new_r);
+        // ROS_INFO_STREAM(rightIdx << " " << leftIdx << " " << leftBiasedRightIdx << " " << rightBiasedLeftIdx << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << newRightIdx << " " << newLeftIdx);
 
-        float left_dist = gap->LRange();
-        float right_dist = gap->RRange();
-        float newLeftRange = float(new_r - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
-        float newRightRange = float(new_l - right_idx) / float(left_idx - right_idx) * (left_dist - right_dist) + right_dist;
+        float newLeftRange = float(newLeftIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
+        float newRightRange = float(newRightIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
 
-        gap->convex.convexLeftIdx_ = new_r;
-        gap->convex.convexRightIdx_ = new_l;
+        gap->convex.convexLeftIdx_ = newLeftIdx;
+        gap->convex.convexRightIdx_ = newRightIdx;
 
-        gap->convex.convexLeftDist_ = newLeftRange;
-        gap->convex.convexRightDist_ = newRightRange;
+        gap->convex.convexLeftRange_ = newLeftRange;
+        gap->convex.convexRightRange_ = newRightRange;
 
-        gap->life_time = 50;
+        float newLeftTheta = idx2theta(newLeftIdx);
+        float newRightTheta = idx2theta(newRightIdx);
+        float newXLeft = (newLeftRange) * cos(newLeftTheta);
+        float newYLeft = (newLeftRange) * sin(newLeftTheta);
+        float newXRight = (newRightRange) * cos(newRightTheta);
+        float newYRight = (newRightRange) * sin(newRightTheta);
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in cart. left: (" << newXLeft << ", " << newYLeft << "), right: (" << newXRight << ", " << newYRight << ")");    
+
         gap->mode.reduced = true;
         return;
     }
 
     void GapManipulator::convertAxialGap(Gap * gap) 
     {
+        ROS_INFO_STREAM_NAMED("GapManipulator", "    [convertRadialGap()]");
+
         // Return if not radial gap or disabled
         if (!gap->isRadial() || !cfg_->gap_manip.radial_convert) 
         {
@@ -87,77 +104,67 @@ namespace quad_gap
 
         sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
         
-        bool left = gap->isRightType();
+        bool right = gap->isRightType();
         // Extend of rotation to the radial gap 
         // amp-ed by a **small** ratio to ensure the local goal does not exactly fall on the
         // visibility line
 
-        int right_idx, left_idx;
-        float right_dist, left_dist;
-        if (gap->mode.reduced)
-        {
-            left_idx = gap->convex.convexLeftIdx_;
-            left_dist = gap->convex.convexLeftDist_;
-            right_idx = gap->convex.convexRightIdx_;
-            right_dist = gap->convex.convexRightDist_;
-        } else
-        {
-            left_idx = gap->LIdx();
-            left_dist = gap->LRange();
-            right_idx = gap->RIdx();
-            right_dist = gap->RRange();
-        }
+        int leftIdx = gap->manipLeftIdx();
+        int rightIdx = gap->manipRightIdx();
+        float leftRange = gap->manipLeftRange();
+        float rightRange = gap->manipRightRange();
 
-        float x1, x2, y1, y2;
+        float leftTheta = idx2theta(leftIdx);
+        float rightTheta = idx2theta(rightIdx);
+        float xLeft = leftRange * cos(leftTheta);
+        float yLeft = leftRange * sin(leftTheta);
+        float xRight = rightRange * cos(rightTheta);
+        float yRight = rightRange * sin(rightTheta);
 
-        x1 = (right_dist) * cos(idx2theta(right_idx));
-        y1 = (right_dist) * sin(idx2theta(right_idx));
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
-        x2 = (left_dist) * cos(idx2theta(left_idx));
-        y2 = (left_dist) * sin(idx2theta(left_idx));
+        Eigen::Vector2f leftPt(xLeft, yLeft);
+        Eigen::Vector2f rightPt(xRight, yRight);
 
-        Eigen::Vector2f l_vec(x1, y1);
-        Eigen::Vector2f r_vec(x2, y2);
-        Eigen::Vector2f mid = (l_vec + r_vec) / 2;
+        Eigen::Vector2f mid = (rightPt + leftPt) / 2;
         Eigen::Vector2f robot_orient(1,0);
         float robot_el = float(robot_geo_proc_.getLinearDecayEquivalentPL(robot_orient, mid, mid.norm()));
         float robot_er = float(robot_geo_proc_.getLinearDecayEquivalentRL(robot_orient, mid, mid.norm()));
         
-        float rot_val = (float) std::atan2(robot_el / 2 * cfg_->gap_manip.rot_ratio, robot_er / 2);
-        float signed_rot_vel = left ? (rot_val + 1e-3): -(rot_val + 1e-3);
-        int near_idx, far_idx;
-        float near_dist, far_dist;
+        float nomPivotAngle = (float) std::atan2(robot_el / 2 * cfg_->gap_manip.rot_ratio, robot_er / 2);
+        int nearIdx = 0.0, farIdx = 0.0;
+        float nearRange = 0.0, farRange = 0.0;
+        float signedNomPivotAngle = 0.0; //  = right ? (rot_val + 1e-3): -(rot_val + 1e-3);
         
-        if (left) 
+        if (right) 
         {
-            // near_idx = gap->RIdx();
-            // far_idx = gap->LIdx();
-            // near_dist = gap->RRange();
-            // far_dist = gap->LRange();
-            near_idx = right_idx;
-            far_idx = left_idx;
-            near_dist = right_dist;
-            far_dist = left_dist;
+            nearIdx = rightIdx;
+            farIdx = leftIdx;
+            nearRange = rightRange;
+            farRange = leftRange;
+            signedNomPivotAngle = nomPivotAngle;
         } else 
         {
-            far_idx = right_idx;
-            near_idx = left_idx;
-            far_dist = right_dist;
-            near_dist = left_dist;
+            farIdx = rightIdx;
+            nearIdx = leftIdx;
+            farRange = rightRange;
+            nearRange = leftRange;
+            signedNomPivotAngle = -nomPivotAngle;
         }
         
         Eigen::Matrix3f rot_mat;
-        rot_mat << cos(signed_rot_vel), -sin(signed_rot_vel), 0,
-                    sin(signed_rot_vel), cos(signed_rot_vel), 0,
+        rot_mat << cos(signedNomPivotAngle), -sin(signedNomPivotAngle), 0,
+                    sin(signedNomPivotAngle), cos(signedNomPivotAngle), 0,
                     0, 0, 1;
 
         Eigen::Matrix3f near_rbt;
-        near_rbt << 1, 0, near_dist * cos(idx2theta(near_idx)),
-                    0, 1, near_dist * sin(idx2theta(near_idx)),
+        near_rbt << 1, 0, nearRange * cos(idx2theta(nearIdx)),
+                    0, 1, nearRange * sin(idx2theta(nearIdx)),
                     0, 0, 1;
         Eigen::Matrix3f far_rbt;
-        far_rbt  << 1, 0, far_dist * cos(idx2theta(far_idx)),
-                    0, 1, far_dist * sin(idx2theta(far_idx)),
+        far_rbt  << 1, 0, farRange * cos(idx2theta(farIdx)),
+                    0, 1, farRange * sin(idx2theta(farIdx)),
                     0, 0, 1;
         
         Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
@@ -169,14 +176,14 @@ namespace quad_gap
         // Rotation Completed
         // Get minimum dist range val from start to target index location
         // For wraparound
-        int offset = left ? gap->LIdx() : idx;
-        int upperbound = left ? idx : gap->RIdx();
+        int offset = right ? gap->LIdx() : idx;
+        int upperbound = right ? idx : gap->RIdx();
         int intermediate_pt = offset + 1;
         int second_inter_pt = intermediate_pt;
         int size = upperbound - offset;
 
-
-        if ((upperbound - offset) < 3) {
+        if ((upperbound - offset) < 3) 
+        {
             // Arbitrary value
             gap->goal.discard = true;
             return;
@@ -186,22 +193,27 @@ namespace quad_gap
         upperbound = std::min(upperbound, num_of_scan - 1);
         std::vector<float> min_dist(upperbound - offset);
 
-        if (size == 0) {
+        if (size == 0) 
+        {
             // This shouldn't happen
             return;
         }
 
 
-        if (stored_scan_msgs.ranges.size() < 500) {
+        if (stored_scan_msgs.ranges.size() < 500) 
+        {
             ROS_FATAL_STREAM("Scan range incorrect gap manip");
         }
 
-        try{
-            for (int i = 0; i < min_dist.size(); i++) {
-                min_dist.at(i) = sqrt(pow(near_dist, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
-                    2 * near_dist * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - near_idx) * stored_scan_msgs.angle_increment));
+        try
+        {
+            for (int i = 0; i < min_dist.size(); i++) 
+            {
+                min_dist.at(i) = sqrt(pow(nearRange, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
+                    2 * nearRange * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - nearIdx) * stored_scan_msgs.angle_increment));
             }
-        } catch(...) {
+        } catch(...) 
+        {
             ROS_FATAL_STREAM("convertAxialGap outofBound");
         }
 
@@ -220,26 +232,53 @@ namespace quad_gap
         idx = theta2idx(theta);
 
         // Recalculate end point location based on length
-        gap->convex.convexRightIdx_ = left ? near_idx : idx;
-        gap->convex.convexRightDist_ = left ? near_dist : r;
-        gap->convex.convexLeftIdx_ = left ? idx : near_idx;
-        gap->convex.convexLeftDist_ = left ? r : near_dist;
+        if (right)
+        {
+            gap->convex.convexRightIdx_ = nearIdx;
+            gap->convex.convexRightRange_ = nearRange;
+            gap->convex.convexLeftIdx_ = idx;
+            gap->convex.convexLeftRange_ = r;
+        } else
+        {
+            gap->convex.convexLeftIdx_ = idx;
+            gap->convex.convexLeftRange_ = r;
+            gap->convex.convexRightIdx_ = nearIdx;
+            gap->convex.convexRightRange_ = nearRange;
 
-        if (left && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
+        }
+
+        if (right && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
         {
             gap->goal.discard = true;
         }
 
-        if (!left && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
+        if (!right && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
         {
             gap->goal.discard = true;
         }
 
         gap->mode.agc = true;
+
+        xLeft = gap->convex.convexLeftRange_ * cos(idx2theta(gap->convex.convexLeftIdx_));
+        yLeft = gap->convex.convexLeftRange_ * sin(idx2theta(gap->convex.convexLeftIdx_));
+        xRight = gap->convex.convexRightRange_ * cos(idx2theta(gap->convex.convexRightIdx_));
+        yRight = gap->convex.convexRightRange_ * sin(idx2theta(gap->convex.convexRightIdx_));
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << gap->convex.convexLeftIdx_ << ", " 
+                                                                                        << gap->convex.convexLeftRange_ << "), right: (" 
+                                                                                        << gap->convex.convexRightIdx_ << ", " 
+                                                                                        << gap->convex.convexRightRange_ << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in cart. left: (" << xLeft << ", " 
+                                                                                        << yLeft << "), right: (" 
+                                                                                        << xRight << ", " 
+                                                                                        << yRight << ")");
+
     }
 
-    void GapManipulator::radialExtendGap(Gap * selected_gap) 
+    void GapManipulator::radialExtendGap(Gap * gap) 
     {
+        ROS_INFO_STREAM_NAMED("GapManipulator", "    [radialExtendGap()]");
+
         if (!cfg_->gap_manip.radial_extend) 
         {
             ROS_DEBUG_STREAM_THROTTLE(1, "Radial Extension is off");
@@ -247,30 +286,38 @@ namespace quad_gap
         }
         // TODO: check if the idx are correct when they cross the 0.
 
-        float s = selected_gap->getMinSafeDist();
+        float s = gap->getMinSafeDist();
 
-        float x1, x2, y1, y2;
-        x1 = (selected_gap->convex.convexRightDist_) * cos(idx2theta(selected_gap->convex.convexRightIdx_));
-        y1 = (selected_gap->convex.convexRightDist_) * sin(idx2theta(selected_gap->convex.convexRightIdx_));
+        int leftIdx = gap->manipLeftIdx();
+        int rightIdx = gap->manipRightIdx();
+        float leftRange = gap->manipLeftRange();
+        float rightRange = gap->manipRightRange();
 
-        x2 = (selected_gap->convex.convexLeftDist_) * cos(idx2theta(selected_gap->convex.convexLeftIdx_));
-        y2 = (selected_gap->convex.convexLeftDist_) * sin(idx2theta(selected_gap->convex.convexLeftIdx_));
+        float leftTheta = idx2theta(leftIdx);
+        float rightTheta = idx2theta(rightIdx);
+        float xLeft = leftRange * cos(leftTheta);
+        float yLeft = leftRange * sin(leftTheta);
+        float xRight = rightRange * cos(rightTheta);
+        float yRight = rightRange * sin(rightTheta);
 
-        Eigen::Vector2f gL(x1, y1);
-        Eigen::Vector2f gR(x2, y2);
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
-        Eigen::Vector2f eL = gL / gL.norm();
-        Eigen::Vector2f eR = gR / gR.norm();
+        Eigen::Vector2f ptLeft(xLeft, yLeft);
+        Eigen::Vector2f ptRight(xRight, yRight);
 
-        Eigen::Vector2f eB = (eL + eR) / 2;
-        eB /= eB.norm();
-        float gap_size = std::acos(eL.dot(eR));
+        Eigen::Vector2f eRight = ptRight / ptRight.norm();
+        Eigen::Vector2f eLeft = ptLeft / ptLeft.norm();
+
+        Eigen::Vector2f eB = (eLeft + eRight) / 2;
+        eB.normalize();
+        float gap_size = std::acos(eLeft.dot(eRight));
 
         Eigen::Vector2f qB = -s * eB;
         
         // Shifted Back Frame
-        Eigen::Vector2f qLp = gL - qB;
-        Eigen::Vector2f qRp = gR - qB;
+        Eigen::Vector2f qLp = ptRight - qB;
+        Eigen::Vector2f qRp = ptLeft - qB;
 
         Eigen::Vector2f pLp = car2pol(qLp);
         // pLp(1) += M_PI;
@@ -295,19 +342,27 @@ namespace quad_gap
         Eigen::Vector2f polqLn = car2pol(qLn);
         Eigen::Vector2f polqRn = car2pol(qRn);
 
-        selected_gap->convex.convexRightIdx_ = theta2idx(polqLn(1));
-        selected_gap->convex.convexLeftIdx_ = theta2idx(polqRn(1));
-        selected_gap->convex.convexRightDist_ = polqLn(0);
-        selected_gap->convex.convexLeftDist_ = polqRn(0);
-        selected_gap->mode.convex = true;
+        gap->convex.convexRightIdx_ = theta2idx(polqLn(1));
+        gap->convex.convexLeftIdx_ = theta2idx(polqRn(1));
+        gap->convex.convexRightRange_ = polqLn(0);
+        gap->convex.convexLeftRange_ = polqRn(0);
+        gap->mode.convex = true;
 
-        selected_gap->qB = qB;
-        ROS_DEBUG_STREAM("l: " << selected_gap->RIdx() << " to " << selected_gap->convex.convexRightIdx_
-         << ", r: " << selected_gap->LIdx() << " to " << selected_gap->convex.convexLeftIdx_);
-        
-        ROS_DEBUG_STREAM("right_dist: " << selected_gap->RRange() << " to " << selected_gap->convex.convexRightDist_
-        << ", left_dist: " << selected_gap->LRange() << " to " << selected_gap->convex.convexLeftDist_);
+        gap->qB = qB;
 
+        xLeft = gap->convex.convexLeftRange_ * cos(idx2theta(gap->convex.convexLeftIdx_));
+        yLeft = gap->convex.convexLeftRange_ * sin(idx2theta(gap->convex.convexLeftIdx_));
+        xRight = gap->convex.convexRightRange_ * cos(idx2theta(gap->convex.convexRightIdx_));
+        yRight = gap->convex.convexRightRange_ * sin(idx2theta(gap->convex.convexRightIdx_));
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in polar. left: (" << gap->convex.convexLeftIdx_ << ", " 
+                                                                                                    << gap->convex.convexLeftRange_ << "), right: (" 
+                                                                                                    << gap->convex.convexRightIdx_ << ", " 
+                                                                                                    << gap->convex.convexRightRange_ << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in cart. left: (" << xLeft << ", " 
+                                                                                                    << yLeft << "), right: (" 
+                                                                                                    << xRight << ", " 
+                                                                                                    << yRight << ")");
         return;
     }
 

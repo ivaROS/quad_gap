@@ -359,7 +359,7 @@ namespace quad_gap
     
                 // this_marker.ns = "extent_line";
                 getline(gap->convex.convexRightIdx_, 
-                        gap->convex.convexRightDist_, 
+                        gap->convex.convexRightRange_, 
                         gap->qB, 
                         // lines, 
                         // linel, 
@@ -368,7 +368,7 @@ namespace quad_gap
                         convex_color);
                 
                 getline(gap->convex.convexLeftIdx_, 
-                        gap->convex.convexLeftDist_, 
+                        gap->convex.convexLeftRange_, 
                         gap->qB, 
                         // lines, 
                         // linel, 

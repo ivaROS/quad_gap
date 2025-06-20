@@ -13,11 +13,11 @@ namespace quad_gap
     {
         // TODO: assume there is no idx that will pass 0
         float x1, x2, y1, y2;
-        x1 = (gap->convex.convexRightDist_) * cos(idx2theta(gap->convex.convexRightIdx_));
-        y1 = (gap->convex.convexRightDist_) * sin(idx2theta(gap->convex.convexRightIdx_));
+        x1 = (gap->convex.convexRightRange_) * cos(idx2theta(gap->convex.convexRightIdx_));
+        y1 = (gap->convex.convexRightRange_) * sin(idx2theta(gap->convex.convexRightIdx_));
 
-        x2 = (gap->convex.convexLeftDist_) * cos(idx2theta(gap->convex.convexLeftIdx_));
-        y2 = (gap->convex.convexLeftDist_) * sin(idx2theta(gap->convex.convexLeftIdx_));
+        x2 = (gap->convex.convexLeftRange_) * cos(idx2theta(gap->convex.convexLeftIdx_));
+        y2 = (gap->convex.convexLeftRange_) * sin(idx2theta(gap->convex.convexLeftIdx_));
 
         Eigen::Vector2f pl(x1, y1);
         Eigen::Vector2f pr(x2, y2);
@@ -66,8 +66,8 @@ namespace quad_gap
         
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         float confined_theta = std::min(thetarl, std::max(thetalr, goal_orientation));
-        float confined_r = (gap->convex.convexLeftDist_ - gap->convex.convexRightDist_) * (confined_theta - thetalr) / (thetarl - thetalr)
-            + gap->convex.convexRightDist_;
+        float confined_r = (gap->convex.convexLeftRange_ - gap->convex.convexRightRange_) * (confined_theta - thetalr) / (thetarl - thetalr)
+            + gap->convex.convexRightRange_;
         float xg = confined_r * cos(confined_theta);
         float yg = confined_r * sin(confined_theta);
         Eigen::Vector2f anchor(xg, yg);
@@ -126,8 +126,8 @@ namespace quad_gap
         // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
         // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
 
-        // float r1 = gap->convex.convexRightDist_;
-        // float r2 = gap->convex.convexLeftDist_;
+        // float r1 = gap->convex.convexRightRange_;
+        // float r2 = gap->convex.convexLeftRange_;
         // float r_close = (float) std::min(r1, r2);
         // float goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
