@@ -46,15 +46,15 @@ namespace quad_gap
                                             const float & prevRange, 
                                             const float & gapAngle)
     {
-    if (!(prevRange < maxScanDist_ && currRange < maxScanDist_))
-    return false;
+        if (!(prevRange < maxScanDist_ && currRange < maxScanDist_))
+        return false;
 
-    // Euclidean distance between current and previous points
-    float consecScanPointDist = sqrt(pow(prevRange, 2) + pow(currRange, 2) - 2 * prevRange * currRange * cos(gapAngle));
+        // Euclidean distance between current and previous points
+        float consecScanPointDist = sqrt(pow(prevRange, 2) + pow(currRange, 2) - 2 * prevRange * currRange * cos(gapAngle));
 
-    bool canRobotFit = consecScanPointDist > 3 * cfg_->rbt.r_inscr;
+        bool canRobotFit = consecScanPointDist > 3 * cfg_->rbt.r_inscr;
 
-    return canRobotFit;
+        return canRobotFit;
     }  
 
     bool GapDetector::equivalentCheck(Gap * detected_gap)

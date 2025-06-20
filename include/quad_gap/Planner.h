@@ -380,13 +380,13 @@ namespace quad_gap
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
 
             // Box modification
-            bool use_geo_storage_;
+            // bool use_geo_storage_;
             RobotGeometryStorage robot_geo_storage_;
             RobotGeometryProcessor robot_geo_proc_;
-            bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
-            double speed_factor_;
+            // bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
+            // double speed_factor_;
 
             // Bezier curve
-            bool use_bezier_;        
+            // bool use_bezier_;        
     };
 }

@@ -36,13 +36,19 @@ namespace quad_gap
             // Robot //
             ///////////
             ros_throw_param_load(nh, "robot_radius", rbt.r_inscr);
+            ros_throw_param_load(nh, "length", rbt.length);
+            ros_throw_param_load(nh, "width", rbt.width);
+            ros_throw_param_load(nh, "avg_lin_speed", rbt.avg_lin_speed);
+            ros_throw_param_load(nh, "avg_rot_speed", rbt.avg_rot_speed);
+            ros_throw_param_load(nh, "shape_id", rbt.shape_id);
+            ros_throw_param_load(nh, "use_geo_storage", rbt.use_geo_storage);
 
             ///////////
             // Goal //
             ///////////
-            ros_throw_param_load(nh, "lin_goal_tolerance", goal.lin_goal_tolerance);
-            ros_throw_param_load(nh, "waypoint_tolerance", goal.waypoint_tolerance);
-            ros_throw_param_load(nh, "yaw_goal_tolerance", goal.yaw_goal_tolerance);
+            ros_throw_param_load(nh, "xy_global_goal_tolerance", goal.xy_global_goal_tolerance);
+            ros_throw_param_load(nh, "xy_waypoint_tolerance", goal.xy_waypoint_tolerance);
+            ros_throw_param_load(nh, "yaw_global_goal_tolerance", goal.yaw_global_goal_tolerance);
 
             //////////
             // Scan //
@@ -55,8 +61,11 @@ namespace quad_gap
             ///////////////////
             ros_throw_param_load(nh, "holonomic", planning.holonomic);
             ros_throw_param_load(nh, "projection_operator", planning.projection_operator);
-            ros_throw_param_load(nh, "num_feasi_check", planning.num_feasi_check);
             ros_throw_param_load(nh, "halt_size", planning.halt_size);
+            ros_throw_param_load(nh, "robot_path_orient_linear_decay", planning.robot_path_orient_linear_decay);
+            ros_throw_param_load(nh, "virtual_path_decay_enable", planning.virtual_path_decay_enable);
+            ros_throw_param_load(nh, "decay_factor", planning.decay_factor);
+            ros_throw_param_load(nh, "use_bezier", planning.use_bezier);
 
             ////////////////////
             // Control Params //
@@ -71,6 +80,7 @@ namespace quad_gap
             ros_throw_param_load(nh, "vx_absmax", control.vx_absmax);
             ros_throw_param_load(nh, "vy_absmax", control.vy_absmax);
             ros_throw_param_load(nh, "ang_absmax", control.ang_absmax);
+            ros_throw_param_load(nh, "speed_factor", control.speed_factor);
 
             ///////////////////////////
             // Manual Control Params //

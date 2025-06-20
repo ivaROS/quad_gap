@@ -27,13 +27,20 @@ namespace quad_gap
             struct Robot 
             {
                 float r_inscr = 0.18;
+                double length = 0.7; /**< Robot length */
+                double width = 0.3; /**< Robot width */
+                double avg_lin_speed = 0.2; /**< Average linear speed */
+                double avg_rot_speed = 0.5; /**< Average rotational speed */
+                int shape_id = 1; /**< Robot shape ID, 1 for rectangle,
+                                    2 for circle, 3 for triangle */
+                bool use_geo_storage = false; /**< Use precomputed robot geometry storage */
             } rbt;
 
             struct Goal 
             {
-                double lin_goal_tolerance = 0.2;
-                double waypoint_tolerance = 0.1;     
-                double yaw_goal_tolerance = 0.1;        
+                double xy_global_goal_tolerance = 0.2;
+                double yaw_global_goal_tolerance = 0.1;    
+                double xy_waypoint_tolerance = 0.1;
             } goal;
 
             /**
@@ -57,8 +64,11 @@ namespace quad_gap
             {
                 bool holonomic = false;
                 bool projection_operator = true;
-                int num_feasi_check = 10;
-                int halt_size = 5;              
+                int halt_size = 5;           
+                bool robot_path_orient_linear_decay = true; /**< Enable linear decay of robot path orientation */
+                bool virtual_path_decay_enable = true; /**< Enable virtual path decay */    
+                double decay_factor = 0.0; /**< Decay factor for virtual path decay */
+                bool use_bezier = true; /**< Use Bezier curve for trajectory generation */
             } planning;
 
             struct ControlParams 
@@ -72,7 +82,8 @@ namespace quad_gap
                 int ctrl_ahead_pose = 2;
                 double vx_absmax = 0.5;
                 double vy_absmax = 0.5;
-                double ang_absmax = 0.2;             
+                double ang_absmax = 0.2;       
+                double speed_factor = 2.0;
             } control;
             
             struct ManualControl 

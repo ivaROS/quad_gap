@@ -76,140 +76,18 @@ namespace quad_gap
         unh.getParam("file_name", file_name);
         unh.setParam("file_name", file_name);
 
-        int shape_id = 1;
-        unh.getParam("shape_id", shape_id);
-        unh.setParam("shape_id", shape_id);
-
-        double length = 0.7, width = 0.3, decay_factor = 0, avg_lin_speed = 0.2, avg_rot_speed = 0.5;
-        unh.getParam("length", length);
-        unh.getParam("width", width);
-        unh.getParam("decay_factor", decay_factor);
-        unh.getParam("avg_lin_speed", avg_lin_speed);
-        unh.getParam("avg_rot_speed", avg_rot_speed);
-        unh.setParam("length", length);
-        unh.setParam("width", width);
-        unh.setParam("decay_factor", decay_factor);
-        unh.setParam("avg_lin_speed", avg_lin_speed);
-        unh.setParam("avg_rot_speed", avg_rot_speed);
-
-        RobotShape robot_shape = static_cast<RobotShape>(shape_id);
+        RobotShape robot_shape = static_cast<RobotShape>(cfg_.rbt.shape_id);
         if (robot_shape == RobotShape::circle)
-            width = 0;
+            cfg_.rbt.width = 0;
 
-        Robot robot(robot_shape, length, width, avg_lin_speed, avg_rot_speed);
+        Robot robot(robot_shape, cfg_.rbt.length, cfg_.rbt.width, cfg_.rbt.avg_lin_speed, cfg_.rbt.avg_rot_speed);
 
-        use_geo_storage_ = false;
-        unh.getParam("use_geo_storage", use_geo_storage_);
-        unh.setParam("use_geo_storage", use_geo_storage_);
-        
-        if (use_geo_storage_)
+        if (cfg_.rbt.use_geo_storage)
             robot_geo_storage_ = RobotGeometryStorage(file_name);
         else
-            robot_geo_proc_ = RobotGeometryProcessor(robot, decay_factor);
-
-        robot_path_orient_linear_decay_ = true;
-        virtual_path_decay_enable_ = true;
-        unh.getParam("robot_path_orient_linear_decay", robot_path_orient_linear_decay_);
-        unh.getParam("virtual_path_decay_enable", virtual_path_decay_enable_);
-        unh.setParam("robot_path_orient_linear_decay", robot_path_orient_linear_decay_);
-        unh.setParam("virtual_path_decay_enable", virtual_path_decay_enable_);
-        speed_factor_ = 2;
-        unh.getParam("speed_factor", speed_factor_);
-        unh.setParam("speed_factor", speed_factor_);
-
-        // Bezier curve
-        use_bezier_ = true;
-        unh.getParam("use_bezier", use_bezier_);
-        unh.setParam("use_bezier", use_bezier_);
+            robot_geo_proc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
         
-        // Debug robot geometry storage and process
-        // robot_geo_storage_ = RobotGeometryStorage(file_name);
-        // robot_geo_proc_ = RobotGeometryProcessor(robot);
-
-        // Eigen::Vector2d orientation_vec(1, 0);
-        // Eigen::Vector2d pt_vec(1,0);
-        // Eigen::Vector2d motion_vec = pt_vec;
-        // double vec_dot_pro = orientation_vec.dot(pt_vec);
-        
-        // ros::WallTime interp_start = ros::WallTime::now();
-        // double interp_er = robot_geo_storage_.getInterpEquivR(vec_dot_pro);
-        // double interp_epl = robot_geo_storage_.getInterpEquivPL(vec_dot_pro);
-        // ros::WallDuration interp_time = ros::WallTime::now() - interp_start;
-        
-        // ros::WallTime comp_start = ros::WallTime::now();
-        // double er = robot_geo_proc_.getEquivalentR(orientation_vec, pt_vec);
-        // double epl = robot_geo_proc_.getEquivalentPL(orientation_vec, motion_vec);
-        // ros::WallDuration comp_time = ros::WallTime::now() - comp_start;
-
-        // ROS_INFO_STREAM("Interp er: " << interp_er << ", Interp epl: " << interp_epl << ", time: " << (double)interp_time.toNSec() << " ns");
-        // ROS_INFO_STREAM("Comp er: " << er << ", Comp epl: " << epl << ", time: " << (double)comp_time.toNSec() << " ns");
-        // throw;
-        
-        // Debug robot_geo_processor
-        // Eigen::Vector2d orientation_vec(1, 0);
-        // Eigen::Vector2d p1(-0.35,0);
-        // Eigen::Vector2d p2(-0.35,-0.15);
-        // Eigen::Vector2d p3(0,-0.15);
-        // Eigen::Vector2d p4(0.35,-0.15);
-        // Eigen::Vector2d p5(0.35,0);
-        // Eigen::Vector2d p6(0.35,0.15);
-        // Eigen::Vector2d p7(0,0.15);
-        // Eigen::Vector2d p8(-0.35,0.15);
-        // Eigen::Vector2d p9(0.1, 0.1);
-        // Eigen::Vector2d p10(1, 1);
-        // double vec_length = 3; // 3
-        // std::vector<Eigen::Vector2d> pt_list{vec_length*p1/p1.norm(), vec_length*p2/p2.norm(), vec_length*p3/p3.norm(), vec_length*p4/p4.norm(), vec_length*p5/p5.norm(), vec_length*p6/p6.norm(), vec_length*p7/p7.norm(), vec_length*p8/p8.norm(), p9, p10};
-
-        // // True 
-        // std::vector<double> r{p1.norm(), p2.norm(), p3.norm(), p4.norm(), p5.norm(), p6.norm(), p7.norm(), p8.norm(), sqrt(0.15*0.15*2), sqrt(0.15*0.15*2)};
-        // double alpha = 2 * atan2(0.15, 0.35);
-        // std::vector<double> el{0.3, 2*p2.norm()*sin(alpha), 0.7, 2*p2.norm()*sin(alpha), 0.3, 2*p2.norm()*sin(alpha), 0.7, 2*p2.norm()*sin(alpha), 2*p2.norm()*cos(M_PI / 4 - alpha/2), 2*p2.norm()*cos(M_PI / 4 - alpha/2)};
-        
-        
-        // double p1_min_dist = vec_length - 0.35;
-        // double p1_max_dist = sqrt(pow(vec_length + 0.35, 2) + 0.15 * 0.15);
-        // double dia = 2*p2.norm();
-        // double p3_min_dist = vec_length - 0.15;
-        // double p3_max_dist = sqrt(pow(vec_length + 0.15, 2) + 0.35 * 0.35);
-        // std::vector<double> er{p1_max_dist - p1_min_dist, dia, p3_max_dist - p3_min_dist, dia, p1_max_dist - p1_min_dist, dia, p3_max_dist - p3_min_dist, dia, sqrt(pow(0.45, 2) + pow(0.25, 2)), (p10+p6).norm() - (p10-p6).norm()};
-
-        // std::vector<double> n_dist{vec_length - 0.35, vec_length - p2.norm(), vec_length - 0.15, vec_length - p2.norm(), vec_length - 0.35, vec_length - p2.norm(), vec_length - 0.15, vec_length - p2.norm(), -1, (p10-p6).norm()};
-
-        // double rot_ang = M_PI / 2;
-        // Eigen::Matrix2d rot;
-        //         rot << cos(rot_ang), -sin(rot_ang), sin(rot_ang), cos(rot_ang);
-        // for (size_t i = 0; i < pt_list.size(); i++)
-        // {   
-        //     Eigen::Vector2d p = pt_list[i];
-        //     Eigen::Vector2d p_tmp = p;
-        //     // True values
-        //     double r_dist = r[i];
-        //     double er_p = er[i];
-        //     double el_p = el[i];
-        //     double nd = n_dist[i];
-
-        //     // Calculated values
-        //     Eigen::Vector2d o_vec = rot * orientation_vec;
-        //     Eigen::Vector2d p_vec = rot * p;
-        //     Eigen::Vector2d p_tmp_vec = rot * p_tmp;
-        //     double r_c_dist = robot_geo_proc_.getEquivalentR(o_vec, p_vec);
-        //     ros::WallTime start_time = ros::WallTime::now();
-        //     double er_c_p = robot_geo_proc_.getEquivalentRL(o_vec, p_tmp_vec);
-        //     ros::WallDuration d = ros::WallTime::now() - start_time;
-        //     ROS_INFO_STREAM("RL time: " << (float) d.toNSec() / 1000 << "mu sec");
-        //     double el_c_p = robot_geo_proc_.getEquivalentPL(o_vec, p_vec);
-        //     ros::WallTime start_n_time = ros::WallTime::now();
-        //     double n_dist_c = robot_geo_proc_.getNearestDistance(o_vec, p_tmp_vec);
-        //     ros::WallDuration dn = ros::WallTime::now() - start_n_time;
-        //     ROS_INFO_STREAM("Nearest time: " << (float) dn.toNSec() / 1000 << "mu sec");
-
-        //     ROS_INFO_STREAM("True values: " << r_dist << " " << er_p << " " << el_p << " " << nd << "; Calculated values: " << r_c_dist << " " << er_c_p << " " << el_c_p << " " << n_dist_c);
-        //     ROS_INFO_STREAM("Equals: " << (r_dist - r_c_dist) << " " << (er_p - er_c_p) << " " << (el_p - el_c_p) << " " << (nd - n_dist_c));
-        // }
-        // throw;
-
         // Visualization Setup
-        // Fix this later
         local_traj_pub = nh.advertise<geometry_msgs::PoseArray>("relevant_traj", 500);
         trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
 
@@ -243,28 +121,22 @@ namespace quad_gap
         rbtPoseRbtFrame_.pose.orientation.w = 1;
         rbtPoseRbtFrame_.header.frame_id = cfg_.robot_frame_id;
 
-        // reconfigure_server_ = std::make_shared<ReconfigureServer>(pnh);
-        // reconfigure_server_->setCallback(boost::bind(&Planner::configCB, this, _1, _2));
-
         // Set collision checker
-        collision_checker_enable_ = cfg_.collision_checker.collision_checker_enable;
-        if(!collision_checker_enable_)
+        if(!cfg_.collision_checker.collision_checker_enable)
         {
             ROS_WARN_STREAM("Collision checking is disabled.");
             // return;
         }
 
-        if(cfg_.collision_checker.cc_type == CollisionChecker_depth)
+        if (cfg_.collision_checker.cc_type == CollisionChecker_depth)
         {
             ROS_INFO_STREAM("New cc type = depth");
             cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        }
-        else if(cfg_.collision_checker.cc_type == CollisionChecker_depth_ego)
+        } else if(cfg_.collision_checker.cc_type == CollisionChecker_depth_ego)
         {
             ROS_INFO_STREAM("New cc type = depth ego");
             cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        }
-        else if(cfg_.collision_checker.cc_type == CollisionChecker_egocircle)
+        } else if(cfg_.collision_checker.cc_type == CollisionChecker_egocircle)
         {
             ROS_INFO_STREAM("New cc type = egocircle");
             cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
@@ -284,49 +156,6 @@ namespace quad_gap
         return true;
     }
 
-    // void Planner::configCB(CollisionCheckerConfig &config, uint32_t level)
-    // {
-    //     ROS_INFO_STREAM("CC Reconfigure Request: "); // TODO: print out the cc type and other parameter values
-
-    //     Lock lock(connect_mutex_);
-
-    //     collision_checker_enable_ = config.cc_enable;
-    //     if(!collision_checker_enable_)
-    //     {
-    //         ROS_WARN_STREAM("Collision checking is disabled.");
-    //         return;
-    //     }
-
-    //     if(config.cc_type != cc_type_)
-    //     {
-    //         if(config.cc_type == CollisionChecker_depth)
-    //         {
-    //             ROS_INFO_STREAM("New cc type = depth");
-    //             cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-    //         }
-    //         else if(config.cc_type == CollisionChecker_depth_ego)
-    //         {
-    //             ROS_INFO_STREAM("New cc type = depth ego");
-    //             cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-    //         }
-    //         else if(config.cc_type == CollisionChecker_egocircle)
-    //         {
-    //             ROS_INFO_STREAM("New cc type = egocircle");
-    //             cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-    //         }
-
-    //         traj_tester_ = std::make_shared<TurtlebotGenAndTest>(nh, pnh);
-            
-    //         cc_wrapper_->init();
-    //         cc_wrapper_->autoUpdate();
-
-    //         traj_tester_->init();
-    //         traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
-            
-    //         cc_type_ = config.cc_type;
-    //     }
-    // }
-
     bool Planner::isGoalReached()
     {
         // Linear distance
@@ -339,14 +168,14 @@ namespace quad_gap
         float rbtPoseOrientation = quaternionToYaw(globalGoalOdomFrame_.pose.orientation);
         float globalGoalAngDist = normalize_theta(globalGoalOrientation - rbtPoseOrientation);
         
-        reachedGlobalGoal_ = globalGoalLinDist < cfg_.goal.lin_goal_tolerance &&
-                             globalGoalAngDist < cfg_.goal.yaw_goal_tolerance;
+        reachedGlobalGoal_ = globalGoalLinDist < cfg_.goal.xy_global_goal_tolerance &&
+                             globalGoalAngDist < cfg_.goal.yaw_global_goal_tolerance;
         
         if (reachedGlobalGoal_)
             ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
         // else
         //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
-        //                                      ", Goal tolerance: " << cfg_.goal.lin_goal_tolerance);
+        //                                      ", Goal tolerance: " << cfg_.goal.xy_global_goal_tolerance);
 
         return reachedGlobalGoal_;
     }    
@@ -611,7 +440,7 @@ namespace quad_gap
         float diffX = globalPathLocalWaypointOdomFrame_.pose.position.x - newglobalPathLocalWaypointOdomFrame.pose.position.x;
         float diffY = globalPathLocalWaypointOdomFrame_.pose.position.y - newglobalPathLocalWaypointOdomFrame.pose.position.y;
         
-        if (sqrt(pow(diffX, 2) + pow(diffY, 2)) > cfg_.goal.waypoint_tolerance)
+        if (sqrt(pow(diffX, 2) + pow(diffY, 2)) > cfg_.goal.xy_waypoint_tolerance)
             globalPathLocalWaypointOdomFrame_ = newglobalPathLocalWaypointOdomFrame;
 
         // Set new local goal to trajectory arbiter
@@ -710,7 +539,7 @@ namespace quad_gap
             {
                 // Generate trajectory in robot frame.
                 geometry_msgs::PoseArray tmp;
-                if (use_bezier_)
+                if (cfg_.planning.use_bezier)
                 {
                     tmp = gapTrajGenerator_->generateBezierTrajectory(gaps.at(i), rbtVelRbtFrame_, odom2rbt_);
                 } else
@@ -750,11 +579,10 @@ namespace quad_gap
             return decayed_path;
         }
         
-        if (robot_geo_proc_.robot_.shape == RobotShape::circle || !virtual_path_decay_enable_)
+        if (robot_geo_proc_.robot_.shape == RobotShape::circle || !cfg_.planning.virtual_path_decay_enable)
         {
             decayed_path = orig_path;
-        }
-        else if (robot_geo_proc_.robot_.shape == RobotShape::box)
+        } else if (robot_geo_proc_.robot_.shape == RobotShape::box)
         {
             decayed_path.header = orig_path.header;
             geometry_msgs::Pose first_pose = orig_path.poses[0];
@@ -765,7 +593,7 @@ namespace quad_gap
             double length = 0;
             for (size_t i = 1; i < orig_path.poses.size(); i++)
             {
-                if (!robot_path_orient_linear_decay_)
+                if (!cfg_.planning.robot_path_orient_linear_decay)
                 {
                     geometry_msgs::Pose curr_pose = orig_path.poses[i];
                     curr_pose.orientation = init_quat;
@@ -778,10 +606,10 @@ namespace quad_gap
                     double y_diff = curr_pose.position.y - prev_pose.position.y;
                     double dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
                     length += dist;
-                    // double avg_speed = sqrt(pow(cfg_.control.vx_absmax, 2) + pow(cfg_.control.vy_absmax, 2)) / speed_factor_;
+
                     double avg_speed = 0.2;
                     double t = length / avg_speed;
-                    double avg_ang = cfg_.control.ang_absmax / speed_factor_;
+                    double avg_ang = cfg_.control.ang_absmax / cfg_.control.speed_factor;
 
                     Eigen::Quaterniond q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
                     Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
@@ -844,8 +672,7 @@ namespace quad_gap
             
             for (size_t i = 0; i < result_score.size(); i++) 
             {
-                int counts = std::min(cfg_.planning.num_feasi_check, int(score.at(i).size()));
-                result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin() + counts, double(0));
+                result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin(), double(0)) / double(score.at(i).size());
                 result_score.at(i) = prr.at(i).poses.size() == 0 ? -std::numeric_limits<double>::infinity() : result_score.at(i);
                 ROS_DEBUG_STREAM("Score: " << result_score.at(i));
             }
@@ -893,11 +720,9 @@ namespace quad_gap
 
             geometry_msgs::PoseArray orientedIncomingPathRbtFrame = getOrientDecayedPath(incomingPathRbtFrame);
             std::vector<double> incomingPathPoseCosts = trajEvaluator_->scoreTrajectory(orientedIncomingPathRbtFrame);
-            // int counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incomingPathPoseCosts.size(), curr_score.size()));
             
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "    length of incoming path: " << incomingPathRbtFrame.poses.size());
 
-            // int counts = std::min(cfg_.planning.num_feasi_check, (int) incomingPathPoseCosts.size());
             double incom_subscore = std::accumulate(incomingPathPoseCosts.begin(), incomingPathPoseCosts.end(), double(0)) / double(incomingPathPoseCosts.size());
 
             ///////////////////////////////////////////////////////////////////////
@@ -977,7 +802,6 @@ namespace quad_gap
 
             geometry_msgs::PoseArray virtual_curr_score_path = getOrientDecayedPath(reducedCurrentPathRobotFrame);
             std::vector<double> reducedCurrentPathPoseCosts = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
-            // counts = std::min(cfg_.planning.num_feasi_check, (int) std::min(incomingPathPoseCosts.size(), curr_score.size()));
 
             double curr_subscore = std::accumulate(reducedCurrentPathPoseCosts.begin(), reducedCurrentPathPoseCosts.end(), double(0)) / double(reducedCurrentPathPoseCosts.size());
             
@@ -1223,7 +1047,7 @@ namespace quad_gap
 
         timeKeeper_->startTimer(COLL_CHECK);
         CollisionResults cc_results;
-        if (collision_checker_enable_)
+        if (cfg_.collision_checker.collision_checker_enable)
         {
             ros::WallTime start = ros::WallTime::now();
 
