@@ -53,23 +53,23 @@ namespace quad_gap {
             void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
                                                             const geometry_msgs::TransformStamped & odom2rbt);
             
-            std::vector<double> scoreGaps();
+            std::vector<float> scoreGaps();
             Gap * returnAndScoreGaps();
             
             // Full Scoring
-            std::vector<double> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
+            std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
             geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
-            std::vector<double> scoreTrajectory(const geometry_msgs::PoseArray & traj);
+            std::vector<float> scoreTrajectory(const geometry_msgs::PoseArray & traj);
         
         private:
             
-            double costFn(Gap * g, int goal_idx);
+            float costFn(Gap * g, int goal_idx);
 
-            double scorePose(const geometry_msgs::Pose & pose);
+            float scorePose(const geometry_msgs::Pose & pose);
             // int searchIdx(geometry_msgs::Pose pose);
-            double dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
-            double chapterScore(const double & d, const double & rmax_offset_val);
-            double terminalGoalCost(const geometry_msgs::Pose & pose);
+            float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            float chapterScore(const float & d, const float & rmax_offset_val);
+            float terminalGoalCost(const geometry_msgs::Pose & pose);
 
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;

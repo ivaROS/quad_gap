@@ -97,7 +97,7 @@ namespace quad_gap
             /**
             * \brief Dummy version to satisfy MBF API
             */
-            bool isGoalReached(double xy_tolerance, double yaw_tolerance) { return isGoalReached(); };
+            bool isGoalReached(const float & xy_tolerance, const float & yaw_tolerance) { return isGoalReached(); };
 
             /**
             * @brief Set the plan that the local planner is following, this is a virtual function for move_base plugins

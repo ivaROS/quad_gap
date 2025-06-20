@@ -199,8 +199,8 @@ namespace quad_gap
 
         for (size_t i = 0; i < msg->ranges.size(); i++)
         {
-            double orig_range = msg->ranges[i];
-            double orig_ang = i * msg->angle_increment + msg->angle_min;
+            float orig_range = msg->ranges[i];
+            float orig_ang = i * msg->angle_increment + msg->angle_min;
             orig_ang = orig_ang <= msg->angle_max ? orig_ang : msg->angle_max;
 
             geometry_msgs::PointStamped orig_pt, transformed_pt;
@@ -212,8 +212,8 @@ namespace quad_gap
             tf2::doTransform(orig_pt, transformed_pt, trans);
             // ROS_INFO_STREAM(cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
 
-            double transformed_range = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
-            double transformed_ang = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
+            float transformed_range = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
+            float transformed_ang = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
             int idx = (int) round((transformed_ang - msg->angle_min) / msg->angle_increment);
             idx = idx < msg->ranges.size() ? idx : (msg->ranges.size() - 1);
             idx = idx >= 0 ? idx : 0;
@@ -518,7 +518,7 @@ namespace quad_gap
     }
 
     // std::vector<geometry_msgs::PoseArray> 
-    std::vector<std::vector<double>> Planner::initialTrajGen(const std::vector<Gap *> & gaps, 
+    std::vector<std::vector<float>> Planner::initialTrajGen(const std::vector<Gap *> & gaps, 
                                                                 std::vector<geometry_msgs::PoseArray>& res, 
                                                                 std::vector<geometry_msgs::PoseArray>& virtual_decayed) 
     {
@@ -526,7 +526,7 @@ namespace quad_gap
 
         std::vector<geometry_msgs::PoseArray> ret_traj(gaps.size());
         std::vector<geometry_msgs::PoseArray> virtual_traj(gaps.size());
-        std::vector<std::vector<double>> ret_traj_scores(gaps.size());
+        std::vector<std::vector<float>> ret_traj_scores(gaps.size());
 
         geometry_msgs::PoseStamped rbt_local_pose;
         rbt_local_pose.header.frame_id = cfg_.robot_frame_id;
@@ -590,7 +590,7 @@ namespace quad_gap
             init_quat.w = 1;
             first_pose.orientation = init_quat;
             decayed_path.poses.push_back(first_pose);
-            double length = 0;
+            float length = 0;
             for (size_t i = 1; i < orig_path.poses.size(); i++)
             {
                 if (!cfg_.planning.robot_path_orient_linear_decay)
@@ -602,28 +602,28 @@ namespace quad_gap
                 {
                     geometry_msgs::Pose curr_pose = orig_path.poses[i];
                     geometry_msgs::Pose prev_pose = orig_path.poses[i-1];
-                    double x_diff = curr_pose.position.x - prev_pose.position.x;
-                    double y_diff = curr_pose.position.y - prev_pose.position.y;
-                    double dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
+                    float x_diff = curr_pose.position.x - prev_pose.position.x;
+                    float y_diff = curr_pose.position.y - prev_pose.position.y;
+                    float dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
                     length += dist;
 
-                    double avg_speed = 0.2;
-                    double t = length / avg_speed;
-                    double avg_ang = cfg_.control.ang_absmax / cfg_.control.speed_factor;
+                    float avg_speed = 0.2;
+                    float t = length / avg_speed;
+                    float avg_ang = cfg_.control.ang_absmax / cfg_.control.speed_factor;
 
-                    Eigen::Quaterniond q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
-                    Eigen::Vector3d euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
-                    double ang_diff = std::abs(euler[2]);
-                    double decayed_ang = avg_ang * t;
+                    Eigen::Quaternionf q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
+                    Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+                    float ang_diff = std::abs(euler[2]);
+                    float decayed_ang = avg_ang * t;
                     decayed_ang = decayed_ang <= ang_diff ? decayed_ang : ang_diff;
                     if (euler[2] <= 0)
                         decayed_ang = -decayed_ang;
                     
-                    double roll = 0, pitch = 0;    
-                    Eigen::Quaterniond e;
-                    e = Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX())
-                        * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
-                        * Eigen::AngleAxisd(decayed_ang, Eigen::Vector3d::UnitZ());
+                    float roll = 0, pitch = 0;    
+                    Eigen::Quaternionf e;
+                    e = Eigen::AngleAxisf(roll, Eigen::Vector3f::UnitX())
+                        * Eigen::AngleAxisf(pitch, Eigen::Vector3f::UnitY())
+                        * Eigen::AngleAxisf(decayed_ang, Eigen::Vector3f::UnitZ());
                     
                     curr_pose.orientation.w = e.w();
                     curr_pose.orientation.x = e.x();
@@ -645,7 +645,7 @@ namespace quad_gap
     }
 
     geometry_msgs::PoseArray Planner::pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
-                                                const std::vector<std::vector<double>> & score, 
+                                                const std::vector<std::vector<float>> & score, 
                                                 const std::vector<geometry_msgs::PoseArray> & virtual_path, 
                                                 geometry_msgs::PoseArray& chosen_virtual_path) 
     {
@@ -663,7 +663,7 @@ namespace quad_gap
             return geometry_msgs::PoseArray();
         }
 
-        std::vector<double> result_score(prr.size());
+        std::vector<float> result_score(prr.size());
         
         try 
         {
@@ -672,8 +672,8 @@ namespace quad_gap
             
             for (size_t i = 0; i < result_score.size(); i++) 
             {
-                result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin(), double(0)) / double(score.at(i).size());
-                result_score.at(i) = prr.at(i).poses.size() == 0 ? -std::numeric_limits<double>::infinity() : result_score.at(i);
+                result_score.at(i) = std::accumulate(score.at(i).begin(), score.at(i).begin(), float(0)) / float(score.at(i).size());
+                result_score.at(i) = prr.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : result_score.at(i);
                 ROS_DEBUG_STREAM("Score: " << result_score.at(i));
             }
         } catch (...) 
@@ -684,10 +684,10 @@ namespace quad_gap
         auto iter = std::max_element(result_score.begin(), result_score.end());
         int idx = std::distance(result_score.begin(), iter);
 
-        if (result_score.at(idx) == -std::numeric_limits<double>::infinity()) 
+        if (result_score.at(idx) == -std::numeric_limits<float>::infinity()) 
         {
             ROS_WARN_STREAM("No executable trajectory, values: ");
-            for (const double & val : result_score) 
+            for (const float & val : result_score) 
             {
                 ROS_INFO_STREAM("Score: " << val);
             }
@@ -719,11 +719,11 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "    evaluating incoming trajectory");
 
             geometry_msgs::PoseArray orientedIncomingPathRbtFrame = getOrientDecayedPath(incomingPathRbtFrame);
-            std::vector<double> incomingPathPoseCosts = trajEvaluator_->scoreTrajectory(orientedIncomingPathRbtFrame);
+            std::vector<float> incomingPathPoseCosts = trajEvaluator_->scoreTrajectory(orientedIncomingPathRbtFrame);
             
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "    length of incoming path: " << incomingPathRbtFrame.poses.size());
 
-            double incom_subscore = std::accumulate(incomingPathPoseCosts.begin(), incomingPathPoseCosts.end(), double(0)) / double(incomingPathPoseCosts.size());
+            float incom_subscore = std::accumulate(incomingPathPoseCosts.begin(), incomingPathPoseCosts.end(), float(0)) / float(incomingPathPoseCosts.size());
 
             ///////////////////////////////////////////////////////////////////////
             //  Evaluate the incoming path to determine if we can switch onto it //
@@ -735,7 +735,7 @@ namespace quad_gap
             {
                 incomingPathStatus = "incoming path is empty";
                 ableToSwitchToIncomingPath = false;
-            } else if (incom_subscore == -std::numeric_limits<double>::infinity()) 
+            } else if (incom_subscore == -std::numeric_limits<float>::infinity()) 
             {
                 incomingPathStatus = "incoming path is not feasible";
                 ableToSwitchToIncomingPath = false;
@@ -764,7 +764,7 @@ namespace quad_gap
                 }
             }
 
-            //     if (incom_subscore == -std::numeric_limits<double>::infinity()) 
+            //     if (incom_subscore == -std::numeric_limits<float>::infinity()) 
             //     {
             //         geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
             //         setCurrentTraj(empty_traj);
@@ -801,13 +801,13 @@ namespace quad_gap
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             geometry_msgs::PoseArray virtual_curr_score_path = getOrientDecayedPath(reducedCurrentPathRobotFrame);
-            std::vector<double> reducedCurrentPathPoseCosts = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
+            std::vector<float> reducedCurrentPathPoseCosts = trajEvaluator_->scoreTrajectory(virtual_curr_score_path);
 
-            double curr_subscore = std::accumulate(reducedCurrentPathPoseCosts.begin(), reducedCurrentPathPoseCosts.end(), double(0)) / double(reducedCurrentPathPoseCosts.size());
+            float curr_subscore = std::accumulate(reducedCurrentPathPoseCosts.begin(), reducedCurrentPathPoseCosts.end(), float(0)) / float(reducedCurrentPathPoseCosts.size());
             
-            // incom_subscore = std::accumulate(incomingPathPoseCosts.begin(), incomingPathPoseCosts.begin() + counts, double(0));
+            // incom_subscore = std::accumulate(incomingPathPoseCosts.begin(), incomingPathPoseCosts.begin() + counts, float(0));
 
-            std::vector<std::vector<double>> ret_traj_scores(2);
+            std::vector<std::vector<float>> ret_traj_scores(2);
             ret_traj_scores.at(0) = incomingPathPoseCosts;
             ret_traj_scores.at(1) = reducedCurrentPathPoseCosts;
             std::vector<geometry_msgs::PoseArray> viz_traj(2);
@@ -817,7 +817,7 @@ namespace quad_gap
 
             ROS_INFO_STREAM("Curr Score: " << curr_subscore << ", incom Score:" << incom_subscore);
 
-            if (curr_subscore == -std::numeric_limits<double>::infinity())
+            if (curr_subscore == -std::numeric_limits<float>::infinity())
             {
                 ROS_WARN_STREAM("current score infinity, switching to incoming path: " << incom_subscore);
                 setCurrentTraj(incomingPath);
@@ -826,7 +826,7 @@ namespace quad_gap
                 return incomingPath;                
             }
 
-            // if (curr_subscore == -std::numeric_limits<double>::infinity() && incom_subscore == -std::numeric_limits<double>::infinity()) 
+            // if (curr_subscore == -std::numeric_limits<float>::infinity() && incom_subscore == -std::numeric_limits<float>::infinity()) 
             // {
             //     ROS_WARN_STREAM("Both Failed");
             //     geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
@@ -876,9 +876,10 @@ namespace quad_gap
 
             tf2::Quaternion quat_tf;
             tf2::convert(orig_ref.poses[i].orientation, quat_tf);
-            tf2::Matrix3x3 m(quat_tf);
-            double roll, pitch, yaw;
-            m.getRPY(roll, pitch, yaw);
+            // tf2::Matrix3x3 m(quat_tf);
+            // float roll, pitch, yaw;
+            // m.getRPY(roll, pitch, yaw);
+            float yaw = quaternionToYaw(quat_tf);
             pt.theta = yaw;
 
             local_traj.points.push_back(pt);
@@ -1031,7 +1032,7 @@ namespace quad_gap
         timeKeeper_->startTimer(GAP_TRAJ_GEN);
         std::vector<geometry_msgs::PoseArray> traj_set, virtual_traj_set;
         
-        std::vector<std::vector<double>> score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
+        std::vector<std::vector<float>> score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
         timeKeeper_->stopTimer(GAP_TRAJ_GEN);
 
         timeKeeper_->startTimer(TRAJ_PICK);
@@ -1057,9 +1058,9 @@ namespace quad_gap
             ROS_INFO_STREAM("Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
         
             int cc_ite_min = 10;
-            double cc_itc_ratio = 0.2;
+            float cc_itc_ratio = 0.2;
 
-            if(cc_results.collision_idx_ >= 0 && double(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
+            if(cc_results.collision_idx_ >= 0 && float(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
             {
                 ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
                 setCurrentTraj(geometry_msgs::PoseArray());
@@ -1079,9 +1080,9 @@ namespace quad_gap
 
     bool Planner::recordAndCheckVel(const geometry_msgs::Twist & cmd_vel) 
     {
-        double val = std::abs(cmd_vel.linear.x) + std::abs(cmd_vel.linear.y) + std::abs(cmd_vel.angular.z);
+        float val = std::abs(cmd_vel.linear.x) + std::abs(cmd_vel.linear.y) + std::abs(cmd_vel.angular.z);
         cmdVelBuffer.push_back(val);
-        double cum_vel_sum = std::accumulate(cmdVelBuffer.begin(), cmdVelBuffer.end(), double(0));
+        float cum_vel_sum = std::accumulate(cmdVelBuffer.begin(), cmdVelBuffer.end(), float(0));
         bool ret_val = cum_vel_sum > 1.0 || !cmdVelBuffer.full();
         if (!ret_val && !cfg_.man.man_ctrl) {
             ROS_FATAL_STREAM("--------------------------Planning Failed--------------------------");

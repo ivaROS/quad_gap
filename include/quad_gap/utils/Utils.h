@@ -47,18 +47,6 @@ namespace quad_gap
         }
     }
 
-    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, double & param)
-    {
-        if (!nh.getParam(param_name, param))
-        {
-            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
-            throw std::runtime_error("Couldn't find parameter: " + param_name);
-        } else
-        {
-            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
-        }
-    }
-
     inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, float & param)
     {
         if (!nh.getParam(param_name, param))
@@ -273,6 +261,17 @@ namespace quad_gap
     * \return yaw angle
     */
     inline float quaternionToYaw(const tf::Quaternion & quat)
+    {
+        return std::atan2(2.0 * (quat.w() * quat.z() + quat.x() * quat.y()), 
+                            1 - 2.0 * (quat.y() * quat.y() + quat.z() * quat.z()));
+    }
+
+    /**
+    * \brief Helper for extracting yaw angle from quaternion
+    * \param quat incoming quaternion
+    * \return yaw angle
+    */
+    inline float quaternionToYaw(const tf2::Quaternion & quat)
     {
         return std::atan2(2.0 * (quat.w() * quat.z() + quat.x() * quat.y()), 
                             1 - 2.0 * (quat.y() * quat.y() + quat.z() * quat.z()));

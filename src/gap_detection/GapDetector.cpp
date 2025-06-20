@@ -62,10 +62,10 @@ namespace quad_gap
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
         // Find equivalent passing length
-        Eigen::Vector2d orient_vec(1, 0);
-        Eigen::Vector2d m_pt_vec = detected_gap->get_middle_pt_vec();
-        // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        Eigen::Vector2f orient_vec(1, 0);
+        Eigen::Vector2f m_pt_vec = detected_gap->get_middle_pt_vec();
+        // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
 
         return detected_gap->get_dist_side() > epl;
     }
@@ -236,12 +236,12 @@ namespace quad_gap
             auto farside_iter = std::min_element(scan_.ranges.begin() + start_idx, scan_.ranges.begin() + end_idx);
             int farside_idx = farside_iter - scan_.ranges.begin();
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
-            // double max_r_er = robot_geo_proc_.getRobotMaxRadius();
-            double farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
-            Eigen::Vector2d farside_vec(cos(farside_angle), sin(farside_angle));
-            Eigen::Vector2d orient_vec(1, 0);
-            double erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_left_dist);
-            double erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
+            // float max_r_er = robot_geo_proc_.getRobotMaxRadius();
+            float farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
+            Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
+            Eigen::Vector2f orient_vec(1, 0);
+            float erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_left_dist);
+            float erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
             bool second_test = curr_left_dist <= (*farside_iter - erl_left_dist) && simpGaps[j]->RRange() <= (*farside_iter - erl_right_dist);
             bool dist_diff = simpGaps[j]->isRightType() || !simpGaps[j]->isRadial();
             bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;

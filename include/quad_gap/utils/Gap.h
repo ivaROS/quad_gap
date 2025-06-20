@@ -123,11 +123,11 @@ namespace quad_gap
                 y = _left_dist * sin(left_theta);
             }
 
-            Eigen::Vector2d getLCartesian() const
+            Eigen::Vector2f getLCartesian() const
             {
                 float left_x, left_y;
                 getLCartesian(left_x, left_y);
-                return Eigen::Vector2d(left_x, left_y);
+                return Eigen::Vector2f(left_x, left_y);
             }
 
             // Get Left Cartesian Distance
@@ -138,11 +138,11 @@ namespace quad_gap
                 y = _right_dist * sin(right_theta);
             }
 
-            Eigen::Vector2d getRCartesian() const
+            Eigen::Vector2f getRCartesian() const
             {
                 float right_x, right_y;
                 getRCartesian(right_x, right_y);
-                return Eigen::Vector2d(right_x, right_y);
+                return Eigen::Vector2f(right_x, right_y);
             }
 
             void getRadialExLCartesian(float &x, float &y)
@@ -181,7 +181,7 @@ namespace quad_gap
                 y = (agc_right_dist) * sin(right_theta);
             }
 
-            void compareGoalDist(const double & goal_dist) 
+            void compareGoalDist(const float & goal_dist) 
             {
                 goal_within = goal_dist < _right_dist && goal_dist < _left_dist;
             }
@@ -278,19 +278,19 @@ namespace quad_gap
                 return sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (cos(float(_left_idx - _right_idx) / float(half_num_scan) * M_PI)));
             }
 
-            Eigen::Vector2d get_middle_pt_vec() const
+            Eigen::Vector2f get_middle_pt_vec() const
             {
-                Eigen::Vector2d left_vec = getLCartesian();
+                Eigen::Vector2f left_vec = getLCartesian();
                 // float right_x, right_y;
                 // getRCartesian(right_x, right_y);
-                // Eigen::Vector2d right_vec(right_x, right_y);
+                // Eigen::Vector2f right_vec(right_x, right_y);
                 
-                Eigen::Vector2d right_vec = getRCartesian();
+                Eigen::Vector2f right_vec = getRCartesian();
                 // float left_x, left_y;
                 // getLCartesian(left_x, left_y);
-                // Eigen::Vector2d left_vec(left_x, left_y);
-                // Eigen::Vector2d m_vec = (right_vec + left_vec) / 2;
-                Eigen::Vector2d m_vec = (right_vec + left_vec) / 2.0;
+                // Eigen::Vector2f left_vec(left_x, left_y);
+                // Eigen::Vector2f m_vec = (right_vec + left_vec) / 2;
+                Eigen::Vector2f m_vec = (right_vec + left_vec) / 2.0;
                 return m_vec;
             }
             

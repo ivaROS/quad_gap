@@ -20,7 +20,7 @@ namespace quad_gap
     std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
     {
         sensor_msgs::LaserScan egocircle = *scan_.get();
-        std::vector<double> dist(egocircle.ranges.size());
+        std::vector<float> dist(egocircle.ranges.size());
 
         if (!scan_) {
             return std::vector<geometry_msgs::Point>(0);
@@ -70,29 +70,29 @@ namespace quad_gap
         float dist_rev = egocircle.ranges.at(idx_rev);
         float dist_cent = egocircle.ranges.at(idx);
 
-        double angle_fwd = double(idx_fwd) * egocircle.angle_increment + egocircle.angle_min;
-        double angle_rev = double(idx_rev) * egocircle.angle_increment + egocircle.angle_min;
+        float angle_fwd = float(idx_fwd) * egocircle.angle_increment + egocircle.angle_min;
+        float angle_rev = float(idx_rev) * egocircle.angle_increment + egocircle.angle_min;
         
         if (idx_fwd < idx || idx_rev > idx) {
             return std::vector<geometry_msgs::Point>(0);
         }
 
-        Eigen::Vector2d fwd_pol(dist_fwd, angle_fwd);
-        Eigen::Vector2d rev_pol(dist_rev, angle_rev);
-        Eigen::Vector2d cent_pol(dist_cent, double(idx) * egocircle.angle_increment + egocircle.angle_min);
-        Eigen::Vector2d fwd_car = pol2car(fwd_pol);
-        Eigen::Vector2d rev_car = pol2car(rev_pol);
-        Eigen::Vector2d cent_car = pol2car(cent_pol);
+        Eigen::Vector2f fwd_pol(dist_fwd, angle_fwd);
+        Eigen::Vector2f rev_pol(dist_rev, angle_rev);
+        Eigen::Vector2f cent_pol(dist_cent, float(idx) * egocircle.angle_increment + egocircle.angle_min);
+        Eigen::Vector2f fwd_car = pol2car(fwd_pol);
+        Eigen::Vector2f rev_car = pol2car(rev_pol);
+        Eigen::Vector2f cent_car = pol2car(cent_pol);
 
-        Eigen::Vector2d pf;
-        Eigen::Vector2d pr;
+        Eigen::Vector2f pf;
+        Eigen::Vector2f pr;
 
         if (dist_cent < dist_fwd && dist_cent < dist_rev) {
             // ROS_INFO_STREAM("Non line");
-            Eigen::Vector2d a = cent_car - fwd_car;
-            Eigen::Vector2d b = rev_car - fwd_car;
-            Eigen::Vector2d a1 = (a.dot(b / b.norm())) * (b / b.norm());
-            Eigen::Vector2d a2 = a - a1;
+            Eigen::Vector2f a = cent_car - fwd_car;
+            Eigen::Vector2f b = rev_car - fwd_car;
+            Eigen::Vector2f a1 = (a.dot(b / b.norm())) * (b / b.norm());
+            Eigen::Vector2f a2 = a - a1;
             pf = fwd_car + a2;
             pr = rev_car + a2;
         } else {
@@ -115,14 +115,14 @@ namespace quad_gap
         return retArr;
     }
 
-    bool TrajectoryController::geqThres(const double dist)
+    bool TrajectoryController::geqThres(const float dist)
     {
         return dist >= thres;
     }
 
-    double TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
+    float TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
     {
-        return abs(double(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
+        return abs(float(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
     }
 
     geometry_msgs::Twist TrajectoryController::controlLaw(const geometry_msgs::Pose & current, 
@@ -134,11 +134,11 @@ namespace quad_gap
         boost::mutex::scoped_lock lock(egocircle_l);
         bool holonomic = cfg_->planning.holonomic;
         bool projection_operator = cfg_->planning.projection_operator;
-        double k_turn_ = cfg_->control.k_turn;
+        float k_turn_ = cfg_->control.k_turn;
         if (holonomic) k_turn_ = 0.8;
-        double k_drive_x_ = cfg_->control.k_drive_x;
-        double k_drive_y_ = cfg_->control.k_drive_y;
-        double k_po_ = cfg_->projection.k_po;
+        float k_drive_x_ = cfg_->control.k_drive_x;
+        float k_drive_y_ = cfg_->control.k_drive_y;
+        float k_po_ = cfg_->projection.k_po;
         float v_ang_const = cfg_->control.v_ang_const;
         float v_lin_x_const = cfg_->control.v_lin_x_const;
         float v_lin_y_const = cfg_->control.v_lin_y_const;
@@ -156,11 +156,12 @@ namespace quad_gap
                             orientation.y,
                             orientation.z,
                             orientation.w);
-        tf::Matrix3x3 m_c(q_c);
-        double c_roll, c_pitch, c_yaw;
-        m_c.getRPY(c_roll, c_pitch, c_yaw);
+        // tf::Matrix3x3 m_c(q_c);
+        // float c_roll, c_pitch, c_yaw;
+        // m_c.getRPY(c_roll, c_pitch, c_yaw);
+        float currYaw = quaternionToYaw(q_c);
 
-        Eigen::Matrix2cd g_curr = getComplexMatrix(position.x, position.y, c_yaw);
+        Eigen::Matrix2cf g_curr = getComplexMatrix(position.x, position.y, currYaw);
 
         position = desired.pose.pose.position;
         orientation = desired.pose.pose.orientation;
@@ -169,13 +170,14 @@ namespace quad_gap
                             orientation.y,
                             orientation.z,
                             orientation.w);
-        tf::Matrix3x3 m_d(q_d);
-        double d_roll, d_pitch, d_yaw;
-        m_d.getRPY(d_roll, d_pitch, d_yaw);
+        // tf::Matrix3x3 m_d(q_d);
+        // float d_roll, d_pitch, d_yaw;
+        // m_d.getRPY(d_roll, d_pitch, d_yaw);
+        float desYaw = quaternionToYaw(q_d);
 
-        Eigen::Matrix2cd g_des = getComplexMatrix(position.x, position.y, d_yaw);
+        Eigen::Matrix2cf g_des = getComplexMatrix(position.x, position.y, desYaw);
 
-        Eigen::Matrix2cd g_error = g_curr.inverse() * g_des;
+        Eigen::Matrix2cf g_error = g_curr.inverse() * g_des;
         float theta_error = std::arg(g_error(0, 0));
         float x_error = g_error.real()(0, 1);
         float y_error = g_error.imag()(0, 1);
@@ -183,9 +185,9 @@ namespace quad_gap
 
         float u_add_x = 0;
         float u_add_y = 0;
-        double v_ang_fb = 0;
-        double v_lin_x_fb = 0;
-        double v_lin_y_fb = 0;
+        float v_ang_fb = 0;
+        float v_lin_x_fb = 0;
+        float v_lin_y_fb = 0;
 
         if (cfg_->man.man_ctrl) 
         {
@@ -208,10 +210,10 @@ namespace quad_gap
 
         // ROS_INFO_STREAM(init_pose.pose);
         
-        Eigen::Vector3d comp;
-        double prod_mul;
-        Eigen::Vector2d si_der;
-        Eigen::Vector2d v_err(v_lin_x_fb, v_lin_y_fb);
+        Eigen::Vector3f comp;
+        float prod_mul;
+        Eigen::Vector2f si_der;
+        Eigen::Vector2f v_err(v_lin_x_fb, v_lin_y_fb);
 
 
         if (inflated_egocircle.ranges.size() < 500) 
@@ -221,7 +223,7 @@ namespace quad_gap
 
         if (projection_operator)
         {
-            std::vector<double> min_dist_arr(inflated_egocircle.ranges.size());
+            std::vector<float> min_dist_arr(inflated_egocircle.ranges.size());
             for (int i = 0; i < min_dist_arr.size(); i++) {
                 float angle = i * inflated_egocircle.angle_increment - M_PI;
                 float dist = inflated_egocircle.ranges.at(i);
@@ -278,12 +280,12 @@ namespace quad_gap
 
             if (cfg_->man.line && vec.size() > 0) {
                 // Dist to 
-                Eigen::Vector2d pt1(vec.at(0).x, vec.at(0).y);
-                Eigen::Vector2d pt2(vec.at(1).x, vec.at(1).y);
-                Eigen::Vector2d rbt(0, 0);
-                Eigen::Vector2d a = rbt - pt1;
-                Eigen::Vector2d b = pt2 - pt1;
-                Eigen::Vector2d c = rbt - pt2;
+                Eigen::Vector2f pt1(vec.at(0).x, vec.at(0).y);
+                Eigen::Vector2f pt2(vec.at(1).x, vec.at(1).y);
+                Eigen::Vector2f rbt(0, 0);
+                Eigen::Vector2f a = rbt - pt1;
+                Eigen::Vector2f b = pt2 - pt1;
+                Eigen::Vector2f c = rbt - pt2;
                 
                 if (a.dot(b) < 0) {
                     // Dist to pt1
@@ -291,27 +293,27 @@ namespace quad_gap
                     min_diff_x = - pt1(0);
                     min_diff_y = - pt1(1);
                     comp = projection_method(min_diff_x, min_diff_y);
-                    si_der = Eigen::Vector2d(comp(0), comp(1));
+                    si_der = Eigen::Vector2f(comp(0), comp(1));
                     prod_mul = v_err.dot(si_der);
                 } else if (c.dot(-b) < 0) {
                     min_diff_x = - pt2(0);
                     min_diff_y = - pt2(1);
                     comp = projection_method(min_diff_x, min_diff_y);
-                    si_der = Eigen::Vector2d(comp(0), comp(1));
+                    si_der = Eigen::Vector2f(comp(0), comp(1));
                     prod_mul = v_err.dot(si_der);
                 } else {
-                    double line_dist = (pt1(0) * pt2(1) - pt2(0) * pt1(1)) / (pt1 - pt2).norm();
-                    double sign;
+                    float line_dist = (pt1(0) * pt2(1) - pt2(0) * pt1(1)) / (pt1 - pt2).norm();
+                    float sign;
                     sign = line_dist < 0 ? -1 : 1;
                     line_dist *= sign;
                     
-                    double line_si = (r_min / line_dist - r_min / r_norm) / (1. - r_min / r_norm);
-                    double line_si_der_base = r_min / (pow(line_dist, 2) * (r_min / r_norm - 1));
-                    double line_si_der_x = - (pt2(1) - pt1(1)) / (pt1 - pt2).norm() * line_si_der_base;
-                    double line_si_der_y = - (pt1(0) - pt2(0)) / (pt1 - pt2).norm() * line_si_der_base;
-                    Eigen::Vector2d der(line_si_der_x, line_si_der_y);
+                    float line_si = (r_min / line_dist - r_min / r_norm) / (1. - r_min / r_norm);
+                    float line_si_der_base = r_min / (pow(line_dist, 2) * (r_min / r_norm - 1));
+                    float line_si_der_x = - (pt2(1) - pt1(1)) / (pt1 - pt2).norm() * line_si_der_base;
+                    float line_si_der_y = - (pt1(0) - pt2(0)) / (pt1 - pt2).norm() * line_si_der_base;
+                    Eigen::Vector2f der(line_si_der_x, line_si_der_y);
                     der /= der.norm();
-                    comp = Eigen::Vector3d(der(0), der(1), line_si);
+                    comp = Eigen::Vector3f(der(0), der(1), line_si);
                     si_der = der;
                     si_der(1) /= 3;
                     prod_mul = v_err.dot(si_der);
@@ -321,7 +323,7 @@ namespace quad_gap
                 min_diff_x = - min_x;
                 min_diff_y = - min_y;
                 comp = projection_method(min_diff_x, min_diff_y);
-                si_der = Eigen::Vector2d(comp(0), comp(1));
+                si_der = Eigen::Vector2f(comp(0), comp(1));
                 si_der(1) /= 3;
                 prod_mul = v_err.dot(si_der);
             }
@@ -340,7 +342,7 @@ namespace quad_gap
             res.pose.position.x = 0;
             res.pose.position.y = 0;
             res.pose.position.z = 1;
-            double dir = std::atan2(u_add_y, u_add_x);
+            float dir = std::atan2(u_add_y, u_add_x);
             tf2::Quaternion dir_quat;
             dir_quat.setRPY(0, 0, dir);
             res.pose.orientation = tf2::toMsg(dir_quat);
@@ -420,7 +422,7 @@ namespace quad_gap
         return cmd_vel;
     }
 
-    Eigen::Vector3d TrajectoryController::projection_method(const float & min_diff_x, const float & min_diff_y) 
+    Eigen::Vector3f TrajectoryController::projection_method(const float & min_diff_x, const float & min_diff_y) 
     {
         float r_min = cfg_->projection.r_min;
         float r_norm = cfg_->projection.r_norm;
@@ -435,15 +437,15 @@ namespace quad_gap
         float norm_si_der = sqrt(pow(si_der_x, 2) + pow(si_der_y, 2));
         float norm_si_der_x = si_der_x / norm_si_der;
         float norm_si_der_y = si_der_y / norm_si_der;
-        return Eigen::Vector3d(norm_si_der_x, norm_si_der_y, si);
+        return Eigen::Vector3f(norm_si_der_x, norm_si_der_y, si);
     }
 
-    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(const double & x, const double & y, const double & quat_w, const double & quat_z)
+    Eigen::Matrix2cf TrajectoryController::getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z)
     {
-        std::complex<double> phase(quat_w, quat_z);
+        std::complex<float> phase(quat_w, quat_z);
         phase = phase * phase;
 
-        Eigen::Matrix2cd g(2, 2);
+        Eigen::Matrix2cf g(2, 2);
         //g.real()(0,0) = phase.real();
         g.real()(0, 1) = x;
         g.real()(1, 0) = 0;
@@ -459,11 +461,11 @@ namespace quad_gap
         return g;
     }
 
-    Eigen::Matrix2cd TrajectoryController::getComplexMatrix(const double & x, const double & y, const double & theta)
+    Eigen::Matrix2cf TrajectoryController::getComplexMatrix(const float & x, const float & y, const float & theta)
     {
-        std::complex<double> phase(std::cos(theta), std::sin(theta));
+        std::complex<float> phase(std::cos(theta), std::sin(theta));
 
-        Eigen::Matrix2cd g(2, 2);
+        Eigen::Matrix2cf g(2, 2);
         //g.real()(0,0) = phase.real();
         g.real()(0, 1) = x;
         g.real()(1, 0) = 0;
@@ -483,7 +485,7 @@ namespace quad_gap
     int TrajectoryController::targetPoseIdx(const geometry_msgs::Pose & curr_pose, const TrajPlan & ref_pose) 
     {
         // Find pose right ahead
-        std::vector<double> pose_diff(ref_pose.poses.size());
+        std::vector<float> pose_diff(ref_pose.poses.size());
         // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
         for (int i = 0; i < pose_diff.size(); i++) // i will always be positive, so this is fine
         {
@@ -516,7 +518,7 @@ namespace quad_gap
         return traj;
     }
 
-    double TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
     {
         float x = dist * std::cos(theta);
         float y = dist * std::sin(theta);
@@ -524,14 +526,14 @@ namespace quad_gap
     }
 
 
-    Eigen::Vector2d TrajectoryController::car2pol(const Eigen::Vector2d & a) 
+    Eigen::Vector2f TrajectoryController::car2pol(const Eigen::Vector2f & a) 
     {
-        return Eigen::Vector2d(a.norm(), float(std::atan2(a(1), a(0))));
+        return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
     }
 
-    Eigen::Vector2d TrajectoryController::pol2car(const Eigen::Vector2d & a) 
+    Eigen::Vector2f TrajectoryController::pol2car(const Eigen::Vector2f & a) 
     {
-        return Eigen::Vector2d(cos(a(1)) * a(0), sin(a(1)) * a(0));
+        return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
     }
 
 

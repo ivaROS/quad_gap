@@ -40,20 +40,20 @@ namespace quad_gap
             TrajPlan trajGen(const geometry_msgs::PoseArray & orig_traj);
 
         private:
-            Eigen::Matrix2cd getComplexMatrix(const double & x, const double & y, const double & quat_w, const double & quat_z);
-            Eigen::Matrix2cd getComplexMatrix(const double & x, const double & y, const double & theta);
-            double dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z);
+            Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & theta);
+            float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
 
             std::vector<geometry_msgs::Point> findLocalLine(const int & idx);
-            double polDist(const float & l1, const float & t1, const float & l2, const float & t2);
+            float polDist(const float & l1, const float & t1, const float & l2, const float & t2);
 
-            bool geqThres(const double dist);
+            bool geqThres(const float dist);
 
-            Eigen::Vector2d car2pol(const Eigen::Vector2d & a);
-            Eigen::Vector2d pol2car(const Eigen::Vector2d & a);
-            Eigen::Vector3d projection_method(const float & min_diff_x, const float & min_diff_y);
+            Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
+            Eigen::Vector2f pol2car(const Eigen::Vector2f & a);
+            Eigen::Vector3f projection_method(const float & min_diff_x, const float & min_diff_y);
 
-            double thres;
+            float thres;
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             boost::mutex egocircle_l;

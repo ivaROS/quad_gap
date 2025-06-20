@@ -90,24 +90,24 @@ namespace quad_gap
             bool isLargerAngle(const Eigen::Vector2f & v1, const Eigen::Vector2f & v2)
             {
                 // v1 angle is larger than and equal to v2 angle ccw
-                double ang_1 = atan2(v1[1], v1[0]);
-                double ang_2 = atan2(v2[1], v2[0]);
+                float ang_1 = atan2(v1[1], v1[0]);
+                float ang_2 = atan2(v2[1], v2[0]);
 
                 return ang_1 >= ang_2;
             }
 
-            double getBezierDist(Bezier::Bezier<2>& quadBezier, const double & t_start, const double & t_end, const int & steps)
+            float getBezierDist(Bezier::Bezier<2>& quadBezier, const float & t_start, const float & t_end, const int & steps)
             {
-                double approx_dist = 0;
-                double t_diff = (t_end - t_start) / (steps - 1);
+                float approx_dist = 0;
+                float t_diff = (t_end - t_start) / (steps - 1);
                 for (size_t k = 0; k < steps - 1; k++)
                 {
-                    double x = quadBezier.valueAt(t_start + k * t_diff, 0);
-                    double y = quadBezier.valueAt(t_start + k * t_diff, 1);
-                    double x_next = quadBezier.valueAt(t_start + (k + 1) * t_diff, 0);
-                    double y_next = quadBezier.valueAt(t_start + (k + 1) * t_diff, 1);
+                    float x = quadBezier.valueAt(t_start + k * t_diff, 0);
+                    float y = quadBezier.valueAt(t_start + k * t_diff, 1);
+                    float x_next = quadBezier.valueAt(t_start + (k + 1) * t_diff, 0);
+                    float y_next = quadBezier.valueAt(t_start + (k + 1) * t_diff, 1);
 
-                    double dist = sqrt(pow(x - x_next, 2) + pow(y - y_next, 2));
+                    float dist = sqrt(pow(x - x_next, 2) + pow(y - y_next, 2));
                     approx_dist += dist;
                 }
                 return approx_dist;

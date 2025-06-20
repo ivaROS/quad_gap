@@ -42,19 +42,19 @@ namespace Bezier
 {
     namespace Math
     {
-        inline double faculty(const size_t & n)
+        inline float faculty(const size_t & n)
         {
-            double d = 1.0;
+            float d = 1.0;
             if (n == 0 || n == 1)
                 return d;
             for (size_t i = 2; i <= n; i++)
-                d *= (double) i;
+                d *= (float) i;
             return d;
         }
 
         // Note: Using faculty function seems to be way faster than the recursive one
         // given at https://en.wikipedia.org/wiki/Binomial_coefficient
-        inline double binomial(const size_t & n, const size_t & k)
+        inline float binomial(const size_t & n, const size_t & k)
         {
             assert(k <= n);
             return faculty(n) / (faculty(k) * faculty(n - k));
@@ -109,7 +109,7 @@ namespace Bezier
         size_t t = 0;
         size_t one_minus_t = 0;
 
-        double valueAt(const float & t) const
+        float valueAt(const float & t) const
         {
             return pow(1 - t, one_minus_t) * pow(t, this->t);
         }
@@ -129,7 +129,7 @@ namespace Bezier
             }
         }
 
-        double valueAt(const size_t & pos, const float & t) const
+        float valueAt(const size_t & pos, const float & t) const
         {
             assert(pos < size());
             return mPolynomialPairs[pos].valueAt(t);
@@ -192,14 +192,14 @@ namespace Bezier
             this->y = other.y;
         }
 
-        double length() const
+        float length() const
         {
             return sqrt(x*x + y*y);
         }
 
         void normalize()
         {
-            double len = length();
+            float len = length();
             x /= len;
             y /= len;
         }
@@ -216,16 +216,16 @@ namespace Bezier
             y += distance.y;
         }
 
-        void rotate(const double & angle, const Vec2& pivot = Vec2(0, 0))
+        void rotate(const float & angle, const Vec2& pivot = Vec2(0, 0))
         {
-            double s = sin(angle);
-            double c = cos(angle);
+            float s = sin(angle);
+            float c = cos(angle);
 
             x -= pivot.x;
             y -= pivot.y;
 
-            double xnew = x * c - y * s;
-            double ynew = x * s + y * c;
+            float xnew = x * c - y * s;
+            float ynew = x * s + y * c;
 
             x = xnew + pivot.x;
             y = ynew + pivot.y;
@@ -286,12 +286,12 @@ namespace Bezier
             return Vec2(-x, -y);
         }
 
-        Vec2 operator*(const double & scale) const
+        Vec2 operator*(const float & scale) const
         {
             return Vec2(x * scale, y * scale);
         }
 
-        Vec2 operator/(const double & scale) const
+        Vec2 operator/(const float & scale) const
         {
             return Vec2(x / scale, y / scale);
         }
@@ -500,7 +500,7 @@ namespace Bezier
 
         float area() const
         {
-            return ((double) width() * (double) height());
+            return ((float) width() * (float) height());
         }
 
         Point& operator[](const size_t & idx)
@@ -526,7 +526,7 @@ namespace Bezier
     public:
         // Takes the ExtremePoints of the Bezier curve moved to origo and rotated to align the x-axis
         // as arguments as well as the translation/rotation used to calculate it.
-        TightBoundingBox(const ExtremePoints& xPoints, const Vec2& translation, const double & rotation)
+        TightBoundingBox(const ExtremePoints& xPoints, const Vec2& translation, const float & rotation)
         {
             float minX = std::numeric_limits<float>::max();
             float maxX = -std::numeric_limits<float>::max();
@@ -593,16 +593,16 @@ namespace Bezier
         // Uses the two first points to calculate the "width".
         float width() const
         {
-            double x = points[1].x - points[0].x;
-            double y = points[1].y - points[0].y;
+            float x = points[1].x - points[0].x;
+            float y = points[1].y - points[0].y;
             return sqrt(x * x + y * y);
         }
 
         // Uses the second and third points to calculate the "height".
         float height() const
         {
-            double x = points[2].x - points[1].x;
-            double y = points[2].y - points[1].y;
+            float x = points[2].x - points[1].x;
+            float y = points[2].y - points[1].y;
             return sqrt(x * x + y * y);
         }
 
@@ -672,10 +672,10 @@ namespace Bezier
         }
 
     public:
-        double valueAt(const float & t, const size_t & axis) const
+        float valueAt(const float & t, const size_t & axis) const
         {
             assert(axis < Vec2::size); // Currently only support 2D
-            double sum = 0;
+            float sum = 0;
             for (size_t n = 0; n < N+1; n++)
             {
                 sum += binomialCoefficients[n] * polynomialCoefficients[n].valueAt(t) * mControlPoints[n][axis];
@@ -725,7 +725,7 @@ namespace Bezier
             }
         }
 
-        void rotate(const double & angle, const Vec2 & pivot = Vec2(0, 0))
+        void rotate(const float & angle, const Vec2 & pivot = Vec2(0, 0))
         {
             for (size_t i = 0; i < N+1; i++)
             {
@@ -734,7 +734,7 @@ namespace Bezier
         }
 
         ExtremeValues derivativeZero(const size_t & intervals = BEZIER_DEFAULT_INTERVALS,
-                                     const double & epsilon = BEZIER_FUZZY_EPSILON,
+                                     const float & epsilon = BEZIER_FUZZY_EPSILON,
                                      const size_t & maxIterations = BEZIER_DEFAULT_MAX_ITERATIONS) const
         {
             switch (N)
@@ -783,7 +783,7 @@ namespace Bezier
             bezier.translate(translation);
 
             // Rotate bezier to align the first control point (lowest order) with the x-axis
-            double angle = -bezier[0].angle();
+            float angle = -bezier[0].angle();
             bezier.rotate(angle);
 
             return TightBoundingBox(bezier.extremePoints(), translation, angle);
@@ -829,30 +829,30 @@ namespace Bezier
         }
 
         ExtremeValues newtonRhapson(const size_t & intervals = BEZIER_DEFAULT_INTERVALS,
-                                    const double & epsilon = BEZIER_FUZZY_EPSILON,
+                                    const float & epsilon = BEZIER_FUZZY_EPSILON,
                                     const size_t & maxIterations = BEZIER_DEFAULT_MAX_ITERATIONS) const
         {
             assert(N >= 2);
             ExtremeValues xVals;
-            const double dt = 1.0 / (double) intervals;
-            const double absEpsilon = fabs(epsilon);
+            const float dt = 1.0 / (float) intervals;
+            const float absEpsilon = fabs(epsilon);
             const Bezier<N-1> db = derivative();
             const Bezier<N-2> ddb = db.derivative();
 
             for (size_t i = 0; i < Point::size; i++)
             {
-                double t = 0;
+                float t = 0;
 
                 while(t <= 1.0)
                 {
-                    double zeroVal = t;
+                    float zeroVal = t;
                     size_t current_iter = 0;
 
                     while (current_iter < maxIterations)
                     {
-                        double dbVal = db.valueAt(zeroVal, i);
-                        double ddbVal = ddb.valueAt(zeroVal, i);
-                        double nextZeroVal = zeroVal - (dbVal / ddbVal);
+                        float dbVal = db.valueAt(zeroVal, i);
+                        float ddbVal = ddb.valueAt(zeroVal, i);
+                        float nextZeroVal = zeroVal - (dbVal / ddbVal);
 
                         if (fabs(nextZeroVal - zeroVal) < absEpsilon)
                         {

@@ -25,10 +25,12 @@ namespace quad_gap
             g2g inte_g2g(selectedGap->goal.x,
                          selectedGap->goal.y);
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
-            inte_g2g, x, 0.0,
-            cfg_->traj.integrate_maxt,
-            cfg_->traj.integrate_stept,
-            corder);
+                                                    inte_g2g, 
+                                                    x, 
+                                                    0.0f,
+                                                    cfg_->traj.integrate_maxt,
+                                                    cfg_->traj.integrate_stept,
+                                                    corder);
             return posearr;
         }
 
@@ -66,9 +68,12 @@ namespace quad_gap
                             selectedGap->isRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
-            inte, x, 0.0,
-            cfg_->traj.integrate_maxt,
-            cfg_->traj.integrate_stept, corder);
+                                                inte, 
+                                                x, 
+                                                0.0f,
+                                                cfg_->traj.integrate_maxt,
+                                                cfg_->traj.integrate_stept, 
+                                                corder);
 
         if (selectedGap->mode.convex) 
         {
@@ -106,9 +111,9 @@ namespace quad_gap
         // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << selectedGap->goal.goalwithin);
 
         // Check if goal is in the middle
-        double ang_r_conv = std::atan2(y_right, x_right);
-        double ang_l_conv = std::atan2(y_left, x_left);
-        double ang_goal = std::atan2(goal_y, goal_x);
+        float ang_r_conv = std::atan2(y_right, x_right);
+        float ang_l_conv = std::atan2(y_left, x_left);
+        float ang_goal = std::atan2(goal_y, goal_x);
 
         // assert(ang_goal >= ang_r_conv && ang_goal <= ang_l_conv);
 
@@ -180,7 +185,7 @@ namespace quad_gap
         // Conditions
         if (ang_r_conv <= 0 && ang_l_conv > 0)
         {
-            double chosen_ang = atan2(chosen_inter[1], chosen_inter[0]);
+            float chosen_ang = atan2(chosen_inter[1], chosen_inter[0]);
 
             if (abs(chosen_ang) <= M_PI / 2)
             {
@@ -699,18 +704,18 @@ namespace quad_gap
             }
             else
             {
-                double des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
-                double entire_dist = getBezierDist(qudraBezier, 0, 1, 30);
+                float des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
+                float entire_dist = getBezierDist(qudraBezier, 0, 1, 30);
                 int num_sampled_pts = int(round(entire_dist / des_dist));
                 num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
 
-                double dist_thresh = des_dist / 10;
-                double t_step = 1. / (num_sampled_pts - 1);
-                double t_min = 0;
+                float dist_thresh = des_dist / 10;
+                float t_step = 1. / (num_sampled_pts - 1);
+                float t_min = 0;
                 for (size_t i = 0; i < num_sampled_pts; i++)
                 {
-                    double cur_t = i * t_step;
-                    double cur_dist = getBezierDist(qudraBezier, t_min, cur_t, 5);
+                    float cur_t = i * t_step;
+                    float cur_dist = getBezierDist(qudraBezier, t_min, cur_t, 5);
                     if(abs(cur_dist - des_dist) < dist_thresh)
                     {
                         geometry_msgs::Pose pose;
@@ -721,12 +726,12 @@ namespace quad_gap
                     }
                     else if(cur_dist > des_dist)
                     {
-                        double t_prev = (i - 1) * t_step;
-                        double t_interp = (cur_t + t_prev) / 2;
-                        double interp_dist = getBezierDist(qudraBezier, t_min, t_interp, 5);
+                        float t_prev = (i - 1) * t_step;
+                        float t_interp = (cur_t + t_prev) / 2;
+                        float interp_dist = getBezierDist(qudraBezier, t_min, t_interp, 5);
 
-                        double t_high = cur_t;
-                        double t_low = t_prev;
+                        float t_high = cur_t;
+                        float t_low = t_prev;
                         while(abs(interp_dist - des_dist) > dist_thresh)
                         {
                             if(interp_dist < des_dist)
@@ -800,7 +805,7 @@ namespace quad_gap
         old_pose.orientation.z = 0;
         old_pose.orientation.w = 1;
         geometry_msgs::Pose new_pose;
-        double dx, dy, result;
+        float dx, dy, result;
 
         std::vector<geometry_msgs::Pose> shortened;
         shortened.push_back(old_pose);

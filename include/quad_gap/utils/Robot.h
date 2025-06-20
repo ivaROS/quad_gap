@@ -7,16 +7,16 @@ namespace quad_gap
     struct Robot
     {
         RobotShape shape;
-        double radius = 0, length = 0, width = 0, diagonal_length = 0;
-        double avg_lin_speed, avg_rot_speed;
+        float radius = 0, length = 0, width = 0, diagonal_length = 0;
+        float avg_lin_speed, avg_rot_speed;
         Robot(){};
 
 
         Robot(const RobotShape & in_shape, 
-                const double & robot_length, 
-                const double & robot_width=0, 
-                const double & robot_avg_lin_speed=0.2, 
-                const double & robot_avg_rot_speed=0.5)
+                const float & robot_length, 
+                const float & robot_width=0, 
+                const float & robot_avg_lin_speed=0.2, 
+                const float & robot_avg_rot_speed=0.5)
         {
             shape = in_shape;
             switch (shape)

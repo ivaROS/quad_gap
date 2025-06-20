@@ -33,47 +33,47 @@ namespace quad_gap
 
                 for (auto v: config["vec_dot_product"])
                 {
-                    vec_dot_product_.push_back(v.as<double>());
+                    vec_dot_product_.push_back(v.as<float>());
                 }
                 for (auto er: config["equivalent_radius"])
                 {
-                    equivalent_radius_.push_back(er.as<double>());
+                    equivalent_radius_.push_back(er.as<float>());
                 }
                 for (auto epl: config["equivalent_pass_len"])
                 {
-                    equivalent_pass_len_.push_back(epl.as<double>());
+                    equivalent_pass_len_.push_back(epl.as<float>());
                 }
 
                 // std::cout << vec_dot_product_.size() << " " << equivalent_radius_.size() << " " << equivalent_pass_len_.size() << std::endl;
             }
 
-            double getInterp(const double & vec_dot_product, const std::vector<double> & target_vec)
+            float getInterp(const float & vec_dot_product, const std::vector<float> & target_vec)
             {
                 auto it = std::lower_bound (vec_dot_product_.begin(), vec_dot_product_.end(), vec_dot_product);
                 if(it == vec_dot_product_.begin())
                 {
-                    double interp_e = target_vec[0];
+                    float interp_e = target_vec[0];
                     return interp_e;
                 }
                 else
                 {
-                    double low_val = *std::prev(it);
+                    float low_val = *std::prev(it);
                     int low_idx = std::prev(it) - vec_dot_product_.begin();
-                    double high_val = *it;
+                    float high_val = *it;
                     int high_idx = low_idx + 1;
-                    double e_low = target_vec[low_idx];
-                    double e_high = target_vec[high_idx];
-                    double interp_e = (vec_dot_product - low_val) / (high_val - low_val) * (e_high - e_low) + e_low;
+                    float e_low = target_vec[low_idx];
+                    float e_high = target_vec[high_idx];
+                    float interp_e = (vec_dot_product - low_val) / (high_val - low_val) * (e_high - e_low) + e_low;
                     return interp_e;
                 }
             }
 
-            double getInterpEquivR(const double & vec_dot_product)
+            float getInterpEquivR(const float & vec_dot_product)
             {
                 return getInterp(vec_dot_product, equivalent_radius_);
             }
 
-            double getInterpEquivPL(const double & vec_dot_product)
+            float getInterpEquivPL(const float & vec_dot_product)
             {
                 return getInterp(vec_dot_product, equivalent_pass_len_);
             }    
@@ -84,7 +84,7 @@ namespace quad_gap
             }
 
         private:
-            std::vector<double> vec_dot_product_, equivalent_radius_, equivalent_pass_len_;
+            std::vector<float> vec_dot_product_, equivalent_radius_, equivalent_pass_len_;
             bool initialized_ = false;
     };
 }

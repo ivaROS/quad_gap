@@ -167,7 +167,7 @@ namespace quad_gap
             * 
             *
             */
-            std::vector<std::vector<double>> initialTrajGen(const std::vector<Gap *> & vec, 
+            std::vector<std::vector<float>> initialTrajGen(const std::vector<Gap *> & vec, 
                                                             std::vector<geometry_msgs::PoseArray>& res, 
                                                             std::vector<geometry_msgs::PoseArray>& virtual_decayed);
 
@@ -185,7 +185,7 @@ namespace quad_gap
             * @return the best trajectory
             */
             geometry_msgs::PoseArray pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
-                                                const std::vector<std::vector<double>> & score, 
+                                                const std::vector<std::vector<float>> & score, 
                                                 const std::vector<geometry_msgs::PoseArray> & virtual_path, 
                                                 geometry_msgs::PoseArray& chosen_virtual_path);
 
@@ -370,7 +370,7 @@ namespace quad_gap
 
             geometry_msgs::PoseArray curr_executing_traj;
 
-            boost::circular_buffer<double> cmdVelBuffer;
+            boost::circular_buffer<float> cmdVelBuffer;
 
             ros::Subscriber tfSub_; /**< Subscriber to TF tree */
             ros::Subscriber laserSub_; /**< Subscriber to robot laser */
@@ -384,7 +384,7 @@ namespace quad_gap
             RobotGeometryStorage robot_geo_storage_;
             RobotGeometryProcessor robot_geo_proc_;
             // bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
-            // double speed_factor_;
+            // float speed_factor_;
 
             // Bezier curve
             // bool use_bezier_;        

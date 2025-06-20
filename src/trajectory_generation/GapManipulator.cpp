@@ -24,10 +24,10 @@ namespace quad_gap {
         // if agc. then the shorter side need to be further in
         
         // Get the equivalent passing length
-        Eigen::Vector2d orient_vec(1, 0);
-        Eigen::Vector2d m_pt_vec = (pl.cast<double>() + pr.cast<double>()) / 2;
-        // double epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        double epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        Eigen::Vector2f orient_vec(1, 0);
+        Eigen::Vector2f m_pt_vec = (pl.cast<float>() + pr.cast<float>()) / 2;
+        // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
         Eigen::Vector2f lr = (pr - pl) / (pr - pl).norm() * (epl / 2) * cfg_->traj.inf_ratio + pl;
         float thetalr = car2pol(lr)(1);
         if(pl[1] >= 0 && lr[1] < 0 && pl[0] <= 0 && lr[0] < 0)
@@ -127,8 +127,8 @@ namespace quad_gap {
 
         // float r1 = gap->convex.convex_right_dist;
         // float r2 = gap->convex.convex_left_dist;
-        // double r_close = (double) std::min(r1, r2);
-        // double goal_dist = sqrt(
+        // float r_close = (float) std::min(r1, r2);
+        // float goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
         //     pow(localgoal.pose.position.x, 2)
         // );
@@ -152,35 +152,35 @@ namespace quad_gap {
     bool GapManipulator::checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal) 
     {
         boost::mutex::scoped_lock lock(egolock);
-        double dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
+        float dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
 
         sensor_msgs::LaserScan scan = *scan_.get();
-        double min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
+        float min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot
-        Eigen::Vector2d orient_vec(1, 0);
-        Eigen::Vector2d goal_vec(localgoal.pose.position.x, localgoal.pose.position.y);
-        double er = robot_geo_proc_.getRobotMaxRadius();
+        Eigen::Vector2f orient_vec(1, 0);
+        Eigen::Vector2f goal_vec(localgoal.pose.position.x, localgoal.pose.position.y);
+        float er = robot_geo_proc_.getRobotMaxRadius();
         if (dist2goal < 2 * er) {
             return true;
         }
 
         // If within closest configuration space
-        double er_max = robot_geo_proc_.getRobotMaxRadius(); //TODO: check
+        float er_max = robot_geo_proc_.getRobotMaxRadius(); //TODO: check
         if (dist2goal < min_val - cfg_->traj.inf_ratio * er_max) {
             return true;
         }
 
         // Should be sufficiently far, otherwise we are in trouble
-        double goal_angle = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
+        float goal_angle = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         int incident_angle = (int) round((goal_angle - scan.angle_min) / scan.angle_increment);
 
-        // double half_angle = std::asin(cfg_->rbt.r_inscr / dist2goal);
+        // float half_angle = std::asin(cfg_->rbt.r_inscr / dist2goal);
         // int index = std::ceil(half_angle / scan.angle_increment) * 1.5;
         int index = (int)(scan.ranges.size()) / 8;
         int lower_bound = std::max(incident_angle - index, 0);
         int upper_bound = std::min(incident_angle + index, int(scan.ranges.size() - 1));
-        double min_val_round_goal = *std::min_element(scan.ranges.begin() + lower_bound, scan.ranges.begin() + upper_bound);
+        float min_val_round_goal = *std::min_element(scan.ranges.begin() + lower_bound, scan.ranges.begin() + upper_bound);
         return dist2goal < min_val_round_goal;
     }
 
@@ -193,7 +193,7 @@ namespace quad_gap {
         if (!scan_) 
             return; 
 
-        double angular_size = (left_idx - right_idx) * (scan_.get()->angle_increment);
+        float angular_size = (left_idx - right_idx) * (scan_.get()->angle_increment);
 
         if (angular_size < cfg_->gap_manip.reduction_threshold)
         {
@@ -204,7 +204,7 @@ namespace quad_gap {
         int l_biased_r = right_idx + gap_size;
         int r_biased_l = left_idx - gap_size;
 
-        double goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
+        float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         int goal_idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
 
         int acceptable_dist = int(round(gap_size / 2));
@@ -285,10 +285,10 @@ namespace quad_gap {
         x2 = (left_dist) * cos(idx2theta(left_idx));
         y2 = (left_dist) * sin(idx2theta(left_idx));
 
-        Eigen::Vector2d l_vec(x1, y1);
-        Eigen::Vector2d r_vec(x2, y2);
-        Eigen::Vector2d mid = (l_vec + r_vec) / 2;
-        Eigen::Vector2d robot_orient(1,0);
+        Eigen::Vector2f l_vec(x1, y1);
+        Eigen::Vector2f r_vec(x2, y2);
+        Eigen::Vector2f mid = (l_vec + r_vec) / 2;
+        Eigen::Vector2f robot_orient(1,0);
         float robot_el = float(robot_geo_proc_.getLinearDecayEquivalentPL(robot_orient, mid, mid.norm()));
         float robot_er = float(robot_geo_proc_.getLinearDecayEquivalentRL(robot_orient, mid, mid.norm()));
         
