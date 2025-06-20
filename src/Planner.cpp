@@ -42,6 +42,12 @@ namespace quad_gap
         if (trajVisualizer_)
             delete trajVisualizer_;
 
+        if (gapTrajGenerator_)
+            delete gapTrajGenerator_;
+
+        if (gapGoalPlacer_)
+            delete gapGoalPlacer_;
+
         // if (robot_geo_proc_)
         //     delete robot_geo_proc_;
 
@@ -109,6 +115,7 @@ namespace quad_gap
         trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
         trajEvaluator_ = new TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
         gapTrajGenerator_ = new GapTrajGenerator(cfg_, robot_geo_proc_);
+        gapGoalPlacer_ = new GapGoalPlacer(cfg_, robot_geo_proc_);
         goalVisualizer_ = new GoalVisualizer(nh, cfg_);
         gapManipulator_ = new GapManipulator(nh, cfg_, robot_geo_proc_);
         trajController_ = new TrajectoryController(nh, cfg_);
@@ -233,10 +240,6 @@ namespace quad_gap
 
         timeKeeper_->startTimer(SCAN);
 
-        // boost::shared_ptr<sensor_msgs::LaserScan const> tmp_msg = scan_;
-
-        // ROS_INFO_STREAM(msg.get()->ranges.size());
-
         /////////////////////////////////////
         //////// SCAN PRE-PROCESSING ////////
         /////////////////////////////////////
@@ -289,21 +292,7 @@ namespace quad_gap
 
         if (hasGlobalGoal_)
         {
-            // THEIRS
-            // geometry_msgs::PoseStamped local_goal;
-
-            // if (goal_set)
-            // {
-                // globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
-                // local_goal = globalPlanManager_->getCurrentLocalGoal(rbt2odom_);
-                // goalVisualizer_->localGoal(local_goal);
-            
-                // trajEvaluator_->updateLocalGoal(local_goal, odom2rbt_);
-            // }
-
-
-            // OURS
-            // // update global path local waypoint according to new scan
+            // update global path local waypoint according to new scan
             globalPlanManager_->generateGlobalPathLocalWaypoint(map2rbt_);
             geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame = globalPlanManager_->getGlobalPathLocalWaypointOdomFrame(rbt2odom_);
             goalVisualizer_->drawGlobalPathLocalWaypoint(globalPathLocalWaypointOdomFrame);
@@ -321,6 +310,7 @@ namespace quad_gap
         trajEvaluator_->updateEgoCircle(scan_);
 
         gapManipulator_->updateEgoCircle(scan_);
+        gapGoalPlacer_->updateEgoCircle(scan_);
         trajController_->updateEgoCircle(scan_);
     }
 
@@ -505,7 +495,7 @@ namespace quad_gap
                 gapManipulator_->reduceGap(manip_set.at(i), local_goal_rbt_frame);
                 gapManipulator_->convertAxialGap(manip_set.at(i));
                 gapManipulator_->radialExtendGap(manip_set.at(i));
-                gapManipulator_->setGapWaypoint(manip_set.at(i), local_goal_rbt_frame);
+                gapGoalPlacer_->setGapWaypoint(manip_set.at(i), local_goal_rbt_frame);
             }
         } catch(...) 
         {
@@ -1002,6 +992,8 @@ namespace quad_gap
 
     geometry_msgs::PoseArray Planner::runPlanningLoop() 
     {
+        ROS_INFO_STREAM_NAMED("Planner", "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
+
         if (!initialized_ || !hasLaserScan_ || !hasGlobalGoal_)
         {
             ROS_WARN_STREAM_NAMED("Planner", "Not ready to plan, initialized: " << initialized_ << ", laser scan: " << hasLaserScan_ << ", global goal: " << hasGlobalGoal_);
@@ -1032,14 +1024,26 @@ namespace quad_gap
             return geometry_msgs::PoseArray();
         }
 
+        ROS_INFO_STREAM_NAMED("Planner", "Planning gaps:");
+        for (int i = 0; i < gapCount; i++)
+        {
+            Gap * gap = planningGaps.at(i);
+            float leftX, leftY, rightX, rightY;
+            gap->getLCartesian(leftX, leftY);
+            gap->getRCartesian(rightX, rightY);
+            ROS_INFO_STREAM_NAMED("Planner", "Gap " << i);
+            ROS_INFO_STREAM_NAMED("Planner", "      Left polar: (" << gap->LIdx() << ", " << gap->LRange() << "), Right polar: (" << gap->RIdx() << ", " << gap->RRange() << ")");
+            ROS_INFO_STREAM_NAMED("Planner", "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
+        }
+
         timeKeeper_->startTimer(GAP_MANIP);
-        std::vector<Gap *> gap_set = gapManipulate(planningGaps);
+        std::vector<Gap *> manipGaps = gapManipulate(planningGaps);
         timeKeeper_->stopTimer(GAP_MANIP);
 
         timeKeeper_->startTimer(GAP_TRAJ_GEN);
         std::vector<geometry_msgs::PoseArray> traj_set, virtual_traj_set;
         
-        std::vector<std::vector<float>> score_set = initialTrajGen(gap_set, traj_set, virtual_traj_set);
+        std::vector<std::vector<float>> score_set = initialTrajGen(manipGaps, traj_set, virtual_traj_set);
         timeKeeper_->stopTimer(GAP_TRAJ_GEN);
 
         timeKeeper_->startTimer(TRAJ_PICK);

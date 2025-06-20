@@ -358,8 +358,8 @@ namespace quad_gap
                 }
     
                 // this_marker.ns = "extent_line";
-                getline(gap->convex.convex_right_idx, 
-                        gap->convex.convex_right_dist, 
+                getline(gap->convex.convexRightIdx_, 
+                        gap->convex.convexRightDist_, 
                         gap->qB, 
                         // lines, 
                         // linel, 
@@ -367,8 +367,8 @@ namespace quad_gap
                         marker, 
                         convex_color);
                 
-                getline(gap->convex.convex_left_idx, 
-                        gap->convex.convex_left_dist, 
+                getline(gap->convex.convexLeftIdx_, 
+                        gap->convex.convexLeftDist_, 
                         gap->qB, 
                         // lines, 
                         // linel, 
@@ -379,8 +379,8 @@ namespace quad_gap
 
 
                 // this_marker.ns = "orig_line";
-                getline(gap->_right_idx, 
-                        gap->_right_dist, 
+                getline(gap->RIdx(), 
+                        gap->RRange(), 
                         origin, 
                         // lines, 
                         // linel, 
@@ -388,8 +388,8 @@ namespace quad_gap
                         marker, 
                         colorMap["simp_agc"]);
 
-                getline(gap->_left_idx, 
-                        gap->_left_dist, 
+                getline(gap->LIdx(), 
+                        gap->LRange(), 
                         origin, 
                         // lines, 
                         // linel, 

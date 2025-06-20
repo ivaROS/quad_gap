@@ -224,7 +224,8 @@ namespace quad_gap
         if (projection_operator)
         {
             std::vector<float> min_dist_arr(inflated_egocircle.ranges.size());
-            for (int i = 0; i < min_dist_arr.size(); i++) {
+            for (int i = 0; i < min_dist_arr.size(); i++) 
+            {
                 float angle = i * inflated_egocircle.angle_increment - M_PI;
                 float dist = inflated_egocircle.ranges.at(i);
                 min_dist_arr.at(i) = dist2Pose(angle, dist, init_pose.pose);
@@ -234,7 +235,9 @@ namespace quad_gap
             // ROS_INFO_STREAM("Local Line Start");
             std::vector<geometry_msgs::Point> vec = findLocalLine(min_idx);
             // ROS_INFO_STREAM("Local Line End");
-            if (vec.size() > 1) {
+            
+            if (vec.size() > 1) 
+            {
                 // Visualization and Recenter
                 vec.at(0).x -= init_pose.pose.position.x;
                 vec.at(0).y -= init_pose.pose.position.y;
@@ -269,7 +272,6 @@ namespace quad_gap
             min_dist = min_dist >= r_max ? r_max : min_dist;
             if (min_dist <= 0) ROS_INFO_STREAM("Min dist <= 0, : " << min_dist);
             min_dist = min_dist <= 0 ? 0.01 : min_dist;
-            // min_dist -= cfg_->rbt.r_inscr / 2;
 
             min_dist_ang = (float)(min_idx) * inflated_egocircle.angle_increment + inflated_egocircle.angle_min;
             float min_x = min_dist * cos(min_dist_ang) - init_pose.pose.position.x;
@@ -390,13 +392,13 @@ namespace quad_gap
         // Make sure no ejection
         u_add_x = std::min(u_add_x, float(0));
 
-        if(holonomic)
+        if (holonomic)
         {
             v_ang_fb = v_ang_fb + v_ang_const;
             v_lin_x_fb = abs(theta_error) > M_PI / 3? 0 : v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
             v_lin_y_fb = abs(theta_error) > M_PI / 3? 0 : v_lin_y_fb + v_lin_y_const + k_po_ * u_add_y;
 
-            if(v_lin_x_fb < 0)
+            if (v_lin_x_fb < 0)
                 v_lin_x_fb = 0;
         }
         else

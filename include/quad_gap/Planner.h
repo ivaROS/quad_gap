@@ -30,6 +30,7 @@
 #include <quad_gap/global_plan_management/GlobalPlanManager.h>
 #include <quad_gap/trajectory_evaluation/TrajectoryEvaluator.h>
 #include <quad_gap/trajectory_generation/GapManipulator.h>
+#include <quad_gap/trajectory_generation/GapGoalPlacer.h>
 #include <quad_gap/trajectory_tracking/TrajectoryController.h>
 #include <quad_gap/TimeKeeper.h>
 
@@ -159,7 +160,7 @@ namespace quad_gap
             /**
             * Take current observed gaps and perform gap conversion
             * @param None, directly taken from private variable space
-            * @return gap_set, simplfied radial prioritized gaps
+            * @return manipGaps, simplfied radial prioritized gaps
             */
             std::vector<Gap *> gapManipulate(const std::vector<Gap *> & planning_gaps);
 
@@ -334,6 +335,7 @@ namespace quad_gap
             TrajectoryVisualizer * trajVisualizer_  = NULL; 
             GoalVisualizer * goalVisualizer_  = NULL; 
             TrajectoryEvaluator * trajEvaluator_  = NULL; 
+            GapGoalPlacer * gapGoalPlacer_ = NULL; /**< Gap goal placer, used to place goal in gap */
             GapTrajGenerator * gapTrajGenerator_  = NULL; 
             GapManipulator * gapManipulator_  = NULL; 
             TrajectoryController * trajController_  = NULL;

@@ -35,12 +35,12 @@ namespace quad_gap
         }
 
         float x_left, x_right, y_left, y_right;
-        float theta_left = idx2theta(selectedGap->convex.convex_left_idx);
-        float theta_right = idx2theta(selectedGap->convex.convex_right_idx);
-        x_right = selectedGap->convex.convex_right_dist * cos(theta_right);
-        y_right = selectedGap->convex.convex_right_dist * sin(theta_right);
-        x_left = selectedGap->convex.convex_left_dist * cos(theta_left);
-        y_left = selectedGap->convex.convex_left_dist * sin(theta_left);
+        float theta_left = idx2theta(selectedGap->convex.convexLeftIdx_);
+        float theta_right = idx2theta(selectedGap->convex.convexRightIdx_);
+        x_right = selectedGap->convex.convexRightDist_ * cos(theta_right);
+        y_right = selectedGap->convex.convexRightDist_ * sin(theta_right);
+        x_left = selectedGap->convex.convexLeftDist_ * cos(theta_left);
+        y_left = selectedGap->convex.convexLeftDist_ * sin(theta_left);
 
         float goal_x = selectedGap->goal.x;
         float goal_y = selectedGap->goal.y;
@@ -100,10 +100,10 @@ namespace quad_gap
     {
         // Find the intersections of triangle and circle
         float x_right, x_left, y_right, y_left;
-        x_right = (selectedGap->convex.convex_right_dist) * cos(idx2theta(selectedGap->convex.convex_right_idx));
-        y_right = (selectedGap->convex.convex_right_dist) * sin(idx2theta(selectedGap->convex.convex_right_idx));
-        x_left = (selectedGap->convex.convex_left_dist) * cos(idx2theta(selectedGap->convex.convex_left_idx));
-        y_left = (selectedGap->convex.convex_left_dist) * sin(idx2theta(selectedGap->convex.convex_left_idx));
+        x_right = (selectedGap->convex.convexRightDist_) * cos(idx2theta(selectedGap->convex.convexRightIdx_));
+        y_right = (selectedGap->convex.convexRightDist_) * sin(idx2theta(selectedGap->convex.convexRightIdx_));
+        x_left = (selectedGap->convex.convexLeftDist_) * cos(idx2theta(selectedGap->convex.convexLeftIdx_));
+        y_left = (selectedGap->convex.convexLeftDist_) * sin(idx2theta(selectedGap->convex.convexLeftIdx_));
 
         float goal_x = selectedGap->goal.x;
         float goal_y = selectedGap->goal.y;

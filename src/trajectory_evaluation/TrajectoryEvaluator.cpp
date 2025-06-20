@@ -30,8 +30,8 @@ namespace quad_gap
     float TrajectoryEvaluator::costFn(Gap * g, int goal_idx)
     {
         // This is in rbt frame
-        int leftdist = std::abs(g->_right_idx - goal_idx);
-        int rightdist = std::abs(g->_left_idx - goal_idx);
+        int leftdist = std::abs(g->RIdx() - goal_idx);
+        int rightdist = std::abs(g->LIdx() - goal_idx);
         return std::min(leftdist, rightdist);
     }
 
@@ -183,16 +183,6 @@ namespace quad_gap
         if (d > rmax_offset_val) return 0;
         return cfg_->traj.cobs * std::exp(- cfg_->traj.w * (d));
     }
-
-    // int TrajectoryEvaluator::searchIdx(geometry_msgs::Pose pose) {
-    //     if (!msg) return 1;
-    //     float r = sqrt(pow(pose.position.x, 2) + pow(pose.position.y, 2));
-    //     float eval = float(cfg_->rbt.r_inscr) / r;
-    //     if (eval > 1) return 1;
-    //     float theta = float(std::acos( eval ));
-    //     int searchIdx = (int) std::ceil(theta / msg.get()->angle_increment);
-    //     return searchIdx;
-    // }
 
     Gap * TrajectoryEvaluator::returnAndScoreGaps() 
     {

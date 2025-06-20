@@ -19,32 +19,32 @@ namespace quad_gap
             Gap() {};
 
             Gap(const std::string & frame, 
-                const int & right_idx, 
-                const float & right_dist, 
-                const bool & radial = false) : _frame(frame), _right_idx(right_idx), _right_dist(right_dist), _radial(radial)
+                const int & rightIdx, 
+                const float & rightRange, 
+                const bool & radial = false) : _frame(frame), rightIdx_(rightIdx), rightRange_(rightRange), _radial(radial)
             {};
 
             Gap(const Gap & otherGap)
             {
                 _frame = otherGap._frame;
-                _left_idx = otherGap._left_idx;
-                _right_idx = otherGap._right_idx;
-                _left_dist = otherGap._left_dist;
-                _right_dist = otherGap._right_dist;
+                leftIdx_ = otherGap.leftIdx_;
+                rightIdx_ = otherGap.rightIdx_;
+                leftRange_ = otherGap.leftRange_;
+                rightRange_ = otherGap.rightRange_;
                 right_type = otherGap.right_type;
                 convex = otherGap.convex;
-                agc_right_idx = otherGap.agc_right_idx;
-                agc_left_idx = otherGap.agc_left_idx;
-                agc_right_dist = otherGap.agc_right_dist;
-                agc_left_dist = otherGap.agc_left_dist;
+                agcrightIdx_ = otherGap.agcrightIdx_;
+                agcleftIdx_ = otherGap.agcleftIdx_;
+                agcrightRange_ = otherGap.agcrightRange_;
+                agcleftRange_ = otherGap.agcleftRange_;
                 goal_within = otherGap.goal_within;
                 right_obs = otherGap.right_obs;
                 left_obs = otherGap.left_obs;
                 _radial = otherGap._radial;
-                convex_left_idx = otherGap.convex_left_idx;
-                convex_right_idx = otherGap.convex_right_idx;
-                convex_left_dist = otherGap.convex_left_dist;
-                convex_right_dist = otherGap.convex_right_dist;
+                convexLeftIdx_ = otherGap.convexLeftIdx_;
+                convexRightIdx_ = otherGap.convexRightIdx_;
+                convexLeftDist_ = otherGap.convexLeftDist_;
+                convexRightDist_ = otherGap.convexRightDist_;
                 goal_within = otherGap.goal_within;
                 goal_dir_within = otherGap.goal_dir_within;
                 life_time = otherGap.life_time;
@@ -59,68 +59,69 @@ namespace quad_gap
 
             ~Gap() {};
 
-            void setLIdx(const int & left_idx)
+            void setLIdx(const int & leftIdx)
             {
-                _left_idx = left_idx;
+                leftIdx_ = leftIdx;
             }
 
-            void setRIdx(const int & right_idx)
+            void setRIdx(const int & rightIdx)
             {
-                _right_idx = right_idx;
+                rightIdx_ = rightIdx;
             }
 
             // Setter and Getter for LR Distance and Index
-            void setLRange(const float & left_dist)
+            void setLRange(const float & leftRange)
             {
-                _left_dist = left_dist;
+                leftRange_ = leftRange;
             }
 
-            void setRRange(const float & right_dist) 
+            void setRRange(const float & rightRange) 
             {
-                _right_dist = right_dist;
+                rightRange_ = rightRange;
             }
 
             int LIdx() const
             {
-                return _left_idx;
+                return leftIdx_;
             }
 
             int RIdx() const
             {
-                return _right_idx;
+                return rightIdx_;
             }            
 
             float LRange() const
             {
-                return _left_dist;
+                return leftRange_;
             }
 
             float RRange() const
             {
-                return _right_dist;
+                return rightRange_;
             }
 
             // Concluding the Gap after constructing with left information
-            void addLeftInformation(const int & left_idx, const float & left_dist) 
+            void addLeftInformation(const int & leftIdx, const float & leftRange) 
             {
-                _left_idx = left_idx;
-                _left_dist = left_dist;
-                right_type = _right_dist < _left_dist;
+                leftIdx_ = leftIdx;
+                leftRange_ = leftRange;
+                right_type = rightRange_ < leftRange_;
 
                 setRadial();
 
-                convex.convex_right_idx = _right_idx;
-                convex.convex_left_idx = _left_idx;
-                convex.convex_right_dist = _right_dist;
-                convex.convex_left_dist = _left_dist;
+                convex.convexLeftIdx_ = leftIdx_;
+                convex.convexLeftDist_ = leftRange_;
+
+                convex.convexRightIdx_ = rightIdx_;
+                convex.convexRightDist_ = rightRange_;
             }
 
             // Get Right Cartesian Distance
             void getLCartesian(float &x, float &y) const
             {
-                float left_theta = idx2theta(_left_idx);
-                x = _left_dist * cos(left_theta);
-                y = _left_dist * sin(left_theta);
+                float leftTheta = idx2theta(leftIdx_);
+                x = leftRange_ * cos(leftTheta);
+                y = leftRange_ * sin(leftTheta);
             }
 
             Eigen::Vector2f getLCartesian() const
@@ -133,9 +134,9 @@ namespace quad_gap
             // Get Left Cartesian Distance
             void getRCartesian(float &x, float &y) const
             {
-                float right_theta = idx2theta(_right_idx);
-                x = _right_dist * cos(right_theta);
-                y = _right_dist * sin(right_theta);
+                float right_theta = idx2theta(rightIdx_);
+                x = rightRange_ * cos(right_theta);
+                y = rightRange_ * sin(right_theta);
             }
 
             Eigen::Vector2f getRCartesian() const
@@ -147,63 +148,63 @@ namespace quad_gap
 
             void getRadialExLCartesian(float &x, float &y)
             {
-                float left_theta = idx2theta(convex_left_idx);
-                x = (convex_left_dist) * cos(left_theta);
-                y = (convex_left_dist) * sin(left_theta);
+                float leftTheta = idx2theta(convexLeftIdx_);
+                x = (convexLeftDist_) * cos(leftTheta);
+                y = (convexLeftDist_) * sin(leftTheta);
             }
 
             void getRadialExRCartesian(float &x, float &y)
             {
-                float right_theta = idx2theta(convex_right_idx);
-                x = (convex_right_dist) * cos(right_theta);
-                y = (convex_right_dist) * sin(right_theta);
+                float right_theta = idx2theta(convexRightIdx_);
+                x = (convexRightDist_) * cos(right_theta);
+                y = (convexRightDist_) * sin(right_theta);
             }
 
-            void setAGCIdx(const int & right_idx, const int & left_idx) 
+            void setAGCIdx(const int & rightIdx, const int & leftIdx) 
             {
-                agc_right_idx = right_idx;
-                agc_left_idx = left_idx;
-                agc_right_dist = float(right_idx - _right_idx) / float(_left_idx - _right_idx) * (_left_dist - _right_dist) + _right_dist;
-                agc_left_dist = float(left_idx - _right_idx) / float(_left_idx - _right_idx) * (_left_dist - _right_dist) + _right_dist;
+                agcrightIdx_ = rightIdx;
+                agcleftIdx_ = leftIdx;
+                agcrightRange_ = float(rightIdx - rightIdx_) / float(leftIdx_ - rightIdx_) * (leftRange_ - rightRange_) + rightRange_;
+                agcleftRange_ = float(leftIdx - rightIdx_) / float(leftIdx_ - rightIdx_) * (leftRange_ - rightRange_) + rightRange_;
             }
 
             void getAGCLCartesian(float &x, float &y)
             {
-                float left_theta = idx2theta(agc_left_idx);
-                x = (agc_left_dist) * cos(left_theta);
-                y = (agc_left_dist) * sin(left_theta);
+                float leftTheta = idx2theta(agcleftIdx_);
+                x = (agcleftRange_) * cos(leftTheta);
+                y = (agcleftRange_) * sin(leftTheta);
             }
 
             void getAGCRCartesian(float &x, float &y)
             {
-                float right_theta = idx2theta(agc_right_idx);
-                x = (agc_right_dist) * cos(right_theta);
-                y = (agc_right_dist) * sin(right_theta);
+                float right_theta = idx2theta(agcrightIdx_);
+                x = (agcrightRange_) * cos(right_theta);
+                y = (agcrightRange_) * sin(right_theta);
             }
 
             void compareGoalDist(const float & goal_dist) 
             {
-                goal_within = goal_dist < _right_dist && goal_dist < _left_dist;
+                goal_within = goal_dist < rightRange_ && goal_dist < leftRange_;
             }
 
             int manipLeftIdx() const
             {
-                return convex.convex_left_idx;
+                return convex.convexLeftIdx_;
             }
 
             int manipRightIdx() const
             {
-                return convex.convex_right_idx;
+                return convex.convexRightIdx_;
             }
 
             float manipLeftRange() const
             {
-                return convex.convex_left_dist;
+                return convex.convexLeftDist_;
             }
 
             float manipRightRange() const
             {
-                return convex.convex_right_dist;
+                return convex.convexRightDist_;
             }
 
             // Getter and Setter for if side is an obstacle
@@ -230,9 +231,9 @@ namespace quad_gap
             void setRadial()
             {
                 float resoln = M_PI / half_num_scan;
-                float angle1 = (_left_idx - _right_idx) * resoln;
-                float short_side = right_type ? _right_dist : _left_dist;
-                float opp_side = (float) sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (float)cos(angle1));
+                float angle1 = (leftIdx_ - rightIdx_) * resoln;
+                float short_side = right_type ? rightRange_ : leftRange_;
+                float opp_side = (float) sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (float)cos(angle1));
                 float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
                 // _radial = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
                 _radial = (M_PI - small_angle - angle1 > (2.0 / 3.0 * M_PI)); 
@@ -275,7 +276,7 @@ namespace quad_gap
 
             float get_dist_side() const
             {
-                return sqrt(pow(_right_dist, 2) + pow(_left_dist, 2) - 2 * _right_dist * _left_dist * (cos(float(_left_idx - _right_idx) / float(half_num_scan) * M_PI)));
+                return sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (cos(float(leftIdx_ - rightIdx_) / float(half_num_scan) * M_PI)));
             }
 
             Eigen::Vector2f get_middle_pt_vec() const
@@ -299,24 +300,21 @@ namespace quad_gap
             float life_time = 1.0;
             bool agc = false;
 
-            int _right_idx = 0;
-            float _right_dist = 3;
-            int _left_idx = 511;
-            float _left_dist = 3;
+
             bool reduced = false;
             bool convexified = false;
-            int convex_right_idx;
-            int convex_left_idx;
-            float convex_right_dist;
-            float convex_left_dist;
+            int convexRightIdx_;
+            int convexLeftIdx_;
+            float convexRightDist_;
+            float convexLeftDist_;
             float min_safe_dist = -1;
             Eigen::Vector2f qB;
             // float half_num_scan = 256;
 
-            int agc_right_idx;
-            int agc_left_idx;
-            float agc_right_dist;
-            float agc_left_dist;
+            int agcrightIdx_;
+            int agcleftIdx_;
+            float agcrightRange_;
+            float agcleftRange_;
 
             std::string _frame = "";
             bool right_obs = true;
@@ -326,10 +324,10 @@ namespace quad_gap
 
             struct converted 
             {
-                int convex_right_idx = 0;
-                int convex_left_idx = 511;
-                float convex_right_dist = 3;
-                float convex_left_dist = 3;
+                int convexRightIdx_ = 0;
+                int convexLeftIdx_ = 511;
+                float convexRightDist_ = 3;
+                float convexLeftDist_ = 3;
             } convex;
 
             struct GapMode 
@@ -346,6 +344,13 @@ namespace quad_gap
                 bool discard = false;
                 bool goalwithin = false;
             } goal;
-        // private:
+
+        private:
+
+        int leftIdx_ = 511;
+        float leftRange_ = 3;
+        
+        int rightIdx_ = 0;
+        float rightRange_ = 3;        
     };
 }

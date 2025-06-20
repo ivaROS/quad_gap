@@ -181,7 +181,7 @@ namespace quad_gap
             detected_gap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
             detected_gap->setMinSafeDist(minScanDist_);
 
-            if (equivalentCheck(detected_gap) || detected_gap->_left_idx - detected_gap->_right_idx > 500)
+            if (equivalentCheck(detected_gap) || detected_gap->LIdx() - detected_gap->RIdx() > 500)
             {
                 rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
             } else
@@ -225,7 +225,7 @@ namespace quad_gap
     {
         int last_mergable = -1;
 
-        float curr_left_dist = rawGap->LRange();
+        float currLRange = rawGap->LRange();
         // int erase_counter = 0;
 
         // float coefs = cfg_->planning.planning_inflated ? 0 : 1;
@@ -240,9 +240,9 @@ namespace quad_gap
             float farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
             Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
             Eigen::Vector2f orient_vec(1, 0);
-            float erl_left_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, curr_left_dist);
-            float erl_right_dist = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
-            bool second_test = curr_left_dist <= (*farside_iter - erl_left_dist) && simpGaps[j]->RRange() <= (*farside_iter - erl_right_dist);
+            float erlLRange = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, currLRange);
+            float erlRRange = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
+            bool second_test = currLRange <= (*farside_iter - erlLRange) && simpGaps[j]->RRange() <= (*farside_iter - erlRRange);
             bool dist_diff = simpGaps[j]->isRightType() || !simpGaps[j]->isRadial();
             bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
             if (second_test && dist_diff && idx_diff) 
