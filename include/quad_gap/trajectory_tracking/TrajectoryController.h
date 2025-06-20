@@ -13,7 +13,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <tf/tf.h>
 #include <quad_gap/utils/Gap.h>
-#include "quad_gap/TrajPlan.h"
+// #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/GapTrajectoryGenerator.h>
 #include <visualization_msgs/Marker.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -29,15 +29,13 @@ namespace quad_gap
             TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg);
 
             geometry_msgs::Twist controlLaw(const geometry_msgs::Pose & current, 
-                                            const nav_msgs::Odometry & desired,
+                                            const geometry_msgs::Pose & desired,
                                             const sensor_msgs::LaserScan & inflated_egocircle, 
                                             const geometry_msgs::PoseStamped & init_pose);
             
             void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan);
 
-            int targetPoseIdx(const geometry_msgs::Pose & curr_pose, const TrajPlan & ref_pose);
-
-            TrajPlan trajGen(const geometry_msgs::PoseArray & orig_traj);
+            int targetPoseIdx(const geometry_msgs::Pose & curr_pose, const geometry_msgs::PoseArray & path);
 
         private:
             Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z);

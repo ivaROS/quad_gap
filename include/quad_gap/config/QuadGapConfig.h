@@ -2,7 +2,7 @@
 
 #include <ros/console.h>
 #include <ros/ros.h>
-#include <quad_gap/qgConfig.h>
+// #include <quad_gap/qgConfig.h>
 #include <Eigen/Core>
 #include <boost/thread/mutex.hpp>
 
@@ -139,7 +139,7 @@ namespace quad_gap
 
             void loadRosParamFromNodeHandle(const std::string & name);
 
-            void reconfigure(qgConfig& cfg);
+            // void reconfigure(qgConfig& cfg);
 
             boost::mutex & configMutex() {return config_mutex;}
 

@@ -769,26 +769,26 @@ namespace quad_gap
         }
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::PoseArray & posearr,
+    geometry_msgs::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::PoseArray & poseArrayIn,
                                                                 const geometry_msgs::TransformStamped & trans)
     {
-        geometry_msgs::PoseArray retarr;
+        geometry_msgs::PoseArray poseArrayOut;
         geometry_msgs::PoseStamped outplaceholder;
         // outplaceholder.header.frame_id = cfg_->odom_frame_id;
         outplaceholder.header.frame_id = trans.header.frame_id;
         geometry_msgs::PoseStamped inplaceholder;
         // inplaceholder.header.frame_id = cfg_->robot_frame_id;
         inplaceholder.header.frame_id = trans.child_frame_id;
-        for (const geometry_msgs::Pose & pose : posearr.poses)
+        for (const geometry_msgs::Pose & pose : poseArrayIn.poses)
         {
             inplaceholder.pose = pose;
             tf2::doTransform(inplaceholder, outplaceholder, trans);
-            retarr.poses.push_back(outplaceholder.pose);
+            poseArrayOut.poses.push_back(outplaceholder.pose);
         }
-        // retarr.header.frame_id = cfg_->odom_frame_id;
-        retarr.header.frame_id = trans.header.frame_id;
-        retarr.header.stamp = trans.header.stamp;
-        return retarr;
+        // poseArrayOut.header.frame_id = cfg_->odom_frame_id;
+        poseArrayOut.header.frame_id = trans.header.frame_id;
+        poseArrayOut.header.stamp = trans.header.stamp;
+        return poseArrayOut;
     }
 
     geometry_msgs::PoseArray GapTrajGenerator::forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr)

@@ -21,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   pips_trajectory_msgs
-  message_generation
+  # message_generation
   mbf_costmap_core
   pips_trajectory_testing
   turtlebot_trajectory_testing
@@ -48,17 +48,6 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
-)
-
-add_message_files(
-  FILES
-  TrajPlan.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
 )
 
 catkin_package(
@@ -91,7 +80,7 @@ add_library(quad_gap
   src/TimeKeeper.cpp 
   ) 
 
-add_dependencies(quad_gap ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
+# add_dependencies(quad_gap ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
 
 target_compile_options(quad_gap PRIVATE ${OpenMP_FLAGS})
 

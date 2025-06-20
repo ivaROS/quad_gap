@@ -128,15 +128,15 @@ namespace quad_gap
             // return;
         }
 
-        if (cfg_.collision_checker.cc_type == CollisionChecker_depth)
+        if (cfg_.collision_checker.cc_type == CC_DEPTH)
         {
             ROS_INFO_STREAM("New cc type = depth");
             cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        } else if(cfg_.collision_checker.cc_type == CollisionChecker_depth_ego)
+        } else if(cfg_.collision_checker.cc_type == CC_DEPTH_EGO)
         {
             ROS_INFO_STREAM("New cc type = depth ego");
             cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
-        } else if(cfg_.collision_checker.cc_type == CollisionChecker_egocircle)
+        } else if(cfg_.collision_checker.cc_type == CC_EGOCIRCLE)
         {
             ROS_INFO_STREAM("New cc type = egocircle");
             cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
@@ -150,7 +150,7 @@ namespace quad_gap
         traj_tester_->init();
         traj_tester_->setCollisionChecker(cc_wrapper_->getCC());
         
-        cc_type_ = cfg_.collision_checker.cc_type;
+        // cc_type_ = cfg_.collision_checker.cc_type;
 
         cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
         return true;
@@ -854,28 +854,29 @@ namespace quad_gap
         return currTraj;
     }
 
-    CollisionResults Planner::checkCollision(const geometry_msgs::PoseArray & path)
+    CollisionResults Planner::checkCollision(const geometry_msgs::PoseArray & pathOdomFrame)
     {
         // Convert the trajectory from odom to base frame
-        geometry_msgs::PoseArray path_rbt = gapTrajGenerator_->transformPath(path, odom2rbt_);
+        geometry_msgs::PoseArray pathRbtFrame = gapTrajGenerator_->transformPath(pathOdomFrame, odom2rbt_);
         geometry_msgs::Pose curr_pose;
         curr_pose.orientation.w = 1;
-        TrajPlan orig_ref = trajController_->trajGen(path_rbt);
-        orig_ref.header.frame_id = cfg_.robot_frame_id;
-        ctrl_idx = trajController_->targetPoseIdx(curr_pose, orig_ref);
+
+        // TrajPlan orig_ref = trajController_->trajGen(pathRbtFrame);
+        pathRbtFrame.header.frame_id = cfg_.robot_frame_id;
+        ctrl_idx = trajController_->targetPoseIdx(curr_pose, pathRbtFrame);
 
         pips_trajectory_msgs::trajectory_points local_traj;
         local_traj.header.frame_id = cfg_.robot_frame_id;
-        for (int i = ctrl_idx; i < orig_ref.poses.size(); i++)
+        for (int i = ctrl_idx; i < pathRbtFrame.poses.size(); i++)
         {
             pips_trajectory_msgs::trajectory_point pt;
-            pt.x = orig_ref.poses[i].position.x;
-            pt.y = orig_ref.poses[i].position.y;
+            pt.x = pathRbtFrame.poses[i].position.x;
+            pt.y = pathRbtFrame.poses[i].position.y;
 
             // ROS_INFO_STREAM(pt.x << " " << pt.y);
 
             tf2::Quaternion quat_tf;
-            tf2::convert(orig_ref.poses[i].orientation, quat_tf);
+            tf2::convert(pathRbtFrame.poses[i].orientation, quat_tf);
             // tf2::Matrix3x3 m(quat_tf);
             // float roll, pitch, yaw;
             // m.getRPY(roll, pitch, yaw);
@@ -930,15 +931,15 @@ namespace quad_gap
         return;
     }
 
-    geometry_msgs::Twist Planner::ctrlGeneration(const geometry_msgs::PoseArray & traj) 
+    geometry_msgs::Twist Planner::ctrlGeneration(const geometry_msgs::PoseArray & pathOdomFrame) 
     {
         
         if (!haveTFs_)
             return geometry_msgs::Twist();
 
-        if (traj.poses.size() < 1)
+        if (pathOdomFrame.poses.size() < 1)
         {
-            ROS_WARN_STREAM("Available Execution Traj length: " << traj.poses.size() << " < 1");
+            ROS_WARN_STREAM("Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
             return geometry_msgs::Twist();
         }
 
@@ -948,37 +949,43 @@ namespace quad_gap
         geometry_msgs::PoseStamped currPoseStRobotFrame;
         currPoseStRobotFrame.header.frame_id = cfg_.robot_frame_id;
         currPoseStRobotFrame.pose.orientation.w = 1;
+
         geometry_msgs::PoseStamped currPoseStampedOdomFrame;
         currPoseStampedOdomFrame.header.frame_id = cfg_.odom_frame_id;
+        currPoseStampedOdomFrame.pose.orientation.w = 1;
+
         tf2::doTransform(currPoseStRobotFrame, currPoseStampedOdomFrame, rbt2odom_);
         geometry_msgs::Pose currPoseOdomFrame = currPoseStampedOdomFrame.pose;
 
-        TrajPlan orig_ref = trajController_->trajGen(traj);
-        ctrl_idx = trajController_->targetPoseIdx(currPoseOdomFrame, orig_ref);
-        nav_msgs::Odometry ctrl_target_pose;
-        ctrl_target_pose.header = orig_ref.header;
-        ctrl_target_pose.pose.pose = orig_ref.poses.at(ctrl_idx);
-        ctrl_target_pose.twist.twist = orig_ref.twist.at(ctrl_idx);
+        // TrajPlan orig_ref = trajController_->trajGen(pathOdomFrame);
+        ctrl_idx = trajController_->targetPoseIdx(currPoseOdomFrame, pathOdomFrame);
+
+        geometry_msgs::Pose ctrl_target_pose_odom = pathOdomFrame.poses.at(ctrl_idx);
+
+        // nav_msgs::Odometry ctrl_target_pose;
+        // ctrl_target_pose.header = pathOdomFrame.header;
+        // ctrl_target_pose.pose.pose = pathOdomFrame.poses.at(ctrl_idx);
+        // ctrl_target_pose.twist.twist = orig_ref.twist.at(ctrl_idx);
 
         sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
 
         timeKeeper_->startTimer(FEEBDACK);
-        geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose, stored_scan_msgs, currPoseStRobotFrame);
+        geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose_odom, stored_scan_msgs, currPoseStRobotFrame);
         timeKeeper_->stopTimer(FEEBDACK);
 
         timeKeeper_->stopTimer(CONTROL);
         return cmd_vel;
     }
 
-    void Planner::rcfgCallback(qgConfig &config, uint32_t level)
-    {
-        cfg_.reconfigure(config);
+    // void Planner::rcfgCallback(qgConfig &config, uint32_t level)
+    // {
+    //     cfg_.reconfigure(config);
         
-        // set_capacity destroys everything if different from original size, 
-        // resize only if the new size is greater
-        cmdVelBuffer.clear();
-        cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
-    }
+    //     // set_capacity destroys everything if different from original size, 
+    //     // resize only if the new size is greater
+    //     cmdVelBuffer.clear();
+    //     cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
+    // }
 
 
     std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps()

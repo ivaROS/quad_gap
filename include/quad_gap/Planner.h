@@ -19,7 +19,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Header.h>
 #include "nav_msgs/Odometry.h"
-#include "quad_gap/TrajPlan.h"
+// #include "quad_gap/TrajPlan.h"
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/utils/Utils.h>
 #include <quad_gap/gap_detection/GapDetector.h>
@@ -43,7 +43,7 @@
 #include <omp.h>
 
 #include <dynamic_reconfigure/server.h>
-#include <quad_gap/qgConfig.h>
+// #include <quad_gap/qgConfig.h>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
@@ -56,7 +56,7 @@
 #include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
 #include <pips_egocircle/egocircle_cc_wrapper.h>
 
-#include <quad_gap/CollisionCheckerConfig.h>
+// #include <quad_gap/CollisionCheckerConfig.h>
 
 #include <quad_gap/utils/RobotGeometryStorage.h>
 #include <quad_gap/utils/RobotGeometryProcessor.h>
@@ -171,12 +171,12 @@ namespace quad_gap
                                                             std::vector<geometry_msgs::PoseArray>& res, 
                                                             std::vector<geometry_msgs::PoseArray>& virtual_decayed);
 
-            /**
-            * Callback function to config object
-            * @param incoming config
-            * @param level Level of incoming config
-            */
-            void rcfgCallback(qgConfig &config, uint32_t level);
+            // /**
+            // * Callback function to config object
+            // * @param incoming config
+            // * @param level Level of incoming config
+            // */
+            // void rcfgCallback(qgConfig &config, uint32_t level);
 
             /**
             * Pick the best trajectory from the current set
@@ -243,10 +243,10 @@ namespace quad_gap
                 return cc_wrapper_;
             }
 
-            bool ccEnabled()
-            {
-                return collision_checker_enable_;
-            }
+            // bool ccEnabled()
+            // {
+            //     return collision_checker_enable_;
+            // }
 
             // typedef TurtlebotGenAndTest::trajectory_ptr trajectory_ptr;
             // typedef TurtlebotGenAndTest::traj_func_type traj_func_type;
@@ -258,17 +258,17 @@ namespace quad_gap
             std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> cc_wrapper_;
             GenAndTest_ptr traj_tester_;
 
-            bool collision_checker_enable_ = false;
-            int cc_type_ = -1;
+            // bool collision_checker_enable_ = false;
+            // int cc_type_ = -1;
 
             using Mutex = boost::mutex;
             using Lock = Mutex::scoped_lock;
             Mutex connect_mutex_;
 
-            typedef dynamic_reconfigure::Server<CollisionCheckerConfig> ReconfigureServer;
-            std::shared_ptr<ReconfigureServer> reconfigure_server_;
+            // typedef dynamic_reconfigure::Server<CollisionCheckerConfig> ReconfigureServer;
+            // std::shared_ptr<ReconfigureServer> reconfigure_server_;
 
-            void configCB(CollisionCheckerConfig &config, uint32_t level);
+            // void configCB(CollisionCheckerConfig &config, uint32_t level);
 
             /**
             * \brief Function to check if global goal has been reached
@@ -356,7 +356,7 @@ namespace quad_gap
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
 
             ros::WallTime last_time;
-            TrajPlan ni_ref, orig_ref;
+            // TrajPlan ni_ref, orig_ref;
 
             // Dynamic Reconfigure
             // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;

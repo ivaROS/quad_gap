@@ -126,7 +126,7 @@ namespace quad_gap
     }
 
     geometry_msgs::Twist TrajectoryController::controlLaw(const geometry_msgs::Pose & current, 
-                                                            const nav_msgs::Odometry & desired,
+                                                            const geometry_msgs::Pose & desired,
                                                             const sensor_msgs::LaserScan & inflated_egocircle, 
                                                             const geometry_msgs::PoseStamped & init_pose) 
     {
@@ -163,8 +163,8 @@ namespace quad_gap
 
         Eigen::Matrix2cf g_curr = getComplexMatrix(position.x, position.y, currYaw);
 
-        position = desired.pose.pose.position;
-        orientation = desired.pose.pose.orientation;
+        position = desired.position;
+        orientation = desired.orientation;
 
         tf::Quaternion q_d(orientation.x,
                             orientation.y,
@@ -482,40 +482,25 @@ namespace quad_gap
     }
 
 
-    int TrajectoryController::targetPoseIdx(const geometry_msgs::Pose & curr_pose, const TrajPlan & ref_pose) 
+    int TrajectoryController::targetPoseIdx(const geometry_msgs::Pose & curr_pose, const geometry_msgs::PoseArray & path) 
     {
         // Find pose right ahead
-        std::vector<float> pose_diff(ref_pose.poses.size());
-        // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
+        std::vector<float> pose_diff(path.poses.size());
+        // ROS_INFO_STREAM("Ref_pose length: " << path.poses.size());
         for (int i = 0; i < pose_diff.size(); i++) // i will always be positive, so this is fine
         {
-            pose_diff[i] = sqrt(pow(curr_pose.position.x - ref_pose.poses[i].position.x, 2) + 
-                                pow(curr_pose.position.y - ref_pose.poses[i].position.y, 2)) + 
-                                0.5 * (1 - (   curr_pose.orientation.x * ref_pose.poses[i].orientation.x + 
-                                        curr_pose.orientation.y * ref_pose.poses[i].orientation.y +
-                                        curr_pose.orientation.z * ref_pose.poses[i].orientation.z +
-                                        curr_pose.orientation.w * ref_pose.poses[i].orientation.w)
+            pose_diff[i] = sqrt(pow(curr_pose.position.x - path.poses[i].position.x, 2) + 
+                                pow(curr_pose.position.y - path.poses[i].position.y, 2)) + 
+                                0.5 * (1 - (   curr_pose.orientation.x * path.poses[i].orientation.x + 
+                                        curr_pose.orientation.y * path.poses[i].orientation.y +
+                                        curr_pose.orientation.z * path.poses[i].orientation.z +
+                                        curr_pose.orientation.w * path.poses[i].orientation.w)
                                 );
         }
 
         auto min_element_iter = std::min_element(pose_diff.begin(), pose_diff.end());
         int target_pose = std::distance(pose_diff.begin(), min_element_iter) + cfg_->control.ctrl_ahead_pose;
-        return std::min(target_pose, int(ref_pose.poses.size() - 1));
-    }
-
-
-    TrajPlan TrajectoryController::trajGen(const geometry_msgs::PoseArray & orig_traj)
-    {
-        TrajPlan traj;
-        traj.header.frame_id = cfg_->odom_frame_id;
-        for (size_t i = 0; i < orig_traj.poses.size(); i++)
-        {
-            geometry_msgs::Pose ni_pose = orig_traj.poses[i];
-            geometry_msgs::Twist ni_twist;
-            traj.poses.push_back(ni_pose);
-            traj.twist.push_back(ni_twist);
-        }
-        return traj;
+        return std::min(target_pose, int(path.poses.size() - 1));
     }
 
     float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 

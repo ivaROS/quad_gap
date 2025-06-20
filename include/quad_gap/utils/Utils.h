@@ -8,6 +8,12 @@
 
 namespace quad_gap 
 {
+
+    enum collisionCheckingEnum {    CC_DEPTH = 0, 
+                                    CC_DEPTH_EGO = 1, 
+                                    CC_EGOCIRCLE = 2,
+                                };    
+
     ///////////////////////////
     // ROS PARAMETER LOADING //
     ///////////////////////////
