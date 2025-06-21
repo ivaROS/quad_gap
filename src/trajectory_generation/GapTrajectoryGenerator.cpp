@@ -670,6 +670,7 @@ namespace quad_gap
                                                                         const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                                         const geometry_msgs::TransformStamped & odom2rbt)
     {
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[generateBezierTrajectory()]");
         geometry_msgs::PoseArray posearr;
         posearr.header.stamp = ros::Time::now();
         
@@ -757,7 +758,8 @@ namespace quad_gap
                         t_min = t_interp;
                     }
                 }
-                if(posearr.poses.size() < num_sampled_pts)
+
+                if (posearr.poses.size() < num_sampled_pts)
                 {
                     geometry_msgs::Pose pose;
                     pose.position.x = qudraBezier.valueAt(1, 0);
@@ -791,7 +793,7 @@ namespace quad_gap
         return poseArrayOut;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr)
+    geometry_msgs::PoseArray GapTrajGenerator::processTrajectory(const geometry_msgs::PoseArray & pose_arr)
     {
         geometry_msgs::PoseArray new_pose_arr;
 

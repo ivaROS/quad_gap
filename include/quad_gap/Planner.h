@@ -305,7 +305,6 @@ namespace quad_gap
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
 
             ros::NodeHandle nh, pnh;
-            ros::Publisher local_traj_pub;
             ros::Publisher trajectory_pub;
 
             ros::Publisher transformed_laser_pub;

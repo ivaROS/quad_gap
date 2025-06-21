@@ -7,19 +7,15 @@ Panels:
         - /TrackedPersons1/History as line1
         - /Dynamic Gap1
         - /Dynamic Gap1/Scans1
-        - /Dynamic Gap1/Gaps1
         - /Dynamic Gap1/Gaps1/Marker1
         - /Dynamic Gap1/Gaps1/Marker2
         - /Dynamic Gap1/Gaps1/MarkerArray1
         - /Dynamic Gap1/Gaps1/Marker4
         - /Dynamic Gap1/Gaps1/Marker6
         - /Dynamic Gap1/Trajectories1
-        - /Dynamic Gap1/Trajectories1/PoseArray1
-        - /Dynamic Gap1/Trajectories1/PoseArray2
-        - /Dynamic Gap1/Trajectories1/PoseArray3
-        - /Dynamic Gap1/Trajectories1/MarkerArray1
         - /Dynamic Gap1/Trajectories1/MarkerArray2
         - /Dynamic Gap1/Trajectories1/MarkerArray3
+        - /Dynamic Gap1/Trajectories1/MarkerArray4
         - /Dynamic Gap1/Tracking1
       Splitter Ratio: 0.32792791724205017
     Tree Height: 787
@@ -304,7 +300,7 @@ Visualization Manager:
               Marker Topic: /rto/simp_gaps
               Name: Marker
               Namespaces:
-                {}
+                simp: true
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -351,71 +347,28 @@ Visualization Manager:
           Name: Gaps
         - Class: rviz/Group
           Displays:
-            - Alpha: 1
-              Arrow Length: 0.30000001192092896
-              Axes Length: 0.30000001192092896
-              Axes Radius: 0.009999999776482582
-              Class: rviz/PoseArray
-              Color: 255; 25; 0
-              Enabled: true
-              Head Length: 0.07000000029802322
-              Head Radius: 0.029999999329447746
-              Name: PoseArray
-              Queue Size: 10
-              Shaft Length: 0.23000000417232513
-              Shaft Radius: 0.009999999776482582
-              Shape: Arrow (Flat)
-              Topic: /rto/relevant_traj
-              Unreliable: false
-              Value: true
-            - Alpha: 1
-              Arrow Length: 0.30000001192092896
-              Axes Length: 0.30000001192092896
-              Axes Radius: 0.009999999776482582
-              Class: rviz/PoseArray
-              Color: 255; 25; 0
-              Enabled: true
-              Head Length: 0.07000000029802322
-              Head Radius: 0.029999999329447746
-              Name: PoseArray
-              Queue Size: 10
-              Shaft Length: 0.23000000417232513
-              Shaft Radius: 0.009999999776482582
-              Shape: Arrow (Flat)
-              Topic: /rto/qg_traj
-              Unreliable: false
-              Value: true
-            - Alpha: 1
-              Arrow Length: 0.30000001192092896
-              Axes Length: 0.30000001192092896
-              Axes Radius: 0.009999999776482582
-              Class: rviz/PoseArray
-              Color: 255; 25; 0
-              Enabled: true
-              Head Length: 0.07000000029802322
-              Head Radius: 0.029999999329447746
-              Name: PoseArray
-              Queue Size: 10
-              Shaft Length: 0.23000000417232513
-              Shaft Radius: 0.009999999776482582
-              Shape: Arrow (Flat)
-              Topic: /rto/picked_virtual_traj
-              Unreliable: false
-              Value: true
             - Class: rviz/MarkerArray
               Enabled: true
-              Marker Topic: /rto/entire_global_plan
+              Marker Topic: /rto/curr_exec_dg_traj
               Name: MarkerArray
               Namespaces:
                 {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
+              Enabled: false
+              Marker Topic: /rto/entire_global_plan
+              Name: MarkerArray
+              Namespaces:
+                {}
+              Queue Size: 100
+              Value: false
+            - Class: rviz/MarkerArray
               Enabled: true
               Marker Topic: /rto/candidate_trajectories
               Name: MarkerArray
               Namespaces:
-                allTraj: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -445,7 +398,7 @@ Visualization Manager:
           Marker Topic: /rto/planning_loop_idx
           Name: Marker
           Namespaces:
-            {}
+            planning_loop_idx: true
           Queue Size: 100
           Value: true
       Enabled: true
@@ -513,10 +466,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 69.62983703613281
+      Scale: 77.48137664794922
       Target Frame: rto/base_link
-      X: 1.9550522565841675
-      Y: -1.549143671989441
+      X: 4.438178539276123
+      Y: 0.5163496136665344
     Saved: ~
 Window Geometry:
   Displays:

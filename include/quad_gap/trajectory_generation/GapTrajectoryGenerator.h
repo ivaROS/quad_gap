@@ -73,7 +73,7 @@ namespace quad_gap
             geometry_msgs::PoseArray transformPath(const geometry_msgs::PoseArray & posearr, 
                                                                 const geometry_msgs::TransformStamped & trans);
 
-            geometry_msgs::PoseArray forwardPassTrajectory(const geometry_msgs::PoseArray & pose_arr);
+            geometry_msgs::PoseArray processTrajectory(const geometry_msgs::PoseArray & pose_arr);
 
         private: 
             Eigen::Vector2f getRotatedVec(const Eigen::Vector2f & orig_vec, 
