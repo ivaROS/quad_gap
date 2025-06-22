@@ -11,6 +11,8 @@ namespace quad_gap
 
     void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal)
     {
+        ROS_INFO_STREAM_NAMED("GapGoalPlacer", "[setGapWaypoint()]");
+
         // TODO: assume there is no idx that will pass 0
         float xLeft, xRight, yLeft, yRight;
 
@@ -32,7 +34,7 @@ namespace quad_gap
         
         Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         float thetalr = car2pol(lr)(1);
-        if(pRight[1] >= 0 && lr[1] < 0 && pRight[0] <= 0 && lr[0] < 0)
+        if (pRight[1] >= 0 && lr[1] < 0 && pRight[0] <= 0 && lr[0] < 0)
             thetalr = thetalr + 2 * M_PI;
         
         Eigen::Vector2f rl = (pRight - pLeft) / (pRight - pLeft).norm() * (epl / 2) * cfg_->traj.inf_ratio + pLeft;
@@ -61,13 +63,42 @@ namespace quad_gap
 
         if (small_gap) 
         {
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal is small, setting goal in the middle of gap");
             gap->setGoalPos((xLeft + xRight) / 2, (yLeft + yRight) / 2);
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
             // gap->goal.x = (xLeft + xRight) / 2;
             // gap->goal.y = (yLeft + yRight) / 2;
             // gap->goal.discard = thetarl < thetalr;
             // gap->goal.set = true;
             return;
         }
+
+        // ROS_INFO_STREAM("l gap [" << pRight[0] << " , " << pRight[1] << "], r gap [" << pLeft[0] << " , " << pLeft[1] << "], thetalr: " << thetalr << " thetarl: " << thetarl << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
+        // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
+        // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
+
+        // float r1 = gap->convex.rightRange_;
+        // float r2 = gap->convex.leftRange_;
+        // float r_close = (float) std::min(r1, r2);
+        // float goal_dist = sqrt(
+        //     pow(localgoal.pose.position.y, 2) + 
+        //     pow(localgoal.pose.position.x, 2)
+        // );
+
+        if (checkGoalVisibility(localgoal)) 
+        {
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal is visible, setting goal within gap");
+            gap->setGoalPos(localgoal.pose.position.x, localgoal.pose.position.y);
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
+            // gap->goal.x = localgoal.pose.position.x;
+            // gap->goal.y = localgoal.pose.position.y;
+            // gap->goal.set = true;
+            // gap->goal.goalwithin = true;
+            gap->setGoalWithin();
+            return;
+        }
+
+        ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Biasing goal position");
         
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         float confined_theta = std::min(thetarl, std::max(thetalr, goal_orientation));
@@ -128,35 +159,12 @@ namespace quad_gap
         Eigen::Vector2f offset = r_negpi2 * (pLeft - pRight);
         goal_pt += robot_geo_proc_.getRobotMaxRadius() * offset / offset.norm();
 
-        // ROS_INFO_STREAM("l gap [" << pRight[0] << " , " << pRight[1] << "], r gap [" << pLeft[0] << " , " << pLeft[1] << "], thetalr: " << thetalr << " thetarl: " << thetarl << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
-        // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
-        // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
-
-        // float r1 = gap->convex.rightRange_;
-        // float r2 = gap->convex.leftRange_;
-        // float r_close = (float) std::min(r1, r2);
-        // float goal_dist = sqrt(
-        //     pow(localgoal.pose.position.y, 2) + 
-        //     pow(localgoal.pose.position.x, 2)
-        // );
-
-        if (checkGoalVisibility(localgoal)) 
-        {
-            gap->setGoalPos(localgoal.pose.position.x, localgoal.pose.position.y);
-            // gap->goal.x = localgoal.pose.position.x;
-            // gap->goal.y = localgoal.pose.position.y;
-            // gap->goal.set = true;
-            // gap->goal.goalwithin = true;
-            gap->setGoalWithin();
-            return;
-        }
-
-
         // gap->goal.x = goal_pt(0);
         // gap->goal.y = goal_pt(1);
         // gap->goal.set = true;
         gap->setGoalPos(goal_pt(0), goal_pt(1));
-
+        ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
+        return;
     }
 
     bool GapGoalPlacer::checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal) 
