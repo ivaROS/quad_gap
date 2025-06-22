@@ -21,23 +21,24 @@ namespace quad_gap
             Gap(const std::string & frame, 
                 const int & rightIdx, 
                 const float & rightRange, 
-                const bool & radial = false) : _frame(frame), rightIdx_(rightIdx), rightRange_(rightRange), _radial(radial)
+                const bool & radial = false) : frame_(frame), rightIdx_(rightIdx), rightRange_(rightRange), radial_(radial)
             {};
 
             Gap(const Gap & otherGap)
             {
-                _frame = otherGap._frame;
+                frame_ = otherGap.frame_;
                 leftIdx_ = otherGap.leftIdx_;
                 rightIdx_ = otherGap.rightIdx_;
                 leftRange_ = otherGap.leftRange_;
                 rightRange_ = otherGap.rightRange_;
-                right_type = otherGap.right_type;
+
+                radial_ = otherGap.radial_;
+                rightType_ = otherGap.rightType_;
+                
+                minSafeDist_ = otherGap.minSafeDist_;
+                qB_ = otherGap.qB_;
+
                 convex = otherGap.convex;
-                right_obs = otherGap.right_obs;
-                left_obs = otherGap.left_obs;
-                _radial = otherGap._radial;
-                min_safe_dist = otherGap.min_safe_dist;
-                qB = otherGap.qB;
                 goal = otherGap.goal;
                 mode = otherGap.mode;
             }
@@ -90,15 +91,16 @@ namespace quad_gap
             {
                 leftIdx_ = leftIdx;
                 leftRange_ = leftRange;
-                right_type = rightRange_ < leftRange_;
+                rightType_ = rightRange_ < leftRange_;
 
                 setRadial();
 
-                convex.leftIdx_ = leftIdx_;
-                convex.leftRange_ = leftRange_;
+                // convex.leftIdx_ = leftIdx_;
+                // convex.leftRange_ = leftRange_;
 
-                convex.rightIdx_ = rightIdx_;
-                convex.rightRange_ = rightRange_;
+                // convex.rightIdx_ = rightIdx_;
+                // convex.rightRange_ = rightRange_;
+                setManipPoints(leftIdx_, leftRange_, rightIdx_, rightRange_);
             }
 
             // Get Right Cartesian Distance
@@ -187,27 +189,6 @@ namespace quad_gap
                 return Eigen::Vector2f(right_x, right_y);
             }
 
-            // Getter and Setter for if side is an obstacle
-            void setRightObs() 
-            {
-                right_obs = false;
-            }
-
-            void setLeftObs() 
-            {
-                left_obs = false;
-            }
-
-            bool getRightObs() const
-            {
-                return right_obs;
-            }
-
-            bool getLeftObs() const
-            {
-                return left_obs;
-            }
-
             void setAGC()
             {
                 mode.agc = true;
@@ -242,12 +223,12 @@ namespace quad_gap
             {
                 float resoln = M_PI / half_num_scan;
                 float angle1 = (leftIdx_ - rightIdx_) * resoln;
-                float short_side = right_type ? rightRange_ : leftRange_;
+                float short_side = rightType_ ? rightRange_ : leftRange_;
                 float opp_side = (float) sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (float)cos(angle1));
                 float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
-                // _radial = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
-                _radial = (M_PI - small_angle - angle1 > (2.0 / 3.0 * M_PI)); 
-                // return _radial;
+                // radial_ = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
+                radial_ = (M_PI - small_angle - angle1 > (2.0 / 3.0 * M_PI)); 
+                // return radial_;
             }
 
             /**
@@ -256,32 +237,32 @@ namespace quad_gap
             */
             bool isRadial() const 
             { 
-                return _radial; 
+                return radial_; 
             }
 
             bool isRightType() const
             {
-                return right_type;
+                return rightType_;
             }
 
             void resetFrame(const std::string & frame) 
             {
-                _frame = frame;
+                frame_ = frame;
             }
 
             void setMinSafeDist(const float & dist) 
             {
-                min_safe_dist = dist;
+                minSafeDist_ = dist;
             }
 
             float getMinSafeDist() const
             {
-                return min_safe_dist;
+                return minSafeDist_;
             }
 
             std::string getFrame() const
             {
-                return _frame;
+                return frame_;
             }
 
             float get_dist_side() const
@@ -301,6 +282,7 @@ namespace quad_gap
                 // getLCartesian(left_x, left_y);
                 // Eigen::Vector2f left_vec(left_x, left_y);
                 // Eigen::Vector2f m_vec = (right_vec + left_vec) / 2;
+
                 Eigen::Vector2f m_vec = (right_vec + left_vec) / 2.0;
                 return m_vec;
             }
@@ -344,25 +326,23 @@ namespace quad_gap
 
             void setQB(const Eigen::Vector2f & qB)
             {
-                this->qB = qB;
+                this->qB_ = qB;
             }
 
             Eigen::Vector2f getQB() const
             {
-                return qB;
+                return qB_;
             }
 
         private:
 
-            float min_safe_dist = -1;
-            Eigen::Vector2f qB;
-            // float half_num_scan = 256;
+            float minSafeDist_ = -1;
+            Eigen::Vector2f qB_;
 
-            std::string _frame = "";
-            bool right_obs = true;
-            bool left_obs = true;
-            bool _radial = false;
-            bool right_type = false;
+            std::string frame_ = "";
+
+            bool radial_ = false;
+            bool rightType_ = false;
 
             struct GapMode 
             {
