@@ -12,34 +12,36 @@ namespace quad_gap
     void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal)
     {
         // TODO: assume there is no idx that will pass 0
-        float x1, x2, y1, y2;
-        x1 = (gap->convex.convexRightRange_) * cos(idx2theta(gap->convex.convexRightIdx_));
-        y1 = (gap->convex.convexRightRange_) * sin(idx2theta(gap->convex.convexRightIdx_));
+        float xLeft, xRight, yLeft, yRight;
 
-        x2 = (gap->convex.convexLeftRange_) * cos(idx2theta(gap->convex.convexLeftIdx_));
-        y2 = (gap->convex.convexLeftRange_) * sin(idx2theta(gap->convex.convexLeftIdx_));
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
 
-        Eigen::Vector2f pl(x1, y1);
-        Eigen::Vector2f pr(x2, y2);
+        xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
         
         // if agc. then the shorter side need to be further in
         
         // Get the equivalent passing length
         Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f m_pt_vec = (pl.cast<float>() + pr.cast<float>()) / 2;
+        Eigen::Vector2f m_pt_vec = (pRight.cast<float>() + pLeft.cast<float>()) / 2;
         // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
         float epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        Eigen::Vector2f lr = (pr - pl) / (pr - pl).norm() * (epl / 2) * cfg_->traj.inf_ratio + pl;
+        
+        Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         float thetalr = car2pol(lr)(1);
-        if(pl[1] >= 0 && lr[1] < 0 && pl[0] <= 0 && lr[0] < 0)
+        if(pRight[1] >= 0 && lr[1] < 0 && pRight[0] <= 0 && lr[0] < 0)
             thetalr = thetalr + 2 * M_PI;
-        Eigen::Vector2f rl = (pl - pr) / (pl - pr).norm() * (epl / 2) * cfg_->traj.inf_ratio + pr;
+        
+        Eigen::Vector2f rl = (pRight - pLeft) / (pRight - pLeft).norm() * (epl / 2) * cfg_->traj.inf_ratio + pLeft;
         float thetarl = car2pol(rl)(1);
-        if (pr[1] <= 0 && rl[1] > 0 && pr[0] <= 0 && rl[0] < 0)
+        if (pLeft[1] <= 0 && rl[1] > 0 && pLeft[0] <= 0 && rl[0] < 0)
             thetarl = thetarl - 2 * M_PI;
         
-        float left_ori = idx2theta(gap->convex.convexLeftIdx_);
-        float right_ori = idx2theta(gap->convex.convexRightIdx_); 
+        float left_ori = idx2theta(gap->manipLeftIdx());
+        float right_ori = idx2theta(gap->manipRightIdx()); 
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
@@ -49,31 +51,35 @@ namespace quad_gap
         if (gap_size_check) //  && !cfg_->planning.planning_inflated
         {
             // if smaller than M_PI/3
-            dist = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+            dist = sqrt(pow(xLeft - xRight, 2) + pow(yLeft - yRight, 2));
             small_gap = dist < 2 * epl;
         }
 
-        // ROS_INFO_STREAM(gap->mode.reduced << " " << gap->convex.convexRightIdx_ << " " << gap->convex.convexLeftIdx_ << " " << pl[0] << " " << pl[1] << " " << pr[0] << " " << pr[1] << " " << thetarl << " " << thetalr);
+        // ROS_INFO_STREAM(gap->mode.reduced << " " << gap->convex.rightIdx_ << " " << gap->convex.leftIdx_ << " " << pRight[0] << " " << pRight[1] << " " << pLeft[0] << " " << pLeft[1] << " " << thetarl << " " << thetalr);
 
-        if (thetarl < thetalr || small_gap) 
+        // thetarl < thetalr || 
+
+        if (small_gap) 
         {
-            gap->goal.x = (x1 + x2) / 2;
-            gap->goal.y = (y1 + y2) / 2;
-            gap->goal.discard = thetarl < thetalr;
-            gap->goal.set = true;
+            gap->setGoalPos((xLeft + xRight) / 2, (yLeft + yRight) / 2);
+            // gap->goal.x = (xLeft + xRight) / 2;
+            // gap->goal.y = (yLeft + yRight) / 2;
+            // gap->goal.discard = thetarl < thetalr;
+            // gap->goal.set = true;
             return;
         }
         
         float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
         float confined_theta = std::min(thetarl, std::max(thetalr, goal_orientation));
-        float confined_r = (gap->convex.convexLeftRange_ - gap->convex.convexRightRange_) * (confined_theta - thetalr) / (thetarl - thetalr)
-            + gap->convex.convexRightRange_;
+        float confined_r = (gap->manipLeftRange() - gap->manipRightRange()) * (confined_theta - thetalr) / (thetarl - thetalr)
+                            + gap->manipRightRange();
+
         float xg = confined_r * cos(confined_theta);
         float yg = confined_r * sin(confined_theta);
         Eigen::Vector2f anchor(xg, yg);
         // Eigen::Matrix2f r_negpi2;
         //     r_negpi2 << 0,1,-1,0;
-        // auto offset = r_negpi2 * (pr - pl);
+        // auto offset = r_negpi2 * (pLeft - pRight);
         // auto goal_pt = offset / offset.norm() * (epl / 2) * cfg_->traj.inf_ratio + anchor;
         Eigen::Vector2f goal_pt;
         float waypoint_dist_thresh = (epl * 1.5) * cfg_->traj.inf_ratio; // 0.1 // TODO: change this 1.5 to param
@@ -119,15 +125,15 @@ namespace quad_gap
         Eigen::Matrix2f r_negpi2;
         r_negpi2 << 0,1,-1,0;
         
-        Eigen::Vector2f offset = r_negpi2 * (pr - pl);
+        Eigen::Vector2f offset = r_negpi2 * (pLeft - pRight);
         goal_pt += robot_geo_proc_.getRobotMaxRadius() * offset / offset.norm();
 
-        // ROS_INFO_STREAM("l gap [" << pl[0] << " , " << pl[1] << "], r gap [" << pr[0] << " , " << pr[1] << "], thetalr: " << thetalr << " thetarl: " << thetarl << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
+        // ROS_INFO_STREAM("l gap [" << pRight[0] << " , " << pRight[1] << "], r gap [" << pLeft[0] << " , " << pLeft[1] << "], thetalr: " << thetalr << " thetarl: " << thetarl << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
         // float half_max_r = robot_geo_proc_.getRobotMaxRadius() / 2;
         // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
 
-        // float r1 = gap->convex.convexRightRange_;
-        // float r2 = gap->convex.convexLeftRange_;
+        // float r1 = gap->convex.rightRange_;
+        // float r2 = gap->convex.leftRange_;
         // float r_close = (float) std::min(r1, r2);
         // float goal_dist = sqrt(
         //     pow(localgoal.pose.position.y, 2) + 
@@ -136,17 +142,20 @@ namespace quad_gap
 
         if (checkGoalVisibility(localgoal)) 
         {
-            gap->goal.x = localgoal.pose.position.x;
-            gap->goal.y = localgoal.pose.position.y;
-            gap->goal.set = true;
-            gap->goal.goalwithin = true;
+            gap->setGoalPos(localgoal.pose.position.x, localgoal.pose.position.y);
+            // gap->goal.x = localgoal.pose.position.x;
+            // gap->goal.y = localgoal.pose.position.y;
+            // gap->goal.set = true;
+            // gap->goal.goalwithin = true;
+            gap->setGoalWithin();
             return;
         }
 
 
-        gap->goal.x = goal_pt(0);
-        gap->goal.y = goal_pt(1);
-        gap->goal.set = true;
+        // gap->goal.x = goal_pt(0);
+        // gap->goal.y = goal_pt(1);
+        // gap->goal.set = true;
+        gap->setGoalPos(goal_pt(0), goal_pt(1));
 
     }
 

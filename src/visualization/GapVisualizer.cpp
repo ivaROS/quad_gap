@@ -242,17 +242,17 @@ namespace quad_gap
             }
 
             std::string ns;
-            if (gap->mode.reduced) 
+            if (gap->isReduced()) 
             {
                 ns = "simp_swept";
             }
             
-            if (gap->mode.convex) 
+            if (gap->isExtended()) 
             {
                 ns = "simp_extent";
             }
     
-            if (gap->mode.agc) 
+            if (gap->isAGC()) 
             {
                 ns = "simp_agc";
             }
@@ -314,7 +314,7 @@ namespace quad_gap
             }
 
 
-            if (gap->mode.convex) 
+            if (gap->isExtended()) 
             {
                 float r = gap->getMinSafeDist();
                 if (r < 0) {
@@ -358,18 +358,18 @@ namespace quad_gap
                 }
     
                 // this_marker.ns = "extent_line";
-                getline(gap->convex.convexRightIdx_, 
-                        gap->convex.convexRightRange_, 
-                        gap->qB, 
+                getline(gap->manipRightIdx(), 
+                        gap->manipRightRange(), 
+                        gap->getQB(), 
                         // lines, 
                         // linel, 
                         // liner, 
                         marker, 
                         convex_color);
                 
-                getline(gap->convex.convexLeftIdx_, 
-                        gap->convex.convexLeftRange_, 
-                        gap->qB, 
+                getline(gap->manipLeftIdx(),
+                        gap->manipLeftRange(), 
+                        gap->getQB(), 
                         // lines, 
                         // linel, 
                         // liner, 

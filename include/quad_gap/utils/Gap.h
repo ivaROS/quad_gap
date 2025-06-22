@@ -33,15 +33,9 @@ namespace quad_gap
                 rightRange_ = otherGap.rightRange_;
                 right_type = otherGap.right_type;
                 convex = otherGap.convex;
-                goal_within = otherGap.goal_within;
                 right_obs = otherGap.right_obs;
                 left_obs = otherGap.left_obs;
                 _radial = otherGap._radial;
-                goal_within = otherGap.goal_within;
-                goal_dir_within = otherGap.goal_dir_within;
-                agc = otherGap.agc;
-                reduced = otherGap.reduced;
-                convexified = otherGap.convexified;
                 min_safe_dist = otherGap.min_safe_dist;
                 qB = otherGap.qB;
                 goal = otherGap.goal;
@@ -100,11 +94,11 @@ namespace quad_gap
 
                 setRadial();
 
-                convex.convexLeftIdx_ = leftIdx_;
-                convex.convexLeftRange_ = leftRange_;
+                convex.leftIdx_ = leftIdx_;
+                convex.leftRange_ = leftRange_;
 
-                convex.convexRightIdx_ = rightIdx_;
-                convex.convexRightRange_ = rightRange_;
+                convex.rightIdx_ = rightIdx_;
+                convex.rightRange_ = rightRange_;
             }
 
             // Get Right Cartesian Distance
@@ -137,36 +131,39 @@ namespace quad_gap
                 return Eigen::Vector2f(right_x, right_y);
             }
 
-            void compareGoalDist(const float & goal_dist) 
-            {
-                goal_within = goal_dist < rightRange_ && goal_dist < leftRange_;
-            }
-
             int manipLeftIdx() const
             {
-                return convex.convexLeftIdx_;
+                return convex.leftIdx_;
             }
 
             int manipRightIdx() const
             {
-                return convex.convexRightIdx_;
+                return convex.rightIdx_;
             }
 
             float manipLeftRange() const
             {
-                return convex.convexLeftRange_;
+                return convex.leftRange_;
             }
 
             float manipRightRange() const
             {
-                return convex.convexRightRange_;
+                return convex.rightRange_;
+            }
+
+            void setManipPoints(const int & leftIdx, const float & leftRange, const int & rightIdx, const float & rightRange)
+            {
+                convex.leftIdx_ = leftIdx;
+                convex.leftRange_ = leftRange;
+                convex.rightIdx_ = rightIdx;
+                convex.rightRange_ = rightRange;
             }
 
             void getManipLCartesian(float &x, float &y) const
             {
-                float leftTheta = idx2theta(convex.convexLeftIdx_);
-                x = convex.convexLeftRange_ * cos(leftTheta);
-                y = convex.convexLeftRange_ * sin(leftTheta);
+                float leftTheta = idx2theta(convex.leftIdx_);
+                x = convex.leftRange_ * cos(leftTheta);
+                y = convex.leftRange_ * sin(leftTheta);
             }
 
             Eigen::Vector2f getManipLCartesian() const
@@ -178,9 +175,9 @@ namespace quad_gap
 
             void getManipRCartesian(float &x, float &y) const
             {
-                float rightTheta = idx2theta(convex.convexRightIdx_);
-                x = convex.convexRightRange_ * cos(rightTheta);
-                y = convex.convexRightRange_ * sin(rightTheta);
+                float rightTheta = idx2theta(convex.rightIdx_);
+                x = convex.rightRange_ * cos(rightTheta);
+                y = convex.rightRange_ * sin(rightTheta);
             }
 
             Eigen::Vector2f getManipRCartesian() const
@@ -209,6 +206,36 @@ namespace quad_gap
             bool getLeftObs() const
             {
                 return left_obs;
+            }
+
+            void setAGC()
+            {
+                mode.agc = true;
+            }
+
+            bool isAGC() const
+            {
+                return mode.agc;
+            }
+
+            void setReduced()
+            {
+                mode.reduced = true;
+            }
+
+            bool isReduced() const
+            {
+                return mode.reduced;
+            }
+
+            void setExtended()
+            {
+                mode.extended = true;
+            }
+
+            bool isExtended() const
+            {
+                return mode.extended;
             }
 
             void setRadial()
@@ -277,13 +304,55 @@ namespace quad_gap
                 Eigen::Vector2f m_vec = (right_vec + left_vec) / 2.0;
                 return m_vec;
             }
-            
-            bool goal_within = false;
-            bool goal_dir_within = false;
-            bool agc = false;
 
-            bool reduced = false;
-            bool convexified = false;
+            void setGoalPos(const float & x, const float & y) 
+            {
+                goal.x = x;
+                goal.y = y;
+                goal.set = true;
+            }
+
+            void setGoalDiscard() 
+            {
+                goal.discard = true;
+            }
+
+            bool isGoalSet() const 
+            {
+                return goal.set;
+            }
+
+            void setGoalWithin() 
+            {
+                goal.goalwithin = true;
+            }    
+            
+            bool isGoalWithin() const 
+            {
+                return goal.goalwithin;
+            }
+
+            float getGoalX() const 
+            {
+                return goal.x;
+            }
+
+            float getGoalY() const 
+            {
+                return goal.y;
+            }
+
+            void setQB(const Eigen::Vector2f & qB)
+            {
+                this->qB = qB;
+            }
+
+            Eigen::Vector2f getQB() const
+            {
+                return qB;
+            }
+
+        private:
 
             float min_safe_dist = -1;
             Eigen::Vector2f qB;
@@ -295,36 +364,36 @@ namespace quad_gap
             bool _radial = false;
             bool right_type = false;
 
-            struct converted 
-            {
-                int convexLeftIdx_ = 511;
-                int convexRightIdx_ = 0;
-
-                float convexLeftRange_ = 3;
-                float convexRightRange_ = 3;
-            } convex;
-
             struct GapMode 
             {
                 bool reduced = false;
-                bool convex = false;
+                bool extended = false;
                 bool agc = false;
             } mode;
 
             struct Goal 
             {
-                float x, y;
+                float x = -1;
+                float y = -1;
                 bool set = false;
                 bool discard = false;
                 bool goalwithin = false;
-            } goal;
+            } goal;        
 
-        private:
+            struct Convex 
+            {
+                int leftIdx_ = 511;
+                int rightIdx_ = 0;
 
-        int leftIdx_ = 511;
-        float leftRange_ = 3;
-        
-        int rightIdx_ = 0;
-        float rightRange_ = 3;        
+                float leftRange_ = 3;
+                float rightRange_ = 3;
+            } convex;
+
+
+            int leftIdx_ = 511;
+            float leftRange_ = 3;
+            
+            int rightIdx_ = 0;
+            float rightRange_ = 3;        
     };
 }

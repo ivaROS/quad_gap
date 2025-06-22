@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap * selectedGap, 
+    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap * gap, 
                                                                     const geometry_msgs::PoseStamped & curr_pose) 
     {
         // return geometry_msgs::PoseArray();
@@ -12,18 +12,18 @@ namespace quad_gap
         write_trajectory corder(posearr, cfg_->robot_frame_id);
         posearr.header.frame_id = cfg_->robot_frame_id;
 
-        if (selectedGap->goal.discard) 
-        {
-            return posearr;
-        }
+        // if (gap->goal.discard) 
+        // {
+        //     return posearr;
+        // }
 
         state_type x = {curr_pose.pose.position.x + 1e-5, curr_pose.pose.position.y + 1e-6}; 
 
-        if (selectedGap->goal.goalwithin) 
+        if (gap->isGoalWithin()) // (gap->goal.goalwithin) 
         {
             // ROS_INFO_STREAM("Goal to Goal");
-            g2g inte_g2g(selectedGap->goal.x,
-                         selectedGap->goal.y);
+            g2g inte_g2g(gap->getGoalX(),
+                         gap->getGoalY());
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
                                                     inte_g2g, 
                                                     x, 
@@ -34,28 +34,37 @@ namespace quad_gap
             return posearr;
         }
 
+        // float x_left, x_right, y_left, y_right;
+        // float theta_left = idx2theta(gap->convex.leftIdx_);
+        // float theta_right = idx2theta(gap->convex.rightIdx_);
+        // x_right = gap->convex.rightRange_ * cos(theta_right);
+        // y_right = gap->convex.rightRange_ * sin(theta_right);
+        // x_left = gap->convex.leftRange_ * cos(theta_left);
+        // y_left = gap->convex.leftRange_ * sin(theta_left);
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+
         float x_left, x_right, y_left, y_right;
-        float theta_left = idx2theta(selectedGap->convex.convexLeftIdx_);
-        float theta_right = idx2theta(selectedGap->convex.convexRightIdx_);
-        x_right = selectedGap->convex.convexRightRange_ * cos(theta_right);
-        y_right = selectedGap->convex.convexRightRange_ * sin(theta_right);
-        x_left = selectedGap->convex.convexLeftRange_ * cos(theta_left);
-        y_left = selectedGap->convex.convexLeftRange_ * sin(theta_left);
+        x_left = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        y_left = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        x_right = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        y_right = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+        
+        float goal_x = gap->getGoalX();
+        float goal_y = gap->getGoalY();
 
-        float goal_x = selectedGap->goal.x;
-        float goal_y = selectedGap->goal.y;
-
-        if (selectedGap->mode.convex) 
+        Eigen::Vector2f qB = gap->getQB();
+        if (gap->isExtended()) 
         {
-            x = {- selectedGap->qB(0) - 1e-6, - selectedGap->qB(1) + 1e-6};
-            x_right -= selectedGap->qB(0);
-            x_left -= selectedGap->qB(0);
-            y_right -= selectedGap->qB(1);
-            y_left -= selectedGap->qB(1);
-            goal_x -= selectedGap->qB(0);
-            goal_y -= selectedGap->qB(1);
-            // selectedGap->goal.x -= selectedGap->qB(0);
-            // selectedGap->goal.y -= selectedGap->qB(1);
+            x = {-qB(0) - 1e-6, -qB(1) + 1e-6};
+            x_right -= qB(0);
+            x_left -= qB(0);
+            y_right -= qB(1);
+            y_left -= qB(1);
+            goal_x -= qB(0);
+            goal_y -= qB(1);
+            // gap->goal.x -= gap->qB(0);
+            // gap->goal.y -= gap->qB(1);
 
         }
         
@@ -63,9 +72,9 @@ namespace quad_gap
                             y_right, y_left,
                             goal_x,
                             goal_y,
-                            // selectedGap->getRightObs(),
-                            // selectedGap->getLeftObs(),
-                            selectedGap->isRadial(),
+                            // gap->getRightObs(),
+                            // gap->getLeftObs(),
+                            gap->isRadial(),
                             cfg_->gap_manip.sigma);
         boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
                                                 inte, 
@@ -75,12 +84,12 @@ namespace quad_gap
                                                 cfg_->traj.integrate_stept, 
                                                 corder);
 
-        if (selectedGap->mode.convex) 
+        if (gap->isExtended()) 
         {
             for (geometry_msgs::Pose & p : posearr.poses) 
             {
-                p.position.x += selectedGap->qB(0);
-                p.position.y += selectedGap->qB(1);
+                p.position.x += qB(0);
+                p.position.y += qB(1);
             }
         }
 
@@ -93,22 +102,25 @@ namespace quad_gap
     //     return traj_set;
     // }
 
-    bool GapTrajGenerator::findBezierControlPts(Gap * selectedGap, 
-                                                Bezier::Bezier<2>& bezier_curve, 
+    bool GapTrajGenerator::findBezierControlPts(Gap * gap, 
+                                                Bezier::Bezier<2>& BezierCurve, 
                                                 const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                 const geometry_msgs::TransformStamped & odom2rbt)
     {
         // Find the intersections of triangle and circle
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+
         float x_right, x_left, y_right, y_left;
-        x_right = (selectedGap->convex.convexRightRange_) * cos(idx2theta(selectedGap->convex.convexRightIdx_));
-        y_right = (selectedGap->convex.convexRightRange_) * sin(idx2theta(selectedGap->convex.convexRightIdx_));
-        x_left = (selectedGap->convex.convexLeftRange_) * cos(idx2theta(selectedGap->convex.convexLeftIdx_));
-        y_left = (selectedGap->convex.convexLeftRange_) * sin(idx2theta(selectedGap->convex.convexLeftIdx_));
+        x_left = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        y_left = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        x_right = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        y_right = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+        
+        float goal_x = gap->getGoalX();
+        float goal_y = gap->getGoalY();
 
-        float goal_x = selectedGap->goal.x;
-        float goal_y = selectedGap->goal.y;
-
-        // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << selectedGap->goal.goalwithin);
+        // ROS_INFO_STREAM(goal_x << " " << goal_y << " " << gap->goal.goalwithin);
 
         // Check if goal is in the middle
         float ang_r_conv = std::atan2(y_right, x_right);
@@ -119,7 +131,7 @@ namespace quad_gap
 
         Eigen::Vector2f l_vec(x_right, y_right);
         Eigen::Vector2f r_vec(x_left, y_left);
-        float circ_r = selectedGap->getMinSafeDist();
+        float circ_r = gap->getMinSafeDist();
         // assert(circ_r <= l_vec.norm() && circ_r <= r_vec.norm());
 
         if (circ_r > l_vec.norm() || circ_r > r_vec.norm())
@@ -173,7 +185,7 @@ namespace quad_gap
             
             new_goal = goal_vec;
 
-            bezier_curve = Bezier::Bezier<2>({ {0, 0}, {cp[0], cp[1]}, 
+            BezierCurve = Bezier::Bezier<2>({ {0, 0}, {cp[0], cp[1]}, 
                                           {new_goal[0], new_goal[1]} });
 
             success = true;
@@ -659,14 +671,14 @@ namespace quad_gap
 
         if(success)
         {
-            bezier_curve = Bezier::Bezier<2>({ {0, 0}, {cp[0], cp[1]}, 
+            BezierCurve = Bezier::Bezier<2>({ {0, 0}, {cp[0], cp[1]}, 
                                           {new_goal[0], new_goal[1]} });
         }
 
         return success;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap * selectedGap, 
+    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
                                                                         const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
                                                                         const geometry_msgs::TransformStamped & odom2rbt)
     {
@@ -676,18 +688,18 @@ namespace quad_gap
         
         posearr.header.frame_id = cfg_->robot_frame_id;
 
-        if (selectedGap->goal.discard) 
-        {
-            ROS_WARN_STREAM("This waypoint is discard.");
-            return posearr;
-        }
+        // if (gap->goal.discard) 
+        // {
+        //     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "This waypoint is discard.");
+        //     return posearr;
+        // }
 
-        Bezier::Bezier<2> qudraBezier;
-        bool success = findBezierControlPts(selectedGap, qudraBezier, rbtVelRbtFrame, odom2rbt);
+        Bezier::Bezier<2> quadraBezier;
+        bool success = findBezierControlPts(gap, quadraBezier, rbtVelRbtFrame, odom2rbt);
         
         if(!success)
         {
-            ROS_WARN_STREAM("No path is generated.");
+            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "No path is generated.");
             return posearr;
         }
         else
@@ -697,8 +709,8 @@ namespace quad_gap
                 for (float t = 0; t <= 1; t+=0.02)
                 {
                     geometry_msgs::Pose pose;
-                    pose.position.x = qudraBezier.valueAt(t, 0);
-                    pose.position.y = qudraBezier.valueAt(t, 1);
+                    pose.position.x = quadraBezier.valueAt(t, 0);
+                    pose.position.y = quadraBezier.valueAt(t, 1);
                     posearr.poses.push_back(pose);
                 }
                 return posearr;
@@ -706,7 +718,7 @@ namespace quad_gap
             else
             {
                 float des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
-                float entire_dist = getBezierDist(qudraBezier, 0, 1, 30);
+                float entire_dist = getBezierDist(quadraBezier, 0, 1, 30);
                 int num_sampled_pts = int(round(entire_dist / des_dist));
                 num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
 
@@ -716,12 +728,12 @@ namespace quad_gap
                 for (size_t i = 0; i < num_sampled_pts; i++)
                 {
                     float cur_t = i * t_step;
-                    float cur_dist = getBezierDist(qudraBezier, t_min, cur_t, 5);
+                    float cur_dist = getBezierDist(quadraBezier, t_min, cur_t, 5);
                     if(abs(cur_dist - des_dist) < dist_thresh)
                     {
                         geometry_msgs::Pose pose;
-                        pose.position.x = qudraBezier.valueAt(cur_t, 0);
-                        pose.position.y = qudraBezier.valueAt(cur_t, 1);
+                        pose.position.x = quadraBezier.valueAt(cur_t, 0);
+                        pose.position.y = quadraBezier.valueAt(cur_t, 1);
                         posearr.poses.push_back(pose);
                         t_min = cur_t;
                     }
@@ -729,7 +741,7 @@ namespace quad_gap
                     {
                         float t_prev = (i - 1) * t_step;
                         float t_interp = (cur_t + t_prev) / 2;
-                        float interp_dist = getBezierDist(qudraBezier, t_min, t_interp, 5);
+                        float interp_dist = getBezierDist(quadraBezier, t_min, t_interp, 5);
 
                         float t_high = cur_t;
                         float t_low = t_prev;
@@ -745,15 +757,15 @@ namespace quad_gap
                                 t_high = t_interp;
                                 t_interp = (t_interp + t_low) / 2;
                             }
-                            interp_dist = getBezierDist(qudraBezier, t_min, t_interp, 5);
+                            interp_dist = getBezierDist(quadraBezier, t_min, t_interp, 5);
                             if(abs(t_interp - t_low) <= 1e-3 && abs(t_interp - t_high) <= 1e-3)
                                 break;
                             // ROS_INFO_STREAM(t_interp << " " << t_low << " " << t_high << " " << interp_dist << " " << abs(interp_dist - des_dist) << " " << dist_thresh);
                         }
                         // ROS_INFO_STREAM("exit");
                         geometry_msgs::Pose pose;
-                        pose.position.x = qudraBezier.valueAt(t_interp, 0);
-                        pose.position.y = qudraBezier.valueAt(t_interp, 1);
+                        pose.position.x = quadraBezier.valueAt(t_interp, 0);
+                        pose.position.y = quadraBezier.valueAt(t_interp, 1);
                         posearr.poses.push_back(pose);
                         t_min = t_interp;
                     }
@@ -762,8 +774,8 @@ namespace quad_gap
                 if (posearr.poses.size() < num_sampled_pts)
                 {
                     geometry_msgs::Pose pose;
-                    pose.position.x = qudraBezier.valueAt(1, 0);
-                    pose.position.y = qudraBezier.valueAt(1, 1);
+                    pose.position.x = quadraBezier.valueAt(1, 0);
+                    pose.position.y = quadraBezier.valueAt(1, 1);
                     posearr.poses.push_back(pose);
                 }
                 return posearr;

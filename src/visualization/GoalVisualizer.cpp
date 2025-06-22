@@ -88,7 +88,7 @@ namespace quad_gap
 
     void GoalVisualizer::drawGapGoal(visualization_msgs::Marker & marker, Gap * gap) 
     {
-        if (!gap->goal.set) 
+        if (!gap->isGoalSet()) 
         {
             return;
         }
@@ -96,8 +96,8 @@ namespace quad_gap
         // visualization_msgs::Marker lg_marker;
 
         geometry_msgs::Point lg_point;
-        lg_point.x = gap->goal.x;
-        lg_point.y = gap->goal.y;
+        lg_point.x = gap->getGoalX(); // gap->goal.x;
+        lg_point.y = gap->getGoalY(); // gap->goal.y;
         lg_point.z = 0.0005;
 
         marker.points.push_back(lg_point);
@@ -121,7 +121,7 @@ namespace quad_gap
 
         visualization_msgs::Marker marker;
 
-        marker.header.frame_id = gaps.at(0)->_frame;
+        marker.header.frame_id = gaps.at(0)->getFrame();
         marker.header.stamp = ros::Time::now();
         marker.ns = "gap_goal";
         marker.id = 0;

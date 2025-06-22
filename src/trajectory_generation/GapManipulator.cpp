@@ -71,11 +71,12 @@ namespace quad_gap
         float newLeftRange = float(newLeftIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
         float newRightRange = float(newRightIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
 
-        gap->convex.convexLeftIdx_ = newLeftIdx;
-        gap->convex.convexRightIdx_ = newRightIdx;
+        // gap->convex.leftIdx_ = newLeftIdx;
+        // gap->convex.rightIdx_ = newRightIdx;
 
-        gap->convex.convexLeftRange_ = newLeftRange;
-        gap->convex.convexRightRange_ = newRightRange;
+        // gap->convex.leftRange_ = newLeftRange;
+        // gap->convex.rightRange_ = newRightRange;
+        gap->setManipPoints(newLeftIdx, newLeftRange, newRightIdx, newRightRange);
 
         float newLeftTheta = idx2theta(newLeftIdx);
         float newRightTheta = idx2theta(newRightIdx);
@@ -87,7 +88,7 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in cart. left: (" << newXLeft << ", " << newYLeft << "), right: (" << newXRight << ", " << newYRight << ")");    
 
-        gap->mode.reduced = true;
+        gap->setReduced();
         return;
     }
 
@@ -182,12 +183,12 @@ namespace quad_gap
         int second_inter_pt = intermediate_pt;
         int size = upperbound - offset;
 
-        if ((upperbound - offset) < 3) 
-        {
-            // Arbitrary value
-            gap->goal.discard = true;
-            return;
-        }
+        // if ((upperbound - offset) < 3) 
+        // {
+        //     // Arbitrary value
+        //     gap->goal.discard = true;
+        //     return;
+        // }
 
         offset = std::max(offset, 0);
         upperbound = std::min(upperbound, num_of_scan - 1);
@@ -234,45 +235,52 @@ namespace quad_gap
         // Recalculate end point location based on length
         if (right)
         {
-            gap->convex.convexRightIdx_ = nearIdx;
-            gap->convex.convexRightRange_ = nearRange;
-            gap->convex.convexLeftIdx_ = idx;
-            gap->convex.convexLeftRange_ = r;
+            gap->setManipPoints(idx, r, nearIdx, nearRange);
+
+            // gap->convex.leftIdx_ = idx;
+            // gap->convex.leftRange_ = r;
+            // gap->convex.rightIdx_ = nearIdx;
+            // gap->convex.rightRange_ = nearRange;
         } else
         {
-            gap->convex.convexLeftIdx_ = idx;
-            gap->convex.convexLeftRange_ = r;
-            gap->convex.convexRightIdx_ = nearIdx;
-            gap->convex.convexRightRange_ = nearRange;
+            gap->setManipPoints(nearIdx, nearRange, idx, r);
 
+            // gap->convex.leftIdx_ = nearIdx;
+            // gap->convex.leftRange_ = nearRange;
+            // gap->convex.rightIdx_ = idx;
+            // gap->convex.rightRange_ = r;
         }
 
-        if (right && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
-        {
-            gap->goal.discard = true;
-        }
+        // if (right && gap->convex.leftIdx_ < gap->convex.rightIdx_) 
+        // {
+        //     gap->goal.discard = true;
+        // }
 
-        if (!right && gap->convex.convexLeftIdx_ < gap->convex.convexRightIdx_) 
-        {
-            gap->goal.discard = true;
-        }
+        // if (!right && gap->convex.leftIdx_ < gap->convex.rightIdx_) 
+        // {
+        //     gap->goal.discard = true;
+        // }
+        // gap->mode.agc = true;
+        
+        gap->setAGC();
 
-        gap->mode.agc = true;
 
-        xLeft = gap->convex.convexLeftRange_ * cos(idx2theta(gap->convex.convexLeftIdx_));
-        yLeft = gap->convex.convexLeftRange_ * sin(idx2theta(gap->convex.convexLeftIdx_));
-        xRight = gap->convex.convexRightRange_ * cos(idx2theta(gap->convex.convexRightIdx_));
-        yRight = gap->convex.convexRightRange_ * sin(idx2theta(gap->convex.convexRightIdx_));
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << gap->convex.convexLeftIdx_ << ", " 
-                                                                                        << gap->convex.convexLeftRange_ << "), right: (" 
-                                                                                        << gap->convex.convexRightIdx_ << ", " 
-                                                                                        << gap->convex.convexRightRange_ << ")");
+        xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+                
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << gap->manipLeftIdx() << ", " 
+                                                                                        << gap->manipLeftRange() << "), right: (" 
+                                                                                        << gap->manipRightIdx() << ", " 
+                                                                                        << gap->manipRightRange() << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in cart. left: (" << xLeft << ", " 
                                                                                         << yLeft << "), right: (" 
                                                                                         << xRight << ", " 
                                                                                         << yRight << ")");
-
     }
 
     void GapManipulator::radialExtendGap(Gap * gap) 
@@ -342,23 +350,30 @@ namespace quad_gap
         Eigen::Vector2f polqLn = car2pol(qLn);
         Eigen::Vector2f polqRn = car2pol(qRn);
 
-        gap->convex.convexRightIdx_ = theta2idx(polqLn(1));
-        gap->convex.convexLeftIdx_ = theta2idx(polqRn(1));
-        gap->convex.convexRightRange_ = polqLn(0);
-        gap->convex.convexLeftRange_ = polqRn(0);
-        gap->mode.convex = true;
+        gap->setManipPoints(theta2idx(polqRn(1)), polqRn(0), 
+                            theta2idx(polqLn(1)), polqLn(0));
+        // gap->convex.leftIdx_ = theta2idx(polqRn(1));
+        // gap->convex.rightIdx_ = theta2idx(polqLn(1));
+        // gap->convex.leftRange_ = polqRn(0);
+        // gap->convex.rightRange_ = polqLn(0);
+        // gap->mode.extended = true;
+        gap->setExtended();
 
-        gap->qB = qB;
+        // gap->qB = qB;
+        gap->setQB(qB);
 
-        xLeft = gap->convex.convexLeftRange_ * cos(idx2theta(gap->convex.convexLeftIdx_));
-        yLeft = gap->convex.convexLeftRange_ * sin(idx2theta(gap->convex.convexLeftIdx_));
-        xRight = gap->convex.convexRightRange_ * cos(idx2theta(gap->convex.convexRightIdx_));
-        yRight = gap->convex.convexRightRange_ * sin(idx2theta(gap->convex.convexRightIdx_));
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in polar. left: (" << gap->convex.convexLeftIdx_ << ", " 
-                                                                                                    << gap->convex.convexLeftRange_ << "), right: (" 
-                                                                                                    << gap->convex.convexRightIdx_ << ", " 
-                                                                                                    << gap->convex.convexRightRange_ << ")");
+        xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+        
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in polar. left: (" << gap->manipLeftIdx() << ", " 
+                                                                                                    << gap->manipLeftRange() << "), right: (" 
+                                                                                                    << gap->manipRightIdx() << ", " 
+                                                                                                    << gap->manipRightRange() << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in cart. left: (" << xLeft << ", " 
                                                                                                     << yLeft << "), right: (" 
                                                                                                     << xRight << ", " 
