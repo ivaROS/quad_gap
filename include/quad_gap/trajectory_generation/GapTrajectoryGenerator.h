@@ -76,6 +76,33 @@ namespace quad_gap
             geometry_msgs::PoseArray processTrajectory(const geometry_msgs::PoseArray & pose_arr);
 
         private: 
+            void findFrontFacingBezierControlPts(const bool & left,
+                                                    const Eigen::Vector2f pCloseSafe,
+                                                    const Eigen::Vector2f pFarSafe,
+                                                    const float & robot_geo_thresh_dist,
+                                                    const float & robot_geo_diagonal_thresh,
+                                                    const float & ideal_min_cp_length,
+                                                    const float & cp_max_length,
+                                                    const Eigen::Vector2f & rbt_orient_vec,
+                                                    const Eigen::Vector2f & pGoal,
+                                                    Eigen::Vector2f & midControlPt,
+                                                    Eigen::Vector2f & new_goal,
+                                                    bool & success);
+
+            void findBackFacingBezierControlPts(const bool & left,
+                                                const Eigen::Vector2f pCloseSafe,
+                                                const Eigen::Vector2f pFarSafe,
+                                                const float & robot_geo_thresh_dist,
+                                                const float & robot_geo_diagonal_thresh,
+                                                const float & ideal_min_cp_length,
+                                                const float & cp_max_length,
+                                                const Eigen::Vector2f & rbt_orient_vec,
+                                                const Eigen::Vector2f & pGoal,
+                                                Eigen::Vector2f & midControlPt,
+                                                Eigen::Vector2f & new_goal,
+                                                bool & success);
+                                                        
+
             Eigen::Vector2f getRotatedVec(const Eigen::Vector2f & orig_vec, 
                                             const float & chord_length, 
                                             const bool & ccw = true);
