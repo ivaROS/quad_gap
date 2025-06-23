@@ -91,12 +91,12 @@ namespace quad_gap
                 
                 Eigen::Vector2f length_vec = robot_.length / 2 * o_new_vec;
                 Eigen::Vector2f left_pt_vec;
-                if(o_new_ang <= -M_PI / 2 || (o_new_ang > 0 && o_new_ang <= M_PI / 2)) // TODO: float check
+                if (o_new_ang <= -M_PI_OVER_TWO || (o_new_ang > 0 && o_new_ang <= M_PI_OVER_TWO)) // TODO: float check
                 {
                     left_pt_vec[0] = -length_vec[1];
                     left_pt_vec[1] = length_vec[0];
                 }
-                else if((o_new_ang > -M_PI / 2 && o_new_ang <= 0) || o_new_ang > M_PI / 2)
+                else if ((o_new_ang > -M_PI_OVER_TWO && o_new_ang <= 0) || o_new_ang > M_PI_OVER_TWO)
                 {
                     left_pt_vec[0] = length_vec[1];
                     left_pt_vec[1] = -length_vec[0];
@@ -137,12 +137,12 @@ namespace quad_gap
                 
             //     Eigen::Vector2f length_vec = robot_.length / 2 * o_new_vec;
             //     Eigen::Vector2f pt_vec;
-            //     if(o_new_ang <= -M_PI / 2 || (o_new_ang > 0 && o_new_ang <= M_PI / 2)) // TODO: float check
+            //     if(o_new_ang <= -M_PI_OVER_TWO || (o_new_ang > 0 && o_new_ang <= M_PI_OVER_TWO)) // TODO: float check
             //     {
             //         pt_vec[0] = length_vec[1];
             //         pt_vec[1] = -length_vec[0];
             //     }
-            //     else if((o_new_ang > -M_PI / 2 && o_new_ang <= 0) || o_new_ang > M_PI / 2)
+            //     else if((o_new_ang > -M_PI_OVER_TWO && o_new_ang <= 0) || o_new_ang > M_PI_OVER_TWO)
             //     {
             //         pt_vec[0] = -length_vec[1];
             //         pt_vec[1] = length_vec[0];

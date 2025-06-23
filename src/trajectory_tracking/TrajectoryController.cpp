@@ -395,8 +395,8 @@ namespace quad_gap
         if (holonomic)
         {
             v_ang_fb = v_ang_fb + v_ang_const;
-            v_lin_x_fb = abs(theta_error) > M_PI / 3? 0 : v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
-            v_lin_y_fb = abs(theta_error) > M_PI / 3? 0 : v_lin_y_fb + v_lin_y_const + k_po_ * u_add_y;
+            v_lin_x_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
+            v_lin_y_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_y_fb + v_lin_y_const + k_po_ * u_add_y;
 
             if (v_lin_x_fb < 0)
                 v_lin_x_fb = 0;
