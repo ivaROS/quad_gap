@@ -30,7 +30,7 @@ namespace quad_gap
         // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f m_pt_vec = (pRight.cast<float>() + pLeft.cast<float>()) / 2;
         // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
+        float epl = robot_geo_proc_->getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
         
         Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         float thetalr = car2pol(lr)(1);
@@ -157,7 +157,7 @@ namespace quad_gap
         r_negpi2 << 0,1,-1,0;
         
         Eigen::Vector2f offset = r_negpi2 * (pLeft - pRight);
-        goal_pt += robot_geo_proc_.getRobotMaxRadius() * offset / offset.norm();
+        goal_pt += robot_geo_proc_->getRobotMaxRadius() * offset / offset.norm();
 
         // gap->goal.x = goal_pt(0);
         // gap->goal.y = goal_pt(1);
@@ -178,7 +178,7 @@ namespace quad_gap
         // If sufficiently close to robot
         // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f goal_vec(localgoal.pose.position.x, localgoal.pose.position.y);
-        float er = robot_geo_proc_.getRobotMaxRadius();
+        float er = robot_geo_proc_->getRobotMaxRadius();
         
         if (dist2goal < 2 * er) 
         {
@@ -186,7 +186,7 @@ namespace quad_gap
         }
 
         // If within closest configuration space
-        float er_max = robot_geo_proc_.getRobotMaxRadius(); //TODO: check
+        float er_max = robot_geo_proc_->getRobotMaxRadius(); //TODO: check
         if (dist2goal < min_val - cfg_->traj.inf_ratio * er_max) {
             return true;
         }

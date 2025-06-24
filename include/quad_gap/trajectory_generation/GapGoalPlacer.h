@@ -24,7 +24,7 @@ namespace quad_gap
             GapGoalPlacer(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
-                robot_geo_proc_ = robot_geo_proc;
+                robot_geo_proc_ = &robot_geo_proc;
             };
 
             GapGoalPlacer& operator=(GapGoalPlacer & other) 
@@ -63,7 +63,7 @@ namespace quad_gap
 
             Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
 
-            RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor, used to get robot radius and inscribed radius */
 
     };
 }

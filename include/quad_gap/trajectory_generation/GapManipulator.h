@@ -19,10 +19,10 @@ namespace quad_gap
     class GapManipulator 
     {
         public: 
-            GapManipulator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
+            GapManipulator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
-                robot_geo_proc_ = robot_geo_proc;
+                robot_geo_proc_ = &robot_geo_proc;
             };
 
             GapManipulator& operator=(GapManipulator & other) 
@@ -56,7 +56,7 @@ namespace quad_gap
             Eigen::Vector2f pTheta(const float & th, const float & phiB, 
                                     const Eigen::Vector2f & pRp, const Eigen::Vector2f & pLp);
 
-            RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */
 
 
     };

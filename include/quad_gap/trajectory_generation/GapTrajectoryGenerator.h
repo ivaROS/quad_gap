@@ -38,7 +38,7 @@ namespace quad_gap
             GapTrajGenerator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
             { 
                 cfg_ = &cfg;
-                robot_geo_proc_ = robot_geo_proc;
+                robot_geo_proc_ = &robot_geo_proc;
             }
 
             GapTrajGenerator& operator=(GapTrajGenerator & other)
@@ -152,7 +152,7 @@ namespace quad_gap
 
             geometry_msgs::TransformStamped planning2odom;
 
-            const QuadGapConfig* cfg_;
-            RobotGeometryProcessor robot_geo_proc_;
+            const QuadGapConfig* cfg_ = NULL;
+            RobotGeometryProcessor * robot_geo_proc_ = NULL; 
     };
 }

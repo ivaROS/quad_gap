@@ -30,7 +30,7 @@ namespace quad_gap {
     class TrajectoryEvaluator
     {
         public:
-            TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
+            TrajectoryEvaluator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
             // TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
             
             TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
@@ -80,6 +80,6 @@ namespace quad_gap {
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */
             boost::mutex gap_mutex;
 
-            RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */
     };
 }

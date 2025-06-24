@@ -2,10 +2,10 @@
 
 namespace quad_gap 
 {
-    TrajectoryEvaluator::TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
+    TrajectoryEvaluator::TrajectoryEvaluator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
     {
         cfg_ = & cfg;
-        robot_geo_proc_ = robot_geo_proc;
+        robot_geo_proc_ = & robot_geo_proc;
     }
 
     void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
@@ -169,7 +169,7 @@ namespace quad_gap
             
             rel_pt_vec = scanPt - pose_vec;
             // nearest_dist = 
-            dist.at(i) = robot_geo_proc_.getNearestDistance(orient_vec, rel_pt_vec);
+            dist.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));
             // rmax_offset.at(i) = rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
             
@@ -188,7 +188,7 @@ namespace quad_gap
 
         auto iter = std::min_element(dist.begin(), dist.end());
         // float rmax_offset_val = rmax_offset[iter - dist.begin()];
-        float rmax_offset_val = cfg_->traj.rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
+        float rmax_offset_val = cfg_->traj.rmax - robot_geo_proc_->getRobotMaxRadius() * cfg_->traj.inf_ratio;
         return chapterScore(*iter, rmax_offset_val);
     }
 

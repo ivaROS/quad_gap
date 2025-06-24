@@ -142,7 +142,7 @@ namespace quad_gap
         }
 
         float boxGeomScale = cfg_->traj.robot_geo_scale;
-        float scaledMinDim = robot_geo_proc_.getRobotMinRadius() * boxGeomScale; // width / 2
+        float scaledMinDim = robot_geo_proc_->getRobotMinRadius() * boxGeomScale; // width / 2
 
         // max norm for second control point
         float q1MaxNorm = minSafeDist - scaledMinDim;
@@ -203,7 +203,7 @@ namespace quad_gap
             return true;
         }
 
-        float robot_geo_diagonal_thresh = robot_geo_proc_.getRobotMaxRadius() * boxGeomScale;
+        float robot_geo_diagonal_thresh = robot_geo_proc_->getRobotMaxRadius() * boxGeomScale;
         // float q1MaxNorm = minSafeDist - robot_geo_diagonal_thresh;
 
         bool success = findBezierControlPtsNew(pLeftSafe, pRightSafe, pGoal,

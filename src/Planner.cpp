@@ -109,14 +109,14 @@ namespace quad_gap
         poseSub_ = nh.subscribe(cfg_.odom_topic, 10, &Planner::poseCB, this);        
 
         gapDetector_ = new GapDetector(cfg_, robot_geo_proc_);
-        gapVisualizer_ = new GapVisualizer(nh, cfg_);
-        globalPlanManager_ = new GlobalPlanManager(cfg_, robot_geo_proc_);
-        trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
-        trajEvaluator_ = new TrajectoryEvaluator(nh, cfg_, robot_geo_proc_);
+        globalPlanManager_ = new GlobalPlanManager(cfg_); // , robot_geo_proc_
+        trajEvaluator_ = new TrajectoryEvaluator(cfg_, robot_geo_proc_);
         gapTrajGenerator_ = new GapTrajGenerator(cfg_, robot_geo_proc_);
         gapGoalPlacer_ = new GapGoalPlacer(cfg_, robot_geo_proc_);
+        gapVisualizer_ = new GapVisualizer(nh, cfg_);
+        trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
         goalVisualizer_ = new GoalVisualizer(nh, cfg_);
-        gapManipulator_ = new GapManipulator(nh, cfg_, robot_geo_proc_);
+        gapManipulator_ = new GapManipulator(cfg_, robot_geo_proc_);
         trajController_ = new TrajectoryController(nh, cfg_);
         timeKeeper_ = new TimeKeeper();
 

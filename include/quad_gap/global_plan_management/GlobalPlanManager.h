@@ -26,16 +26,16 @@ namespace quad_gap
     class GlobalPlanManager
     {
         public: 
-            GlobalPlanManager(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
+            GlobalPlanManager(const QuadGapConfig& cfg) // , RobotGeometryProcessor& robot_geo_proc
             {
                 cfg_ = &cfg;
-                robot_geo_proc_ = robot_geo_proc;
+                // robot_geo_proc_ = & robot_geo_proc;
             }
             
             GlobalPlanManager& operator=(GlobalPlanManager other) 
             {
                 cfg_ = other.cfg_;
-                robot_geo_proc_ = other.robot_geo_proc_;
+                // robot_geo_proc_ = other.robot_geo_proc_;
             
                 return *this;
             };
@@ -43,7 +43,7 @@ namespace quad_gap
             GlobalPlanManager(const GlobalPlanManager &t) 
             {
                 cfg_ = t.cfg_;
-                robot_geo_proc_ = t.robot_geo_proc_;
+                // robot_geo_proc_ = t.robot_geo_proc_;
             };
 
             /**
@@ -129,7 +129,7 @@ namespace quad_gap
 
             const QuadGapConfig* cfg_ = NULL; /**< Planner hyperparameter config list */
 
-            RobotGeometryProcessor robot_geo_proc_;            
+            // RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */       
 
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_; /**< Current laser scan */
 

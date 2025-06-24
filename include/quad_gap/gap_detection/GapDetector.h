@@ -125,7 +125,7 @@ namespace quad_gap
 
             sensor_msgs::LaserScan scan_; /**< Current laser scan */
             const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */
-            RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */
             float minScanDist_ = 0.0; /**< Minimum distance within current laser scan */
             float maxScanDist_ = 0.0; /**< Maximum distance within current laser scan */
             float halfScanRayCount_ = 0.0; /**< Half of number of rays within scan (float) */
