@@ -798,10 +798,14 @@ namespace quad_gap
             }
             else
             {
-                float des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
+                // float des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
                 float entire_dist = getBezierDist(quadraBezier, 0, 1, 30);
-                int num_sampled_pts = int(round(entire_dist / des_dist));
-                num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
+                // int num_sampled_pts = int(round(entire_dist / des_dist));
+                // num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
+
+                int num_sampled_pts = cfg_->traj.bezier_num_sampled_pts;
+
+                float des_dist = entire_dist / num_sampled_pts;
 
                 float dist_thresh = des_dist / 10;
                 float t_step = 1. / (num_sampled_pts - 1);

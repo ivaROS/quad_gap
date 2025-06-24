@@ -122,6 +122,7 @@ namespace quad_gap
             ros_throw_param_load(nh, "robot_geo_scale", traj.robot_geo_scale);
             ros_throw_param_load(nh, "bezier_interp", traj.bezier_interp);
             ros_throw_param_load(nh, "bezier_unit_time", traj.bezier_unit_time);
+            ros_throw_param_load(nh, "bezier_num_sampled_pts", traj.bezier_num_sampled_pts);
 
             ///////////////////////
             // Collision Checker //
