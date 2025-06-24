@@ -484,28 +484,45 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "[manipulateGaps()]");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
-        std::vector<Gap *> manip_set = planningGaps;
+        std::vector<Gap *> manipGaps = planningGaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
         geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
         try 
         {
-            for (size_t i = 0; i < manip_set.size(); i++)
+            for (size_t i = 0; i < manipGaps.size(); i++)
             {
-                gapManipulator_->reduceGap(manip_set.at(i), local_goal_rbt_frame);
-                gapManipulator_->convertAxialGap(manip_set.at(i));
-                gapManipulator_->radialExtendGap(manip_set.at(i));
-                gapGoalPlacer_->setGapWaypoint(manip_set.at(i), local_goal_rbt_frame);
+                gapManipulator_->reduceGap(manipGaps.at(i), local_goal_rbt_frame);
+                gapManipulator_->convertAxialGap(manipGaps.at(i));
+                gapManipulator_->radialExtendGap(manipGaps.at(i));
             }
         } catch(...) 
         {
             ROS_FATAL_STREAM("gapManipulate");
         }
 
-        goalVisualizer_->drawGapGoals(manip_set);
-        gapVisualizer_->drawManipGaps(manip_set);
-        return manip_set;
+        goalVisualizer_->drawGapGoals(manipGaps);
+        gapVisualizer_->drawManipGaps(manipGaps);
+        return manipGaps;
+    }
+
+    void Planner::gapGoalPlace(const std::vector<Gap *> & planningGaps) 
+    {
+        boost::mutex::scoped_lock gapset(gapMutex_);
+
+        geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
+        try 
+        {
+            for (size_t i = 0; i < planningGaps.size(); i++)
+            {
+                gapGoalPlacer_->setGapWaypoint(planningGaps.at(i), local_goal_rbt_frame);
+            }
+        } catch(...) 
+        {
+            ROS_FATAL_STREAM("gapGoalPlace");
+        }            
+
     }
 
     // std::vector<geometry_msgs::PoseArray> 
@@ -1066,6 +1083,14 @@ namespace quad_gap
 
         timeKeeper_->startTimer(GAP_MANIP);
         std::vector<Gap *> manipGaps = gapManipulate(planningGaps);
+        timeKeeper_->stopTimer(GAP_MANIP);
+
+        //////////////////////////////////////////////////////////////////////////////////////
+        //                             GAP GOAL PLACEMENT                                   //
+        //////////////////////////////////////////////////////////////////////////////////////
+
+        timeKeeper_->startTimer(GAP_MANIP);
+        gapGoalPlace(manipGaps);
         timeKeeper_->stopTimer(GAP_MANIP);
 
         //////////////////////////////////////////////////////////////////////////////////////

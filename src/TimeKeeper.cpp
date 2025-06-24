@@ -50,6 +50,9 @@ namespace quad_gap
             case GAP_MANIP:
                 gapManipulationStartTime = std::chrono::steady_clock::now();
                 break;
+            case GAP_GOAL:
+                gapGoalPlacementStartTime = std::chrono::steady_clock::now();
+                break;
             // case GAP_FEAS:
             //     gapFeasibilityCheckStartTime = std::chrono::steady_clock::now();
             //     break;
@@ -122,6 +125,10 @@ namespace quad_gap
             case GAP_MANIP:
                 gapManipulationEndTime = std::chrono::steady_clock::now();
                 currTimeTaken = timeTaken(gapManipulationStartTime, gapManipulationEndTime);  
+                break;
+            case GAP_GOAL:
+                gapGoalPlacementEndTime = std::chrono::steady_clock::now();
+                currTimeTaken = timeTaken(gapGoalPlacementStartTime, gapGoalPlacementEndTime);  
                 break;
             // case GAP_FEAS:
             //     gapFeasibilityCheckEndTime = std::chrono::steady_clock::now();
@@ -217,7 +224,12 @@ namespace quad_gap
                 totalGapManipulationTimeTaken += currTimeTaken;
                 gapManipulationCalls++;
                 averageTimeTaken = (totalGapManipulationTimeTaken / gapManipulationCalls);
-                break;                                                 
+                break;      
+            case GAP_GOAL:
+                totalGapGoalPlacementTimeTaken += currTimeTaken;
+                gapGoalPlacementCalls++;
+                averageTimeTaken = (totalGapGoalPlacementTimeTaken / gapGoalPlacementCalls);
+                break;
             // case GAP_FEAS:
             //     totalGapFeasibilityCheckTimeTaken += currTimeTaken;
             //     gapFeasibilityCheckCalls++;

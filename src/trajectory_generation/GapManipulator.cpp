@@ -10,7 +10,7 @@ namespace quad_gap
     }
 
     // In place modification
-    void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::PoseStamped & localgoal) 
+    void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypoint) 
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [reduceGap()]");
 
@@ -30,46 +30,70 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-reduce gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");    
 
         if (!scan_) 
-            return; 
-
-        float angularSize = (leftIdx - rightIdx) * (scan_.get()->angle_increment);
-
-        if (angularSize < cfg_->gap_manip.reduction_threshold)
         {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "No scan available, cannot reduce gap.");
+            ROS_WARN_STREAM_NAMED("GapManipulator", "No scan available, cannot reduce gap.");
+            return; 
+        }
+
+        float gapIdxSpan = (leftIdx - rightIdx);
+        if (gapIdxSpan < 0.0)
+            gapIdxSpan += cfg_->scan.full_scan_f; // (2*gap->half_scan);
+
+        float gapAngle = gapIdxSpan * cfg_->scan.angle_increment;
+
+        if (gapAngle < cfg_->gap_manip.reduction_threshold)
+        {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "Gap is convex, not reducing.");
             return;
         }
 
-        int gap_size = cfg_->gap_manip.reduction_target / scan_.get()->angle_increment;
-        int leftBiasedRightIdx = rightIdx + gap_size;
-        int rightBiasedLeftIdx = leftIdx - gap_size;
+        int targetGapIdxSpan = cfg_->gap_manip.reduction_target / cfg_->scan.angle_increment;
 
-        float goal_orientation = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
-        int goal_idx = theta2idx(goal_orientation);
+        int leftIdxBiasedRight = subtractAndWrapScanIndices(leftIdx - targetGapIdxSpan, cfg_->scan.full_scan);
+        int rightIdxBiasedLeft = (rightIdx + targetGapIdxSpan) % cfg_->scan.full_scan; // num_of_scan is int version of 2*half_scan
 
-        int acceptable_dist = int(round(gap_size / 2));
+        float globalPathLocalWaypointTheta = std::atan2(globalPathLocalWaypoint.pose.position.y, globalPathLocalWaypoint.pose.position.x);
+        int globalPathLocalWaypointIdx = theta2idx(globalPathLocalWaypointTheta); // globalPathLocalWaypointTheta / (M_PI / gap->half_scan) + gap->half_scan;
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        globalPathLocalWaypointIdx: " << globalPathLocalWaypointIdx);
+        int halfTargetGapIdxSpan = targetGapIdxSpan / 2; // distance in scan indices
+        
+        leftIdxBiasedRight = subtractAndWrapScanIndices(leftIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
+        int leftIdxBiasedLeft = (leftIdx + halfTargetGapIdxSpan) % cfg_->scan.full_scan;
 
+        int rightIdxBiasedRight = subtractAndWrapScanIndices(rightIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
+        rightIdxBiasedLeft = (rightIdx + halfTargetGapIdxSpan) % cfg_->scan.full_scan;
+
+        bool isLocalWaypointLeftBiased = isGlobalPathLocalWaypointWithinGapAngle(globalPathLocalWaypointIdx, leftIdxBiasedRight, leftIdxBiasedLeft); 
+        bool isLocalWaypointRightBiased = isGlobalPathLocalWaypointWithinGapAngle(globalPathLocalWaypointIdx, rightIdxBiasedRight, rightIdxBiasedLeft); 
         int newLeftIdx, newRightIdx;
-        if (goal_idx + acceptable_dist > leftIdx)
+        if (isLocalWaypointLeftBiased) // left biased
         {
-            // r-biased Gap
             newLeftIdx = leftIdx;
-            newRightIdx = rightBiasedLeftIdx;
-        } else if (goal_idx - acceptable_dist < rightIdx) 
+            newRightIdx = leftIdxBiasedRight;   
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating left-biased gap: " << newLeftIdx << ", " << newRightIdx);
+        } else if (isLocalWaypointRightBiased) // right biased
         {
-            // l-biased gap
-            newLeftIdx = leftBiasedRightIdx;
+            newLeftIdx = rightIdxBiasedLeft;
             newRightIdx = rightIdx;
-        } else 
-        {
-            // Lingering in center
-            newLeftIdx = goal_idx + acceptable_dist;
-            newRightIdx = goal_idx - acceptable_dist;
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating right-biased gap: " << newLeftIdx << ", " << newRightIdx);
+        } else // Lingering in center 
+        { 
+            //ROS_INFO_STREAM_NAMED("GapManipulator",  "central gap" << std::endl;
+            newLeftIdx = (globalPathLocalWaypointIdx + halfTargetGapIdxSpan) % cfg_->scan.full_scan;
+            newRightIdx = subtractAndWrapScanIndices(globalPathLocalWaypointIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating goal-centered gap: " << newLeftIdx << ", " << newRightIdx);
         }
 
-        // ROS_INFO_STREAM(rightIdx << " " << leftIdx << " " << leftBiasedRightIdx << " " << rightBiasedLeftIdx << " " << goal_idx + acceptable_dist << " " << goal_idx - acceptable_dist << " " << newRightIdx << " " << newLeftIdx);
+        // removed some float casting here
+        float leftToNewLeftIdxSpan = subtractAndWrapScanIndices(leftIdx - newLeftIdx, cfg_->scan.full_scan);
+        float leftToNewRightIdxSpan = subtractAndWrapScanIndices(leftIdx - newRightIdx, cfg_->scan.full_scan);
 
-        float newLeftRange = float(newLeftIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
-        float newRightRange = float(newRightIdx - rightIdx) / float(leftIdx - rightIdx) * (leftRange - rightRange) + rightRange;
+        // ROS_INFO_STREAM_NAMED("GapManipulator", "orig_gap_size: " << orig_gap_size);
+        // ROS_INFO_STREAM_NAMED("GapManipulator", "leftToNewRightIdxSpan: " << leftToNewRightIdxSpan << ", leftToNewLeftIdxSpan: " << leftToNewLeftIdxSpan);
+
+        float newLeftRange = leftRange + (rightRange - leftRange) * epsilonDivide(leftToNewLeftIdxSpan, gapIdxSpan);
+        float newRightRange = leftRange +  (rightRange - leftRange) * epsilonDivide(leftToNewRightIdxSpan, gapIdxSpan);
 
         // gap->convex.leftIdx_ = newLeftIdx;
         // gap->convex.rightIdx_ = newRightIdx;

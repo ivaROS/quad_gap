@@ -165,6 +165,13 @@ namespace quad_gap
             std::vector<Gap *> gapManipulate(const std::vector<Gap *> & planning_gaps);
 
             /**
+            * Place goal in the gap, this is done by the GapGoalPlacer class
+            * @param planningGaps, vector of Gap pointers
+            * @return None, goal is placed in the Gap object
+            */
+            void gapGoalPlace(const std::vector<Gap *> & planningGaps);
+
+            /**
             * 
             *
             */

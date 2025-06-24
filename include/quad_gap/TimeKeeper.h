@@ -16,18 +16,19 @@ namespace quad_gap
                             SCAN = 2,
                             // GAP_PROP = 5,
                             GAP_MANIP = 3,
+                            GAP_GOAL = 4,
                             // GAP_FEAS = 7,
                             // SCAN_PROP = 8,
                             // UNGAP_TRAJ_GEN = 9,
-                            GAP_TRAJ_GEN = 4,
+                            GAP_TRAJ_GEN = 5,
                             // IDLING_TRAJ_GEN = 11,
-                            TRAJ_PICK = 5,
-                            TRAJ_COMP = 6,
-                            COLL_CHECK = 7,
-                            PLAN = 8,
-                            FEEBDACK = 9,
-                            PO = 10,
-                            CONTROL = 11
+                            TRAJ_PICK = 6,
+                            TRAJ_COMP = 7,
+                            COLL_CHECK = 8,
+                            PLAN = 9,
+                            FEEBDACK = 10,
+                            PO = 11,
+                            CONTROL = 12
                             };
 
     const std::map<int, std::string> planningSteps = { {GAP_DET, "Gap Detection"},
@@ -37,6 +38,7 @@ namespace quad_gap
                                                     {SCAN, "Scan Loop"},
                                                     // {GAP_PROP, "Gap Propagation"},
                                                     {GAP_MANIP, "Gap Manipulation"},
+                                                    {GAP_GOAL, "Gap Goal Placement"},
                                                     // {GAP_FEAS, "Gap Feasibility Check"},
                                                     // {SCAN_PROP, "Scan Propagation"},
                                                     // {UNGAP_TRAJ_GEN, "Ungap Trajectory Generation"},
@@ -120,6 +122,11 @@ namespace quad_gap
             std::chrono::steady_clock::time_point gapManipulationEndTime; /**< End time for gap manipulation */
             float totalGapManipulationTimeTaken = 0.0f; /**< Total time taken for gap manipulation */
             int gapManipulationCalls = 0; /**< Total number of calls for gap manipulation */
+
+            std::chrono::steady_clock::time_point gapGoalPlacementStartTime; /**< Start time for gap goal placement */
+            std::chrono::steady_clock::time_point gapGoalPlacementEndTime; /**< End time for gap goal placement */
+            float totalGapGoalPlacementTimeTaken = 0.0f; /**< Total time taken for gap goal placement */
+            int gapGoalPlacementCalls = 0; /**< Total number of calls for gap goal placement */
 
             // std::chrono::steady_clock::time_point gapFeasibilityCheckStartTime; /**< Start time for gap feasibility analysis */
             // std::chrono::steady_clock::time_point gapFeasibilityCheckEndTime; /**< End time for gap feasibility analysis */

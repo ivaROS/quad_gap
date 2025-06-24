@@ -348,6 +348,24 @@ namespace quad_gap
         return leftToRightAngle;
     }
 
+    inline int subtractAndWrapScanIndices(const int & a, const int & b) 
+    {
+        return (a < 0) ? a+b : a;
+    }
+
+    inline bool isGlobalPathLocalWaypointWithinGapAngle(const int & goalIdx, const int & lowerIdx, const int & upperIdx) 
+    {
+        if (lowerIdx < upperIdx) 
+        {
+            // ROS_INFO_STREAM("no wrapping, is goal idx between " << lowerIdx << " and " << upperIdx);
+            return (goalIdx > lowerIdx && goalIdx < upperIdx); //if no wrapping occurs
+        } else 
+        {
+            // ROS_INFO_STREAM("wrapping, is goal idx between " << lowerIdx << " and " << full_scan << ", or between " << 0 << " and " << upperIdx);
+            return (goalIdx > lowerIdx && goalIdx < (2*half_num_scan)) || (goalIdx > 0 && goalIdx < upperIdx); // if wrapping occurs
+        }
+    }    
+
     //////////////////////////////
     //   GAP STATE OPERATIONS   // 
     //////////////////////////////
