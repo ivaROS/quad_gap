@@ -74,18 +74,21 @@ namespace quad_gap
     {
         // Requires LOCAL FRAME
         // Should be no racing condition
+
+        sensor_msgs::LaserScan scan = *scan_.get();
+
         std::vector<float> cost_val(traj.poses.size());
         for (int i = 0; i < cost_val.size(); i++) 
         {
-            cost_val.at(i) = scorePose(traj.poses.at(i));
+            cost_val.at(i) = scorePose(traj.poses.at(i), scan);
         }
 
-        float total_val = std::accumulate(cost_val.begin(), cost_val.end(), float(0));
+        // float total_val = std::accumulate(cost_val.begin(), cost_val.end(), float(0));
 
         if (cost_val.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
         {
             float terminal_cost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
-            if (terminal_cost < 1 && total_val > -10) return std::vector<float>(traj.poses.size(), 100);
+            // if (terminal_cost < 1 && total_val > -10) return std::vector<float>(traj.poses.size(), 100);
             // Should be safe
             cost_val.at(0) -= terminal_cost;
         }
@@ -109,64 +112,76 @@ namespace quad_gap
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
-    float TrajectoryEvaluator::scorePose(const geometry_msgs::Pose & pose) 
+    float TrajectoryEvaluator::scorePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan) 
     {
-        boost::mutex::scoped_lock lock(scanMutex_);
-        sensor_msgs::LaserScan stored_scan = *scan_.get();
+        // boost::mutex::scoped_lock lock(scanMutex_);
 
         // float pose_ori = std::atan2(pose.position.y + 1e-3, pose.position.x + 1e-3);
         // int center_idx = (int) std::round((pose_ori + M_PI) / msg.get()->angle_increment);
         
-        int scan_size = (int) stored_scan.ranges.size();
-        std::vector<float> dist(scan_size);
-        std::vector<float> rmax_offset(scan_size);
+        // int scan_size = (int) ;
+        std::vector<float> dist(scan.ranges.size());
+        // std::vector<float> rmax_offset(scan_size);
 
         // This size **should** be ensured
-        if (stored_scan.ranges.size() < 500) 
-        {
-            ROS_FATAL_STREAM("Scan range incorrect scorePose");
-        }
+        // if (scan.ranges.size() < 500) 
+        // {
+        //     ROS_FATAL_STREAM("Scan range incorrect scorePose");
+        // }
 
-        Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
-        Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
-        Eigen::Vector2f orient_vec(cos(euler[2]), sin(euler[2]));
+        // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
+        // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+        float yaw = quaternionToYaw(pose.orientation);
+        Eigen::Vector2f orient_vec(cos(yaw), sin(yaw));
         Eigen::Vector2f pose_vec(pose.position.x, pose.position.y); // TODO: pose should be in robot frame
+
         float pose_angle = atan2(pose_vec[1], pose_vec[0]);
-        int pose_idx = int(round((pose_angle - stored_scan.angle_min) / stored_scan.angle_increment));
-        pose_idx = pose_idx >= 0 ? pose_idx : 0;
-        pose_idx = pose_idx < stored_scan.ranges.size() ? pose_idx : (stored_scan.ranges.size() - 1);
-        float pose_ego_dist = stored_scan.ranges[pose_idx];
-        if(pose_vec.norm() >= pose_ego_dist)
+        int pose_idx = theta2idx(pose_angle);
+        // int pose_idx = int(round((pose_angle - scan.angle_min) / scan.angle_increment));
+        // pose_idx = pose_idx >= 0 ? pose_idx : 0;
+        // pose_idx = pose_idx < scan.ranges.size() ? pose_idx : (scan.ranges.size() - 1);
+        
+        float pose_ego_dist = scan.ranges[pose_idx];
+        if (pose_vec.norm() >= pose_ego_dist)
             return -std::numeric_limits<float>::infinity();
 
+        float range_i = 0.0;
+        float theta_i = 0.0;
+        Eigen::Vector2f scanPt;
+        Eigen::Vector2f rel_pt_vec;
+        // float nearest_dist = 0.0;
         for (int i = 0; i < dist.size(); i++) 
         {
-            float this_dist = stored_scan.ranges.at(i);
-            this_dist = this_dist == 3 ? this_dist + cfg_->traj.rmax : this_dist;
+            float range_i = scan.ranges.at(i);
+            float theta_i = idx2theta(i);
+            scanPt << range_i * cos(theta_i), range_i * sin(theta_i);
+            
+            // range_i = range_i == 3 ? range_i + cfg_->traj.rmax : range_i;
 
             // Iterate through robot boundary
             
-            float pt_ang = i * stored_scan.angle_increment - M_PI;
-            pt_ang = (pt_ang >= -M_PI) ? pt_ang : -M_PI;
-            pt_ang = (pt_ang <= M_PI) ? pt_ang : M_PI;
-            Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
-            pt_vec = this_dist * pt_vec;
+            // float pt_ang = i * scan.angle_increment - M_PI;
+            // pt_ang = (pt_ang >= -M_PI) ? pt_ang : -M_PI;
+            // pt_ang = (pt_ang <= M_PI) ? pt_ang : M_PI;
+
+            // Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
+            // pt_vec = range_i * pt_vec;
             
-            Eigen::Vector2f rel_pt_vec = pt_vec - pose_vec;
-            float nearest_dist = robot_geo_proc_.getNearestDistance(orient_vec, rel_pt_vec);
-            dist.at(i) = nearest_dist;
+            rel_pt_vec = scanPt - pose_vec;
+            // nearest_dist = 
+            dist.at(i) = robot_geo_proc_.getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));
             // rmax_offset.at(i) = rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
             
             // Get the robot equivalent radius
             
             // Eigen::Vector2f pose_position_vec(pose.position.x, pose.position.y);
-            // Eigen::Vector2f scan_pt_vec(this_dist * cos(i * stored_scan.angle_increment - M_PI), this_dist * sin(i * stored_scan.angle_increment - M_PI));
+            // Eigen::Vector2f scan_pt_vec(range_i * cos(i * scan.angle_increment - M_PI), range_i * sin(i * scan.angle_increment - M_PI));
             // Eigen::Vector2f relative_vec = scan_pt_vec - pose_position_vec;
             // relative_vec = relative_vec / relative_vec.norm();
             // float robot_er = robot_geo_proc_.getEquivalentR(orient_vec, relative_vec);
-            // dist.at(i) = dist2Pose(i * stored_scan.angle_increment - M_PI,
-            //     this_dist, pose);
+            // dist.at(i) = dist2Pose(i * scan.angle_increment - M_PI,
+            //     range_i, pose);
             // dist.at(i) -= robot_er * cfg_->traj.inf_ratio;
             // rmax_offset.at(i) = rmax - robot_er * cfg_->traj.inf_ratio;
         }
@@ -179,8 +194,12 @@ namespace quad_gap
 
     float TrajectoryEvaluator::chapterScore(const float & d, const float & rmax_offset_val) 
     {
-        if (d <= 0) return -std::numeric_limits<float>::infinity();
-        if (d > rmax_offset_val) return 0;
+        if (d <= 0) 
+            return -std::numeric_limits<float>::infinity();
+        
+        if (d > rmax_offset_val) 
+            return 0;
+        
         return cfg_->traj.cobs * std::exp(- cfg_->traj.w * (d));
     }
 

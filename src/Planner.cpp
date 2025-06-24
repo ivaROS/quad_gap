@@ -549,6 +549,9 @@ namespace quad_gap
             {
                 ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Generating trajectory for gap " << i);
 
+
+                std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();        
+
                 // Generate trajectory in robot frame.
                 geometry_msgs::PoseArray tmp;
                 if (cfg_.planning.use_bezier)
@@ -558,6 +561,8 @@ namespace quad_gap
                 {
                     tmp = gapTrajGenerator_->generateTrajectory(gaps.at(i), rbt_local_pose);
                 }
+
+                std::chrono::steady_clock::time_point gen_traj_time = std::chrono::steady_clock::now();
                 
                 ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Trajectory size: " << tmp.poses.size());
                 ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Trajectory:");
@@ -568,10 +573,36 @@ namespace quad_gap
 
                 tmp = gapTrajGenerator_->processTrajectory(tmp);
 
+                std::chrono::steady_clock::time_point proc_traj_time = std::chrono::steady_clock::now();
+
                 geometry_msgs::PoseArray virtual_score_path = getOrientDecayedPath(tmp);
                 virtual_traj.at(i) = virtual_score_path;
+
+                std::chrono::steady_clock::time_point orient_traj_time = std::chrono::steady_clock::now();
+
                 ret_traj_scores.at(i) = trajEvaluator_->scoreTrajectory(virtual_score_path);
+
+                std::chrono::steady_clock::time_point score_traj_time = std::chrono::steady_clock::now();
+
                 ret_traj.at(i) = gapTrajGenerator_->transformPath(tmp, rbt2odom_);
+            
+                std::chrono::steady_clock::time_point transform_traj_time = std::chrono::steady_clock::now();
+
+                // Log the time taken for each step
+                auto gen_traj_duration = std::chrono::duration_cast<std::chrono::milliseconds>(gen_traj_time - start_time).count();
+                auto proc_traj_duration = std::chrono::duration_cast<std::chrono::milliseconds>(proc_traj_time - gen_traj_time).count();
+                auto orient_traj_duration = std::chrono::duration_cast<std::chrono::milliseconds>(orient_traj_time - proc_traj_time).count();
+                auto score_traj_duration = std::chrono::duration_cast<std::chrono::milliseconds>(score_traj_time - orient_traj_time).count();
+                auto transform_traj_duration = std::chrono::duration_cast<std::chrono::milliseconds>(transform_traj_time - score_traj_time).count();    
+
+                auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(transform_traj_time - start_time).count();
+
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory generation: " << gen_traj_duration << " ms");
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory processing: " << proc_traj_duration << " ms");
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory orientation decay: " << orient_traj_duration << " ms");
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory scoring: " << score_traj_duration << " ms");
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory transformation: " << transform_traj_duration << " ms");
+                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Total time taken for trajectory generation: " << total_duration << " ms");
             }
         } catch (...) 
         {

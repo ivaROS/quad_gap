@@ -28,6 +28,25 @@ namespace quad_gap
                 else
                     decay_factor_ = decay_factor;
                 initialized_ = true;
+
+                float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
+                Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
+                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
+                Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
+                
+                // 8 points ccw from -pi angle
+                Eigen::Vector2f p1 = -robot_f_vec;
+                Eigen::Vector2f p2 = -robot_f_vec - robot_ccw_n_vec;
+                Eigen::Vector2f p3 = -robot_ccw_n_vec;
+                Eigen::Vector2f p4 = robot_f_vec - robot_ccw_n_vec;
+                Eigen::Vector2f p5 = robot_f_vec;
+                Eigen::Vector2f p6 = robot_f_vec + robot_ccw_n_vec;
+                Eigen::Vector2f p7 = robot_ccw_n_vec;
+                Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
+                pt_list = {p1, p2, p3, p4, p5, p6, p7, p8};
+
+                distsForNearestDist_.resize(pt_list.size() + sample_size);
+                distsForEquivalentRL_.resize(pt_list.size() + sample_size);
             }
 
             bool initialized() { return initialized_; }
@@ -160,17 +179,21 @@ namespace quad_gap
             {
                 // Motion vec cannot be normalized
 
-                if(robot_.shape == RobotShape::circle)
+                // distsForEquivalentRL_.clear();
+
+                if (robot_.shape == RobotShape::circle)
                     return 2 * robot_.radius;
 
                 Eigen::Vector2f o_vec = orientation_vec;
                 Eigen::Vector2f m_vec = motion_vec;
 
-                if(o_vec.norm() != 1)
-                    o_vec = o_vec / o_vec.norm();
+                o_vec.normalize();
+                // if(o_vec.norm() != 1)
+                //     o_vec = o_vec / o_vec.norm();
                 
-                if(m_vec.norm() != 1)
-                    m_vec = m_vec / m_vec.norm();
+                m_vec.normalize();
+                // if(m_vec.norm() != 1)
+                //     m_vec = m_vec / m_vec.norm();
 
                 float m_ang = atan2(m_vec[1], m_vec[0]);
                 float o_ang = atan2(o_vec[1], o_vec[0]);
@@ -182,55 +205,49 @@ namespace quad_gap
                         sin(rot_ang), cos(rot_ang);
 
                 Eigen::Vector2f m_new_vec = motion_vec.norm() * rot * m_vec;
-                Eigen::Vector2f robotOrientationVector(1, 0);
-                float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
-                Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
-                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
-                Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
-                
-                // 8 points ccw from -pi angle
-                Eigen::Vector2f p1 = -robot_f_vec;
-                Eigen::Vector2f p2 = -robot_f_vec + (-robot_ccw_n_vec);
-                Eigen::Vector2f p3 = -robot_ccw_n_vec;
-                Eigen::Vector2f p4 = robot_f_vec - robot_ccw_n_vec;
-                Eigen::Vector2f p5 = robot_f_vec;
-                Eigen::Vector2f p6 = robot_f_vec + robot_ccw_n_vec;
-                Eigen::Vector2f p7 = robot_ccw_n_vec;
-                Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
+                // Eigen::Vector2f robotOrientationVector(1, 0);
 
-                std::vector<Eigen::Vector2f> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
-                std::vector<float> dist;
-                for (const Eigen::Vector2f & pt : pt_list)
-                {
-                    Eigen::Vector2f pt_vec_global = m_new_vec + pt;
-                    dist.push_back(pt_vec_global.norm());
-                }
+                // std::vector<Eigen::Vector2f> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
+                // std::vector<float> dists;
 
-                int sample_size = 20; // TOO SLOW
-                float res = M_PI * 2 / sample_size;
-
+                float ang = 0.0;
+                Eigen::Vector2f i_vec;
+                float dist = 0.0;
+                Eigen::Vector2f i_bound;                
                 for (size_t i = 0; i < sample_size; i++)
                 {
-                    float ang = i * res - M_PI;
-                    ang = (ang <= M_PI) ? ang : M_PI;
-                    ang = (ang >= -M_PI) ? ang : -M_PI;
+                    ang = idx2theta(ang); // i * res - M_PI;
+                    // ang = (ang <= M_PI) ? ang : M_PI;
+                    // ang = (ang >= -M_PI) ? ang : -M_PI;
 
-                    Eigen::Vector2f i_vec(cos(ang), sin(ang));
-                    float er = getEquivalentR(robotOrientationVector, i_vec);
+                    i_vec << cos(ang), sin(ang);
+                    dist = getEquivalentR(robotOrientationVector, i_vec);
 
-                    Eigen::Vector2f i_bound = er * i_vec;
+                    i_bound = dist * i_vec;
 
-                    dist.push_back((m_new_vec + i_bound).norm());
+                    distsForEquivalentRL_.at(i) = (m_new_vec + i_bound).norm();
                 }
 
-                float max_dist = *std::max_element(dist.begin(), dist.end());
-                float min_dist = *std::min_element(dist.begin(), dist.end());
+                for (size_t i = 0; i < pt_list.size(); i++)
+                {
+                    Eigen::Vector2f pt_vec_global = m_new_vec + pt_list.at(i);
+                    distsForEquivalentRL_.at(i + sample_size) = pt_vec_global.norm();
+                }
+                // for (const Eigen::Vector2f & pt : pt_list)
+                // {
+                //     Eigen::Vector2f pt_vec_global = m_new_vec + pt;
+                //     dist.push_back(pt_vec_global.norm());
+                // }
 
-                if(m_new_vec[0] > (-robot_.length / 2) && m_new_vec[0] < (robot_.length / 2) && m_new_vec[1] > (-robot_.width / 2) && m_new_vec[1] < (robot_.width / 2))
+
+                float max_dist = *std::max_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
+                float min_dist = *std::min_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
+
+                if (std::abs(m_new_vec[0]) < robot_.length / 2 && 
+                    std::abs(m_new_vec[1]) < robot_.width / 2)
                 {
                     return max_dist;
-                }
-                else
+                } else
                 {
                     return abs(max_dist - min_dist);
                 }
@@ -288,61 +305,78 @@ namespace quad_gap
             {
                 // The pt is the relative vector from robot origin.
 
-                int sample_size = 20; // TOO SLOW
-                float res = M_PI * 2 / sample_size;
+                // distsForNearestDist_.clear();
 
                 float o_ang = atan2(orientation_vec[1], orientation_vec[0]);
-                float rot_ang = 0 - o_ang;
+                float rot_ang = 0.0 - o_ang;
                 Eigen::Matrix2f rot;
-                rot << cos(rot_ang), -sin(rot_ang), sin(rot_ang), cos(rot_ang);
+                rot << cos(rot_ang), -sin(rot_ang), 
+                        sin(rot_ang), cos(rot_ang);
                 Eigen::Vector2f pt_new_vec = rot * pt;
 
-                if(pt_new_vec[0] > (-robot_.length / 2) && pt_new_vec[0] < (robot_.length / 2) && pt_new_vec[1] > (-robot_.width / 2) && pt_new_vec[1] < (robot_.width / 2))
+                if (std::abs(pt_new_vec[0]) < robot_.length / 2 || 
+                    std::abs(pt_new_vec[1]) < robot_.width / 2)
                 {
+                    // The point is outside the robot bounding box.
                     return -1;
                 }
+
+                // if  (pt_new_vec[0] > (-robot_.length / 2) && 
+                //      pt_new_vec[0] < (robot_.length / 2) && 
+                //      pt_new_vec[1] > (-robot_.width / 2) && 
+                //      pt_new_vec[1] < (robot_.width / 2))
+                // {
+                //     return -1;
+                // }
                 
                 // Eigen::Vector2f o_new_vec(1, 0);
 
-                std::vector<float> dists;
-
+                float ang = 0.0;
+                Eigen::Vector2f i_vec;
+                float dist = 0.0;
+                Eigen::Vector2f i_bound;
                 for (size_t i = 0; i < sample_size; i++)
                 {
-                    float ang = i * res - M_PI;
-                    ang = (ang <= M_PI) ? ang : M_PI;
-                    ang = (ang >= -M_PI) ? ang : -M_PI;
+                    ang = idx2theta(ang); // i * res - M_PI;
+                    // ang = (ang <= M_PI) ? ang : M_PI;
+                    // ang = (ang >= -M_PI) ? ang : -M_PI;
 
-                    Eigen::Vector2f i_vec(cos(ang), sin(ang));
-                    float dist = getEquivalentR(robotOrientationVector, i_vec);
+                    i_vec << cos(ang), sin(ang);
+                    dist = getEquivalentR(robotOrientationVector, i_vec);
 
-                    Eigen::Vector2f i_bound = dist * i_vec;
+                    i_bound = dist * i_vec;
 
-                    dists.push_back((pt_new_vec - i_bound).norm());
+                    distsForNearestDist_.at(i) = (pt_new_vec - i_bound).norm();
                 }
 
                 // 8 corner points
-                Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
-                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
-                Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
+                // Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
+                // Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
+                // Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
                 
-                // 8 points ccw from -pi angle
-                Eigen::Vector2f p1 = -robot_f_vec;
-                Eigen::Vector2f p2 = -robot_f_vec + (-robot_ccw_n_vec);
-                Eigen::Vector2f p3 = -robot_ccw_n_vec;
-                Eigen::Vector2f p4 = robot_f_vec - robot_ccw_n_vec;
-                Eigen::Vector2f p5 = robot_f_vec;
-                Eigen::Vector2f p6 = robot_f_vec + robot_ccw_n_vec;
-                Eigen::Vector2f p7 = robot_ccw_n_vec;
-                Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
+                // // 8 points ccw from -pi angle
+                // Eigen::Vector2f p1 = -robot_f_vec;
+                // Eigen::Vector2f p2 = -robot_f_vec + (-robot_ccw_n_vec);
+                // Eigen::Vector2f p3 = -robot_ccw_n_vec;
+                // Eigen::Vector2f p4 = robot_f_vec - robot_ccw_n_vec;
+                // Eigen::Vector2f p5 = robot_f_vec;
+                // Eigen::Vector2f p6 = robot_f_vec + robot_ccw_n_vec;
+                // Eigen::Vector2f p7 = robot_ccw_n_vec;
+                // Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
 
-                std::vector<Eigen::Vector2f> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
-                for (const Eigen::Vector2f & pt : pt_list)
+                Eigen::Vector2f pt_vec_global;
+                for (int i = 0; i < pt_list.size(); i++)
                 {
-                    Eigen::Vector2f pt_vec_global = pt_new_vec - pt;
-                    dists.push_back(pt_vec_global.norm());
+                    pt_vec_global = pt_new_vec - pt_list[i];
+                    distsForNearestDist_.at(i + sample_size) = pt_vec_global.norm();
                 }
+                // for (const Eigen::Vector2f & pt : pt_list)
+                // {
+                //     pt_vec_global = pt_new_vec - pt;
+                //     dists.push_back(pt_vec_global.norm());
+                // }
 
-                return *std::min_element(dists.begin(), dists.end());
+                return *std::min_element(distsForNearestDist_.begin(), distsForNearestDist_.end());
             }
 
             float getRobotMaxRadius()
@@ -411,5 +445,14 @@ namespace quad_gap
             Robot robot_;
             float decay_factor_ = 0;
             bool initialized_ = false;
+            // Eigen::Vector2f p1, p2, p3, p4, p5, p6, p7, p8;
+            std::vector<Eigen::Vector2f> pt_list;
+
+            int sample_size = 5; // 20; // TOO SLOW
+            // float res = M_PI * 2 / sample_size;
+
+            std::vector<float> distsForNearestDist_;
+            std::vector<float> distsForEquivalentRL_;
+
     };
 }

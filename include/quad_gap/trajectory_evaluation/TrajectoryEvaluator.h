@@ -65,7 +65,7 @@ namespace quad_gap {
             
             float costFn(Gap * g, int goal_idx);
 
-            float scorePose(const geometry_msgs::Pose & pose);
+            float scorePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan);
             // int searchIdx(geometry_msgs::Pose pose);
             float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
             float chapterScore(const float & d, const float & rmax_offset_val);
