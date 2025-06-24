@@ -70,30 +70,32 @@ namespace quad_gap
         return std::vector<float>(sample_traj.size());
     }
 
-    std::vector<float> TrajectoryEvaluator::scoreTrajectory(const geometry_msgs::PoseArray & traj) 
+    void TrajectoryEvaluator::scoreTrajectory(const geometry_msgs::PoseArray & traj,
+                                                std::vector<float> & posewiseCosts,
+                                                float & terminalPoseCost) 
     {
         // Requires LOCAL FRAME
         // Should be no racing condition
 
         sensor_msgs::LaserScan scan = *scan_.get();
 
-        std::vector<float> cost_val(traj.poses.size());
-        for (int i = 0; i < cost_val.size(); i++) 
+        posewiseCosts = std::vector<float>(traj.poses.size());
+        for (int i = 0; i < posewiseCosts.size(); i++) 
         {
-            cost_val.at(i) = scorePose(traj.poses.at(i), scan);
+            posewiseCosts.at(i) = scorePose(traj.poses.at(i), scan);
         }
 
         // float total_val = std::accumulate(cost_val.begin(), cost_val.end(), float(0));
 
-        if (cost_val.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
-        {
-            float terminal_cost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
+        // if (posewiseCosts.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
+        // {
+        terminalPoseCost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
             // if (terminal_cost < 1 && total_val > -10) return std::vector<float>(traj.poses.size(), 100);
             // Should be safe
-            cost_val.at(0) -= terminal_cost;
-        }
+            // cost_val.at(0) -= terminal_cost;
+        // }
         
-        return cost_val;
+        return;
     }
 
     float TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::Pose & pose) 

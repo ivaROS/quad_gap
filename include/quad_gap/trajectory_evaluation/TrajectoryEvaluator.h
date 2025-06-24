@@ -59,7 +59,9 @@ namespace quad_gap {
             // Full Scoring
             std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
             geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
-            std::vector<float> scoreTrajectory(const geometry_msgs::PoseArray & traj);
+            void scoreTrajectory(const geometry_msgs::PoseArray & traj,
+                                    std::vector<float> & posewiseCosts,
+                                    float & terminalPoseCost);
         
         private:
             

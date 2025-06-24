@@ -176,9 +176,11 @@ namespace quad_gap
             * 
             *
             */
-            std::vector<std::vector<float>> initialTrajGen(const std::vector<Gap *> & vec, 
-                                                            std::vector<geometry_msgs::PoseArray>& res, 
-                                                            std::vector<geometry_msgs::PoseArray>& virtual_decayed);
+            void generateGapTrajectories(const std::vector<Gap *> & vec, 
+                                            std::vector<geometry_msgs::PoseArray>& res, 
+                                            std::vector<geometry_msgs::PoseArray>& virtual_decayed,
+                                            std::vector<std::vector<float>> & pathPoseCosts,
+                                            std::vector<float> & pathTerminalPoseCosts);
 
             // /**
             // * Callback function to config object
@@ -194,7 +196,8 @@ namespace quad_gap
             * @return the best trajectory
             */
             geometry_msgs::PoseArray pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
-                                                const std::vector<std::vector<float>> & score, 
+                                                const std::vector<std::vector<float>> & pathPoseCosts, 
+                                                const std::vector<float> & pathTerminalPoseCosts, 
                                                 const std::vector<geometry_msgs::PoseArray> & virtual_path, 
                                                 geometry_msgs::PoseArray& chosen_virtual_path);
 

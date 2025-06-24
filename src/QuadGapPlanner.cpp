@@ -91,7 +91,7 @@ namespace quad_gap
 
         geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(final_traj);
 
-        // cmd_vel.twist = cmdVelNoStamp;
+        cmd_vel.twist = cmdVelNoStamp;
 
         bool acceptedCmdVel = planner.recordAndCheckVel(cmdVelNoStamp);  
         
