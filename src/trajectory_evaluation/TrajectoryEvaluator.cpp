@@ -74,6 +74,8 @@ namespace quad_gap
                                                 std::vector<float> & posewiseCosts,
                                                 float & terminalPoseCost) 
     {
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[scoreTrajectory()]");
+
         // Requires LOCAL FRAME
         // Should be no racing condition
 
@@ -82,18 +84,24 @@ namespace quad_gap
         posewiseCosts = std::vector<float>(traj.poses.size());
         for (int i = 0; i < posewiseCosts.size(); i++) 
         {
+            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose " << i);
             posewiseCosts.at(i) = scorePose(traj.poses.at(i), scan);
         }
 
         // float total_val = std::accumulate(cost_val.begin(), cost_val.end(), float(0));
 
-        // if (posewiseCosts.size() > 0) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
-        // {
-        terminalPoseCost = cfg_->traj.terminal_weight * terminalGoalCost(*std::prev(traj.poses.end()));
+        if (!traj.poses.empty()) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
+        {
+            terminalPoseCost = cfg_->traj.terminal_weight * terminalGoalCost(traj.poses.back());
             // if (terminal_cost < 1 && total_val > -10) return std::vector<float>(traj.poses.size(), 100);
             // Should be safe
             // cost_val.at(0) -= terminal_cost;
-        // }
+        } else
+        {
+            terminalPoseCost = -std::numeric_limits<float>::infinity();
+            // ROS_WARN_STREAM("Empty trajectory, terminal cost set to -inf");
+            // return std::vector<float>(traj.poses.size(), -std::numeric_limits<float>::infinity());
+        }
         
         return;
     }
@@ -118,6 +126,8 @@ namespace quad_gap
     {
         // boost::mutex::scoped_lock lock(scanMutex_);
 
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[scorePose()]");
+
         // float pose_ori = std::atan2(pose.position.y + 1e-3, pose.position.x + 1e-3);
         // int center_idx = (int) std::round((pose_ori + M_PI) / msg.get()->angle_increment);
         
@@ -135,16 +145,21 @@ namespace quad_gap
         // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
         float yaw = quaternionToYaw(pose.orientation);
         Eigen::Vector2f orient_vec(cos(yaw), sin(yaw));
-        Eigen::Vector2f pose_vec(pose.position.x, pose.position.y); // TODO: pose should be in robot frame
+        Eigen::Vector2f poseVec(pose.position.x, pose.position.y); // TODO: pose should be in robot frame
 
-        float pose_angle = atan2(pose_vec[1], pose_vec[0]);
-        int pose_idx = theta2idx(pose_angle);
-        // int pose_idx = int(round((pose_angle - scan.angle_min) / scan.angle_increment));
-        // pose_idx = pose_idx >= 0 ? pose_idx : 0;
-        // pose_idx = pose_idx < scan.ranges.size() ? pose_idx : (scan.ranges.size() - 1);
-        
-        float pose_ego_dist = scan.ranges[pose_idx];
-        if (pose_vec.norm() >= pose_ego_dist)
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose: " << poseVec.transpose() << 
+                                                     ", Orientation: " << orient_vec.transpose());
+
+        float poseTheta = atan2(poseVec[1], poseVec[0]);
+        int poseIdx = theta2idx(poseTheta);
+
+        ROS_INFO_STREAM("Pose Index: " << poseIdx << ", Pose Theta: " << poseTheta);
+
+        float poseIdxRange = scan.ranges.at(poseIdx);
+
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Idx Range: " << poseIdxRange);
+
+        if (poseVec.norm() >= poseIdxRange)
             return -std::numeric_limits<float>::infinity();
 
         float range_i = 0.0;
@@ -169,7 +184,7 @@ namespace quad_gap
             // Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
             // pt_vec = range_i * pt_vec;
             
-            rel_pt_vec = scanPt - pose_vec;
+            rel_pt_vec = scanPt - poseVec;
             // nearest_dist = 
             dist.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));
@@ -189,6 +204,9 @@ namespace quad_gap
         }
 
         auto iter = std::min_element(dist.begin(), dist.end());
+
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << *iter);
+
         // float rmax_offset_val = rmax_offset[iter - dist.begin()];
         float rmax_offset_val = cfg_->traj.rmax - robot_geo_proc_->getRobotMaxRadius() * cfg_->traj.inf_ratio;
         return chapterScore(*iter, rmax_offset_val);

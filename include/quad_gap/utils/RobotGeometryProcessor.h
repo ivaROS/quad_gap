@@ -301,18 +301,20 @@ namespace quad_gap
                 return erl;
             }
 
-            float getNearestDistance(const Eigen::Vector2f & orientation_vec, const Eigen::Vector2f & pt)
+            float getNearestDistance(const Eigen::Vector2f & orientation_vec, const Eigen::Vector2f & poseToScan)
             {
-                // The pt is the relative vector from robot origin.
+                // poseToScan: relative vector from robot origin to scan point.
 
                 // distsForNearestDist_.clear();
 
                 float o_ang = atan2(orientation_vec[1], orientation_vec[0]);
                 float rot_ang = 0.0 - o_ang;
+
                 Eigen::Matrix2f rot;
                 rot << cos(rot_ang), -sin(rot_ang), 
                         sin(rot_ang), cos(rot_ang);
-                Eigen::Vector2f pt_new_vec = rot * pt;
+                
+                Eigen::Vector2f pt_new_vec = rot * poseToScan;
 
                 if (std::abs(pt_new_vec[0]) < robot_.length / 2 || 
                     std::abs(pt_new_vec[1]) < robot_.width / 2)

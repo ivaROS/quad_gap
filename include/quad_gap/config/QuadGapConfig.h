@@ -26,9 +26,9 @@ namespace quad_gap
 
             struct Robot 
             {
-                float r_inscr = 0.18;
-                float length = 0.7; /**< Robot length */
-                float width = 0.3; /**< Robot width */
+                float r_inscr = 0.225;
+                float length = 0.45; /**< Robot length */
+                float width = 0.45; /**< Robot width */
                 float avg_lin_speed = 0.2; /**< Average linear speed */
                 float avg_rot_speed = 0.5; /**< Average rotational speed */
                 int shape_id = 1; /**< Robot shape ID, 1 for rectangle,
