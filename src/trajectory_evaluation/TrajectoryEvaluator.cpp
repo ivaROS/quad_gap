@@ -63,36 +63,40 @@ namespace quad_gap
     }
 
     // Again, in rbt frame
-    std::vector<float> TrajectoryEvaluator::scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj) 
-    {
-        // This will be in robot frame
+    // std::vector<float> TrajectoryEvaluator::scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj) 
+    // {
+    //     // This will be in robot frame
         
-        return std::vector<float>(sample_traj.size());
-    }
+    //     return std::vector<float>(sample_traj.size());
+    // }
 
-    void TrajectoryEvaluator::scoreTrajectory(const geometry_msgs::PoseArray & traj,
-                                                std::vector<float> & posewiseCosts,
-                                                float & terminalPoseCost) 
+    // std::vector<float> & posewiseCosts,
+    // float & terminalPoseCost    
+    void TrajectoryEvaluator::scoreTrajectory(Trajectory & traj) 
     {
         ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[scoreTrajectory()]");
 
         // Requires LOCAL FRAME
         // Should be no racing condition
 
+        geometry_msgs::PoseArray pathRbtFrame = traj.getPathRbtFrame();
+
         sensor_msgs::LaserScan scan = *scan_.get();
 
-        posewiseCosts = std::vector<float>(traj.poses.size());
+        std::vector<float> posewiseCosts(pathRbtFrame.poses.size());
         for (int i = 0; i < posewiseCosts.size(); i++) 
         {
             ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose " << i);
-            posewiseCosts.at(i) = scorePose(traj.poses.at(i), scan);
+            posewiseCosts.at(i) = scorePose(pathRbtFrame.poses.at(i), scan);
         }
+        traj.setPathPosewiseCosts(posewiseCosts);
 
         // float total_val = std::accumulate(cost_val.begin(), cost_val.end(), float(0));
 
-        if (!traj.poses.empty()) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
+        float terminalPoseCost = 0.0f;
+        if (!pathRbtFrame.poses.empty()) // && ! cost_val.at(0) == -std::numeric_limits<float>::infinity())
         {
-            terminalPoseCost = cfg_->traj.terminal_weight * terminalGoalCost(traj.poses.back());
+            terminalPoseCost = cfg_->traj.terminal_weight * terminalGoalCost(pathRbtFrame.poses.back());
             // if (terminal_cost < 1 && total_val > -10) return std::vector<float>(traj.poses.size(), 100);
             // Should be safe
             // cost_val.at(0) -= terminal_cost;
@@ -102,6 +106,7 @@ namespace quad_gap
             // ROS_WARN_STREAM("Empty trajectory, terminal cost set to -inf");
             // return std::vector<float>(traj.poses.size(), -std::numeric_limits<float>::infinity());
         }
+        traj.setTerminalPoseCost(terminalPoseCost);
         
         return;
     }

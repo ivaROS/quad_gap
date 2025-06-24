@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/utils/Gap.h>
+#include <quad_gap/utils/Trajectory.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>

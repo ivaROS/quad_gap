@@ -10,6 +10,7 @@
 #include <quad_gap/trajectory_generation/TrajectorySynthesisMethods.h>
 #include <ros/ros.h>
 #include <math.h>
+#include <quad_gap/utils/Trajectory.h>
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
@@ -57,21 +58,24 @@ namespace quad_gap
 
             void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
 
-            geometry_msgs::PoseArray generateTrajectory(Gap * gap, const geometry_msgs::PoseStamped & curr_pose);
+            Trajectory generateTrajectory(Gap * gap, const geometry_msgs::PoseStamped & curr_pose);
 
             bool findBezierControlPts(Gap * selectedGap, 
                                         Bezier::Bezier<2>&, 
                                         const geometry_msgs::TwistStamped & rbtVelRbtFrame);
 
-            geometry_msgs::PoseArray generateBezierTrajectory(Gap * selectedGap, 
-                                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame);
+            Trajectory generateBezierTrajectory(Gap * selectedGap, 
+                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame);
             
             // std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
 
-            geometry_msgs::PoseArray transformPath(const geometry_msgs::PoseArray & posearr, 
-                                                                const geometry_msgs::TransformStamped & trans);
+            Trajectory processTrajectory(const Trajectory & traj);
 
-            geometry_msgs::PoseArray processTrajectory(const geometry_msgs::PoseArray & pose_arr);
+            void getOrientDecayedPath(Trajectory & traj);
+
+            geometry_msgs::PoseArray transformPath(const geometry_msgs::PoseArray & poseArrayIn, 
+                                                    const geometry_msgs::TransformStamped & trans);
+
 
         private: 
             bool findBezierControlPtsNew(const Eigen::Vector2f pLeftSafe,

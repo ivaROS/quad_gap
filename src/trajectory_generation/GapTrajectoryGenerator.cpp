@@ -2,15 +2,15 @@
 
 namespace quad_gap
 {
-    geometry_msgs::PoseArray GapTrajGenerator::generateTrajectory(Gap * gap, 
-                                                                    const geometry_msgs::PoseStamped & curr_pose) 
+    Trajectory GapTrajGenerator::generateTrajectory(Gap * gap, 
+                                                    const geometry_msgs::PoseStamped & curr_pose) 
     {
         // return geometry_msgs::PoseArray();
-        geometry_msgs::PoseArray posearr;
-        posearr.header.stamp = ros::Time::now();
+        geometry_msgs::PoseArray pathRbtFrame;
+        pathRbtFrame.header.stamp = ros::Time::now();
         
-        write_trajectory corder(posearr, cfg_->robot_frame_id);
-        posearr.header.frame_id = cfg_->robot_frame_id;
+        write_trajectory corder(pathRbtFrame, cfg_->robot_frame_id);
+        pathRbtFrame.header.frame_id = cfg_->robot_frame_id;
 
         // if (gap->goal.discard) 
         // {
@@ -31,7 +31,8 @@ namespace quad_gap
                                                     cfg_->traj.integrate_maxt,
                                                     cfg_->traj.integrate_stept,
                                                     corder);
-            return posearr;
+            Trajectory traj(pathRbtFrame);
+            return traj;
         }
 
         // float xLeft, xRight, yLeft, yRight;
@@ -84,14 +85,15 @@ namespace quad_gap
 
         if (gap->isExtended()) 
         {
-            for (geometry_msgs::Pose & p : posearr.poses) 
+            for (geometry_msgs::Pose & p : pathRbtFrame.poses) 
             {
                 p.position.x += qB(0);
                 p.position.y += qB(1);
             }
         }
 
-        return posearr;
+        Trajectory traj(pathRbtFrame);
+        return traj;
     }
 
     bool GapTrajGenerator::findBezierControlPts(Gap * gap, 
@@ -753,14 +755,14 @@ namespace quad_gap
         }
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
-                                                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame)
+    Trajectory GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
+                                                            const geometry_msgs::TwistStamped & rbtVelRbtFrame)
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[generateBezierTrajectory()]");
-        geometry_msgs::PoseArray posearr;
-        posearr.header.stamp = ros::Time::now();
+        geometry_msgs::PoseArray pathRbtFrame;
+        pathRbtFrame.header.stamp = ros::Time::now();
         
-        posearr.header.frame_id = cfg_->robot_frame_id;
+        pathRbtFrame.header.frame_id = cfg_->robot_frame_id;
 
         // if (gap->goal.discard) 
         // {
@@ -779,7 +781,8 @@ namespace quad_gap
         if (!success)
         {
             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "No path is generated.");
-            return posearr;
+            Trajectory traj(pathRbtFrame);
+            return traj;
         }
         else
         {
@@ -790,13 +793,14 @@ namespace quad_gap
                     geometry_msgs::Pose pose;
                     pose.position.x = quadraBezier.valueAt(t, 0);
                     pose.position.y = quadraBezier.valueAt(t, 1);
-                    posearr.poses.push_back(pose);
+                    pathRbtFrame.poses.push_back(pose);
                 }
-                return posearr;
+                Trajectory traj(pathRbtFrame);
+                return traj;            
             }
             else
             {
-                // float des_dist = robot_geo_proc_.getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
+                // float des_dist = robot_geo_proc_->getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
                 float entire_dist = getBezierDist(quadraBezier, 0, 1, 30);
                 // int num_sampled_pts = int(round(entire_dist / des_dist));
                 // num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
@@ -817,7 +821,7 @@ namespace quad_gap
                         geometry_msgs::Pose pose;
                         pose.position.x = quadraBezier.valueAt(cur_t, 0);
                         pose.position.y = quadraBezier.valueAt(cur_t, 1);
-                        posearr.poses.push_back(pose);
+                        pathRbtFrame.poses.push_back(pose);
                         t_min = cur_t;
                     }
                     else if(cur_dist > des_dist)
@@ -849,21 +853,174 @@ namespace quad_gap
                         geometry_msgs::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
-                        posearr.poses.push_back(pose);
+                        pathRbtFrame.poses.push_back(pose);
                         t_min = t_interp;
                     }
                 }
 
-                if (posearr.poses.size() < num_sampled_pts)
+                if (pathRbtFrame.poses.size() < num_sampled_pts)
                 {
                     geometry_msgs::Pose pose;
                     pose.position.x = quadraBezier.valueAt(1, 0);
                     pose.position.y = quadraBezier.valueAt(1, 1);
-                    posearr.poses.push_back(pose);
+                    pathRbtFrame.poses.push_back(pose);
                 }
-                return posearr;
+
+                Trajectory traj(pathRbtFrame);
+                return traj;
             }
         }
+    }
+
+    Trajectory GapTrajGenerator::processTrajectory(const Trajectory & traj)
+    {
+        // geometry_msgs::PoseArray new_pose_arr;
+
+        geometry_msgs::PoseArray rawPath = traj.getPathRbtFrame();
+        
+        geometry_msgs::PoseArray processedPath;
+        processedPath.header = rawPath.header;
+
+        geometry_msgs::Pose old_pose;
+        old_pose.position.x = 0;
+        old_pose.position.y = 0;
+        old_pose.position.z = 0;
+        old_pose.orientation.x = 0;
+        old_pose.orientation.y = 0;
+        old_pose.orientation.z = 0;
+        old_pose.orientation.w = 1;
+        float dx, dy, result;
+
+        float delta = 0.05;
+        geometry_msgs::Pose back_pose;
+        // std::vector<geometry_msgs::Pose> shortened;
+        processedPath.poses.push_back(old_pose);
+        for (const geometry_msgs::Pose & pose : rawPath.poses)
+        {
+            back_pose = processedPath.poses.back();
+            dx = pose.position.x - back_pose.position.x;
+            dy = pose.position.y - back_pose.position.y;
+            result = sqrt(pow(dx, 2) + pow(dy, 2));
+            
+            if (result > 0.05)
+                processedPath.poses.push_back(pose);
+        }
+
+        // new_pose_arr.header = pose_arr.header;
+        // new_pose_arr.poses = shortened;
+
+        // Fix rotation
+        Eigen::Quaternionf q;
+        geometry_msgs::Pose new_pose;
+        for (int idx = 1; idx < processedPath.poses.size(); idx++)
+        {
+            new_pose = processedPath.poses[idx];
+            old_pose = processedPath.poses[idx - 1];
+            
+            dx = new_pose.position.x - old_pose.position.x;
+            dy = new_pose.position.y - old_pose.position.y;
+            result = std::atan2(dy, dx);
+            
+            q = Eigen::AngleAxisf(0, Eigen::Vector3f::UnitX()) *
+                Eigen::AngleAxisf(0, Eigen::Vector3f::UnitY()) *
+                Eigen::AngleAxisf(result, Eigen::Vector3f::UnitZ());
+            q.normalize();
+
+            processedPath.poses[idx - 1].orientation.x = q.x();
+            processedPath.poses[idx - 1].orientation.y = q.y();
+            processedPath.poses[idx - 1].orientation.z = q.z();
+            processedPath.poses[idx - 1].orientation.w = q.w();
+        }
+        processedPath.poses.pop_back();
+
+        Trajectory processedTraj(processedPath);
+        return processedTraj;
+    }
+
+    void GapTrajGenerator::getOrientDecayedPath(Trajectory & traj)
+    {
+        geometry_msgs::PoseArray rawPath = traj.getPathRbtFrame();
+
+        // The original path should be in robot frame
+        assert(rawPath.header.frame_id == cfg_->robot_frame_id);
+
+        geometry_msgs::PoseArray orientedPath;
+
+        if (rawPath.poses.size() <= 1)
+        {
+            ROS_WARN_STREAM("[getOrientDecayedPath] Original path is too short with size [ " << rawPath.poses.size() << " ].");
+            orientedPath = rawPath;
+            traj.setOrientedPathRbtFrame(orientedPath);
+            return;
+        }
+        
+        if (robot_geo_proc_->robot_.shape == RobotShape::circle || !cfg_->planning.virtual_path_decay_enable)
+        {
+            orientedPath = rawPath;
+        } else if (robot_geo_proc_->robot_.shape == RobotShape::box)
+        {
+            orientedPath.header = rawPath.header;
+            geometry_msgs::Pose first_pose = rawPath.poses[0];
+            geometry_msgs::Quaternion init_quat;
+            init_quat.w = 1;
+            first_pose.orientation = init_quat;
+            orientedPath.poses.push_back(first_pose);
+            float length = 0;
+            for (size_t i = 1; i < rawPath.poses.size(); i++)
+            {
+                if (!cfg_->planning.robot_path_orient_linear_decay)
+                {
+                    geometry_msgs::Pose curr_pose = rawPath.poses[i];
+                    curr_pose.orientation = init_quat;
+                    orientedPath.poses.push_back(curr_pose);
+                } else
+                {
+                    geometry_msgs::Pose curr_pose = rawPath.poses[i];
+                    geometry_msgs::Pose prev_pose = rawPath.poses[i-1];
+                    float x_diff = curr_pose.position.x - prev_pose.position.x;
+                    float y_diff = curr_pose.position.y - prev_pose.position.y;
+                    float dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
+                    length += dist;
+
+                    float avg_speed = 0.2;
+                    float t = length / avg_speed;
+                    float avg_ang = cfg_->control.ang_absmax / cfg_->control.speed_factor;
+
+                    Eigen::Quaternionf q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
+                    Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
+                    float ang_diff = std::abs(euler[2]);
+                    float decayed_ang = avg_ang * t;
+                    decayed_ang = decayed_ang <= ang_diff ? decayed_ang : ang_diff;
+                    if (euler[2] <= 0)
+                        decayed_ang = -decayed_ang;
+                    
+                    float roll = 0, pitch = 0;    
+                    Eigen::Quaternionf e;
+                    e = Eigen::AngleAxisf(roll, Eigen::Vector3f::UnitX())
+                        * Eigen::AngleAxisf(pitch, Eigen::Vector3f::UnitY())
+                        * Eigen::AngleAxisf(decayed_ang, Eigen::Vector3f::UnitZ());
+                    
+                    curr_pose.orientation.w = e.w();
+                    curr_pose.orientation.x = e.x();
+                    curr_pose.orientation.y = e.y();
+                    curr_pose.orientation.z = e.z();
+
+                    orientedPath.poses.push_back(curr_pose);
+                }
+                
+            }
+        }
+        else
+        {
+            ROS_WARN("Doesn't support robot shape, use original path.");
+            orientedPath = rawPath;
+        }
+
+        traj.setOrientedPathRbtFrame(orientedPath);
+        // Trajectory orientedTraj(orientedPath);
+        // return orientedTrajgetOrientDecayedPath;
+
+        return;
     }
 
     geometry_msgs::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::PoseArray & poseArrayIn,
@@ -886,58 +1043,6 @@ namespace quad_gap
         poseArrayOut.header.frame_id = trans.header.frame_id;
         poseArrayOut.header.stamp = trans.header.stamp;
         return poseArrayOut;
-    }
-
-    geometry_msgs::PoseArray GapTrajGenerator::processTrajectory(const geometry_msgs::PoseArray & pose_arr)
-    {
-        geometry_msgs::PoseArray new_pose_arr;
-
-        Eigen::Quaternionf q;
-        geometry_msgs::Pose old_pose;
-        old_pose.position.x = 0;
-        old_pose.position.y = 0;
-        old_pose.position.z = 0;
-        old_pose.orientation.x = 0;
-        old_pose.orientation.y = 0;
-        old_pose.orientation.z = 0;
-        old_pose.orientation.w = 1;
-        geometry_msgs::Pose new_pose;
-        float dx, dy, result;
-
-        std::vector<geometry_msgs::Pose> shortened;
-        shortened.push_back(old_pose);
-        for (const geometry_msgs::Pose & pose : pose_arr.poses)
-        {
-            dx = pose.position.x - shortened.back().position.x;
-            dy = pose.position.y - shortened.back().position.y;
-            result = sqrt(pow(dx, 2) + pow(dy, 2));
-            if (result > 0.05)
-                shortened.push_back(pose);
-        }
-
-        new_pose_arr.header = pose_arr.header;
-        new_pose_arr.poses = shortened;
-
-        // Fix rotation
-        for (int idx = 1; idx < new_pose_arr.poses.size(); idx++)
-        {
-            new_pose = new_pose_arr.poses[idx];
-            old_pose = new_pose_arr.poses[idx - 1];
-            dx = new_pose.position.x - old_pose.position.x;
-            dy = new_pose.position.y - old_pose.position.y;
-            result = std::atan2(dy, dx);
-            q = Eigen::AngleAxisf(0, Eigen::Vector3f::UnitX()) *
-                Eigen::AngleAxisf(0, Eigen::Vector3f::UnitY()) *
-                Eigen::AngleAxisf(result, Eigen::Vector3f::UnitZ());
-            q.normalize();
-            new_pose_arr.poses[idx - 1].orientation.x = q.x();
-            new_pose_arr.poses[idx - 1].orientation.y = q.y();
-            new_pose_arr.poses[idx - 1].orientation.z = q.z();
-            new_pose_arr.poses[idx - 1].orientation.w = q.w();
-        }
-        new_pose_arr.poses.pop_back();
-
-        return new_pose_arr;
     }
 
     Eigen::Vector2f GapTrajGenerator::getRotatedVec(const Eigen::Vector2f & orig_vec, const float & chord_length, const bool & ccw)

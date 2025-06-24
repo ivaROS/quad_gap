@@ -19,7 +19,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
     }
 
 
-    void TrajectoryVisualizer::drawCurrentTrajectory(const geometry_msgs::PoseArray & path)
+    void TrajectoryVisualizer::drawCurrentTrajectory(const Trajectory & traj)
     {
         // First, clearing topic.
         clearMarkerArrayPublisher(currentTrajectoryPublisher_);
@@ -27,14 +27,14 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         visualization_msgs::MarkerArray trajMarkerArray;
         visualization_msgs::Marker trajMarker;
 
-        if (path.header.frame_id.empty())
+        if (traj.getPathRbtFrame().header.frame_id.empty())
         {
             ROS_WARN_STREAM_NAMED("Visualizer", "[drawCurrentTrajectory] Trajectory frame_id is empty");
             return;
         }
 
-        trajMarker.header.frame_id = path.header.frame_id;
-        trajMarker.header.stamp = path.header.stamp;
+        trajMarker.header.frame_id = traj.getPathRbtFrame().header.frame_id;
+        trajMarker.header.stamp = traj.getPathRbtFrame().header.stamp;
         trajMarker.ns = "currentTraj";
         trajMarker.type = visualization_msgs::Marker::ARROW;
         trajMarker.action = visualization_msgs::Marker::ADD;
@@ -48,7 +48,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
 
         trajMarker.lifetime = ros::Duration(0);     
         
-        // geometry_msgs::PoseArray path = traj.getPathRbtFrame();
+        geometry_msgs::PoseArray path = traj.getPathRbtFrame();
         for (const geometry_msgs::Pose & pose : path.poses) 
         {
             trajMarker.id = int (trajMarkerArray.markers.size());
@@ -174,12 +174,11 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         globalPlanPublisher.publish(globalPlanMarkerArray);
     }
 
-    void TrajectoryVisualizer::drawGapTrajectories(const std::vector<geometry_msgs::PoseArray> & pose_arrays) 
+    void TrajectoryVisualizer::drawGapTrajectories(const std::vector<Trajectory> & trajs) 
     {
         // First, clearing topic.
         clearMarkerArrayPublisher(gapTrajectoriesPublisher);
-
-        if (pose_arrays.size() == 0)
+        if (trajs.size() == 0)
         {
             // ROS_WARN_STREAM_NAMED("Visualizer", "no trajectories to visualize");
             return;
@@ -188,17 +187,17 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         visualization_msgs::MarkerArray gapTrajMarkerArray;
         visualization_msgs::Marker gapTrajMarker;
 
-        geometry_msgs::PoseArray pose_array = pose_arrays.at(0);
+        Trajectory traj = trajs.at(0);
 
-        if (pose_array.header.frame_id.empty())
+        if (traj.getPathRbtFrame().header.frame_id.empty())
         {
             ROS_WARN_STREAM_NAMED("Visualizer", "[drawGapTrajectories] Trajectory frame_id is empty");
             return;
         }
 
         // The above makes this safe
-        gapTrajMarker.header.frame_id = pose_array.header.frame_id;
-        gapTrajMarker.header.stamp = pose_array.header.stamp;
+        gapTrajMarker.header.frame_id = traj.getPathRbtFrame().header.frame_id;
+        gapTrajMarker.header.stamp = traj.getPathRbtFrame().header.stamp;
         gapTrajMarker.ns = "allTraj";
         gapTrajMarker.type = visualization_msgs::Marker::ARROW;
         gapTrajMarker.action = visualization_msgs::Marker::ADD;
@@ -210,10 +209,10 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         gapTrajMarker.color.g = 1.0;
         gapTrajMarker.lifetime = ros::Duration(0);
 
-        for (const geometry_msgs::PoseArray & pose_array : pose_arrays) 
+        for (const Trajectory & traj : trajs) 
         {
-            // geometry_msgs::PoseArray path = traj.getPathRbtFrame();
-            for (const geometry_msgs::Pose & pose : pose_array.poses) 
+            geometry_msgs::PoseArray path = traj.getPathRbtFrame();
+            for (const geometry_msgs::Pose & pose : path.poses) 
             {
                 gapTrajMarker.id = int (gapTrajMarkerArray.markers.size());
                 gapTrajMarker.pose = pose;

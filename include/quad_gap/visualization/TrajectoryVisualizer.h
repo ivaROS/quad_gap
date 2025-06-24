@@ -12,7 +12,7 @@ namespace quad_gap
             void drawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlan);
 
             // void pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr);
-            void drawCurrentTrajectory(const geometry_msgs::PoseArray & traj);
+            void drawCurrentTrajectory(const Trajectory & traj);
 
             /**
             * \brief Visualize counter for planning loop
@@ -27,7 +27,7 @@ namespace quad_gap
             */
             void drawTrajectorySwitchCount(const int & trajSwitchIndex, const geometry_msgs::PoseArray & path);
 
-            void drawGapTrajectories(const std::vector<geometry_msgs::PoseArray> & pose_arrays);
+            void drawGapTrajectories(const std::vector<Trajectory> & trajs);
 
             /**
             * \brief Visualize snippet of global plan that is within current robot view

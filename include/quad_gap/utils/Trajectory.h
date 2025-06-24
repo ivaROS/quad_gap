@@ -2,8 +2,9 @@
 
 #include <geometry_msgs/PoseArray.h>
 #include <vector>
+#include <numeric>
 
-namespace dynamic_gap
+namespace quad_gap
 {
     /**
     * \brief Wrapper class for candidate local trajectories that planner produces
@@ -17,26 +18,25 @@ namespace dynamic_gap
                 pathOdomFrame_ = geometry_msgs::PoseArray();
             }
 
-            Trajectory(const geometry_msgs::PoseArray & pathRbtFrame, 
-                       const std::vector<float> & pathTiming)
+            Trajectory(const geometry_msgs::PoseArray & pathRbtFrame)
             {
                 pathRbtFrame_ = pathRbtFrame;
-                pathTiming_ = pathTiming;
+                // pathTiming_ = pathTiming;
 
                 if (pathRbtFrame.poses.empty())
                 {
                     ROS_WARN_STREAM("Trajectory path in robot frame is empty");
                 }
 
-                if (pathTiming.empty())
-                {
-                    ROS_WARN_STREAM("Trajectory path timing is empty");
-                }
+                // if (pathTiming.empty())
+                // {
+                //     ROS_WARN_STREAM("Trajectory path timing is empty");
+                // }
 
-                if (pathRbtFrame.poses.size() != pathTiming.size())
-                {
-                    ROS_WARN_STREAM("Trajectory path and timing size mismatch");
-                }
+                // if (pathRbtFrame.poses.size() != pathTiming.size())
+                // {
+                //     ROS_WARN_STREAM("Trajectory path and timing size mismatch");
+                // }
 
                 if (pathRbtFrame_.header.frame_id.empty())
                 {
@@ -56,6 +56,10 @@ namespace dynamic_gap
             */
             geometry_msgs::PoseArray getPathRbtFrame() const { return pathRbtFrame_; }
 
+            void setOrientedPathRbtFrame(const geometry_msgs::PoseArray & orientedPathRbtFrame) { orientedPathRbtFrame_ = orientedPathRbtFrame; }
+
+            geometry_msgs::PoseArray getOrientedPathRbtFrame() const { return orientedPathRbtFrame_; }
+
             /**
             * \brief Setter for trajectory path in odom frame
             * \param pathOdomFrame trajectory path in odom frame
@@ -67,6 +71,10 @@ namespace dynamic_gap
             * \return trajectory path in odom frame
             */            
             geometry_msgs::PoseArray getPathOdomFrame() const { return pathOdomFrame_; }
+
+            void setOrientedPathOdomFrame(const geometry_msgs::PoseArray & orientedPathOdomFrame) { orientedPathOdomFrame_ = orientedPathOdomFrame; }
+
+            geometry_msgs::PoseArray getOrientedPathOdomFrame() const { return orientedPathOdomFrame_; }
 
             /**
             * \brief Setter for trajectory path timing
@@ -80,11 +88,21 @@ namespace dynamic_gap
             */
             std::vector<float> getPathPosewiseCosts() const { return posewiseCosts_; }
 
+            float getAveragePosewiseCost() const
+            {
+                if (posewiseCosts_.empty())
+                {
+                    return 0.0f;
+                }
+                float sum = std::accumulate(posewiseCosts_.begin(), posewiseCosts_.end(), 0.0f);
+                return sum / posewiseCosts_.size();
+            }
+
             /**
             * \brief Setter for trajectory terminal pose cost
             * \param terminalPoseCost trajectory terminal pose cost
             */
-            void setTerminalPoseCost(float terminalPoseCost) { terminalPoseCost_ = terminalPoseCost; }
+            void setTerminalPoseCost(const float & terminalPoseCost) { terminalPoseCost_ = terminalPoseCost; }
 
             /**
             * \brief Getter for trajectory terminal pose cost
@@ -101,6 +119,7 @@ namespace dynamic_gap
             geometry_msgs::PoseArray pathRbtFrame_; /**< trajectory path in robot frame */
             geometry_msgs::PoseArray pathOdomFrame_; /**< trajectory path in odom frame */
             geometry_msgs::PoseArray orientedPathRbtFrame_; /**< trajectory path in robot frame with orientation decay */
+            geometry_msgs::PoseArray orientedPathOdomFrame_; /**< trajectory path in odom frame with orientation decay */
             std::vector<float> posewiseCosts_; /**< trajectory path costs */
             float terminalPoseCost_; /**< trajectory terminal pose cost */
     };

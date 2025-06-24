@@ -4,6 +4,7 @@
 #include <ros/package.h>
 
 #include <quad_gap/utils/Gap.h>
+#include <quad_gap/utils/Trajectory.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
@@ -156,7 +157,7 @@ namespace quad_gap
             * @param pose_arr_odom
             * @return cmd_vel by assigning to pass by reference
             */
-            geometry_msgs::Twist ctrlGeneration(const geometry_msgs::PoseArray & traj);
+            geometry_msgs::Twist ctrlGeneration(const Trajectory & traj);
             
             /**
             * Take current observed gaps and perform gap conversion
@@ -173,14 +174,13 @@ namespace quad_gap
             void gapGoalPlace(const std::vector<Gap *> & planningGaps);
 
             /**
-            * 
-            *
+            *    std::vector<geometry_msgs::PoseArray>& res, 
+            *    std::vector<geometry_msgs::PoseArray>& virtual_decayed,
+            *    std::vector<std::vector<float>> & pathPoseCosts,
+            *    std::vector<float> & pathTerminalPoseCosts 
             */
             void generateGapTrajectories(const std::vector<Gap *> & vec, 
-                                            std::vector<geometry_msgs::PoseArray>& res, 
-                                            std::vector<geometry_msgs::PoseArray>& virtual_decayed,
-                                            std::vector<std::vector<float>> & pathPoseCosts,
-                                            std::vector<float> & pathTerminalPoseCosts);
+                                            std::vector<Trajectory> & gapTrajs);
 
             // /**
             // * Callback function to config object
@@ -195,24 +195,24 @@ namespace quad_gap
             * @param Vector of corresponding trajectory scores
             * @return the best trajectory
             */
-            void pickTraj(const std::vector<geometry_msgs::PoseArray> & paths, 
-                            const std::vector<geometry_msgs::PoseArray> & virtualGapPaths, 
-                            const std::vector<std::vector<float>> & pathPoseCosts, 
-                            const std::vector<float> & pathTerminalPoseCosts, 
-                            geometry_msgs::PoseArray& chosen_path,
-                            geometry_msgs::PoseArray& chosen_virtual_path);
+            // const std::vector<geometry_msgs::PoseArray> & paths, 
+            // const std::vector<geometry_msgs::PoseArray> & virtualGapPaths, 
+            // const std::vector<std::vector<float>> & pathPoseCosts, 
+            // const std::vector<float> & pathTerminalPoseCosts, 
+            // geometry_msgs::PoseArray& chosen_path,
+            // geometry_msgs::PoseArray& chosen_virtual_path            
+            int pickTraj(const std::vector<Trajectory> & gapTrajs);
 
             /**
             * Compare to the old trajectory and pick the best one
             * @param incoming trajectory
             * @return the best trajectory  
             */
-            geometry_msgs::PoseArray compareToCurrentTraj(const geometry_msgs::PoseArray & incoming, 
-                                                        geometry_msgs::PoseArray& virtual_curr_traj);
+            Trajectory compareToCurrentTraj(Trajectory & incomingTraj);
 
-            geometry_msgs::PoseArray getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path);
+            // geometry_msgs::PoseArray getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path);
 
-            CollisionResults checkCollision(const geometry_msgs::PoseArray & path);
+            CollisionResults checkCollision(const Trajectory & traj);
 
             /**
             * \brief Function for getting index of closest pose in trajectory
@@ -224,15 +224,15 @@ namespace quad_gap
             /**
             * Setter and Getter of Current Trajectory, this is performed in the compareToCurrentTraj function
             */
-            void setCurrentTraj(const geometry_msgs::PoseArray & curr_traj);   
+            void setCurrentTraj(const Trajectory & currTraj);   
 
-            geometry_msgs::PoseArray getCurrentTraj();
+            Trajectory getCurrentTraj();
 
             /**
             * Conglomeration of getting a plan Trajectory
             * @return the trajectory
             */
-            geometry_msgs::PoseArray runPlanningLoop();    
+            Trajectory runPlanningLoop();    
 
             /**
             * Reset Planner, clears current observedSet
@@ -381,7 +381,7 @@ namespace quad_gap
 
             boost::mutex gapMutex_;
 
-            geometry_msgs::PoseArray curr_executing_traj;
+            Trajectory currTraj_;
 
             boost::circular_buffer<float> cmdVelBuffer;
 

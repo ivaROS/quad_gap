@@ -81,7 +81,7 @@ namespace quad_gap
 
         planner.setReachedGlobalGoal(false);
 
-        geometry_msgs::PoseArray final_traj = planner.runPlanningLoop();
+        Trajectory finalTraj = planner.runPlanningLoop();
 
         if (planner.isGoalReached())
         {
@@ -89,7 +89,7 @@ namespace quad_gap
             return mbf_msgs::ExePathResult::SUCCESS;
         }        
 
-        geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(final_traj);
+        geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(finalTraj);
 
         cmd_vel.twist = cmdVelNoStamp;
 

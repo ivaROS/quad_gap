@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/utils/Gap.h>
+#include <quad_gap/utils/Trajectory.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
@@ -57,11 +58,12 @@ namespace quad_gap {
             Gap * returnAndScoreGaps();
             
             // Full Scoring
-            std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
+            // std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
             geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
-            void scoreTrajectory(const geometry_msgs::PoseArray & traj,
-                                    std::vector<float> & posewiseCosts,
-                                    float & terminalPoseCost);
+            
+            // std::vector<float> & posewiseCosts,
+            // float & terminalPoseCost            
+            void scoreTrajectory(Trajectory & traj);
         
         private:
             
