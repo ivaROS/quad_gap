@@ -7,8 +7,11 @@ Panels:
         - /TrackedPersons1/History as line1
         - /Dynamic Gap1
         - /Dynamic Gap1/Scans1
+        - /Dynamic Gap1/Gaps1
         - /Dynamic Gap1/Gaps1/Marker1
         - /Dynamic Gap1/Gaps1/Marker2
+        - /Dynamic Gap1/Gaps1/Marker3
+        - /Dynamic Gap1/Gaps1/Marker3/Status1
         - /Dynamic Gap1/Gaps1/MarkerArray1
         - /Dynamic Gap1/Gaps1/Marker4
         - /Dynamic Gap1/Gaps1/Marker6
@@ -288,13 +291,13 @@ Visualization Manager:
         - Class: rviz/Group
           Displays:
             - Class: rviz/Marker
-              Enabled: true
+              Enabled: false
               Marker Topic: /rto/raw_gaps
               Name: Marker
               Namespaces:
-                raw: true
+                {}
               Queue Size: 100
-              Value: true
+              Value: false
             - Class: rviz/Marker
               Enabled: true
               Marker Topic: /rto/simp_gaps
@@ -308,7 +311,7 @@ Visualization Manager:
               Marker Topic: /rto/manip_gaps
               Name: Marker
               Namespaces:
-                manip_gaps: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -332,7 +335,7 @@ Visualization Manager:
               Marker Topic: /rto/gap_goals
               Name: Marker
               Namespaces:
-                gap_goal: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/Marker
@@ -352,7 +355,7 @@ Visualization Manager:
               Marker Topic: /rto/curr_exec_dg_traj
               Name: MarkerArray
               Namespaces:
-                {}
+                currentTraj: true
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -368,7 +371,7 @@ Visualization Manager:
               Marker Topic: /rto/candidate_trajectories
               Name: MarkerArray
               Namespaces:
-                {}
+                allTraj: true
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -388,7 +391,7 @@ Visualization Manager:
               Marker Topic: /rto/po_dir
               Name: Marker
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
           Enabled: true
@@ -466,10 +469,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 77.48137664794922
+      Scale: 111.75669860839844
       Target Frame: rto/base_link
-      X: 4.438178539276123
-      Y: 0.5163496136665344
+      X: 0.04450974613428116
+      Y: 1.215827465057373
     Saved: ~
 Window Geometry:
   Displays:

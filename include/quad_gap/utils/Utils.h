@@ -310,7 +310,8 @@ namespace quad_gap
     //////////////////////////////
 
     /**
-    * \brief Calculate signed angle from left gap point to right gap point (from -pi to pi)
+    * \brief Calculate signed angle from left gap point to right gap point (from -pi to pi). 
+    *        Positive angle is counter-clockwise, negative angle is clockwise.
     * \param leftVect left gap point vector
     * \param rightVect right gap point vector
     * \return signed angle from left gap point to right gap point

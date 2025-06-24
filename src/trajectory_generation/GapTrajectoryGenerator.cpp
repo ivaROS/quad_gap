@@ -111,22 +111,22 @@ namespace quad_gap
         Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
         Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
 
-        float xLeft, xRight, yLeft, yRight;
-        xLeft = pLeft[0];
-        yLeft = pLeft[1]; 
-        xRight = pRight[0];
-        yRight = pRight[1];
+        // float xLeft, xRight, yLeft, yRight;
+        // xLeft = pLeft[0];
+        // yLeft = pLeft[1]; 
+        // xRight = pRight[0];
+        // yRight = pRight[1];
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pLeft: (" << pLeft.transpose() << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pRight: (" << pRight.transpose() << ")");        
+        // ROS_INFO_STREAM_NAMED("GapManipulator", "        pLeft: (" << pLeft.transpose() << ")");
+        // ROS_INFO_STREAM_NAMED("GapManipulator", "        pRight: (" << pRight.transpose() << ")");        
 
         float goal_x = gap->getGoalX();
         float goal_y = gap->getGoalY();
 
         // Check if goal is in the middle
-        float thetaLeft = std::atan2(yLeft, xLeft);
-        float thetaRight = std::atan2(yRight, xRight);
-        float thetaGoal = std::atan2(goal_y, goal_x);
+        // float thetaLeft = std::atan2(yLeft, xLeft);
+        // float thetaRight = std::atan2(yRight, xRight);
+        // float thetaGoal = std::atan2(goal_y, goal_x);
 
         // assert(thetaGoal >= thetaRight && thetaGoal <= thetaLeft);
 
@@ -163,23 +163,23 @@ namespace quad_gap
 
 
         // Find the closest gap side to orientation. By default, l side is closer.
-        bool left = abs(thetaLeft) < abs(thetaRight);
-        Eigen::Vector2f pCloseSafe;
-        Eigen::Vector2f pFarSafe;
+        // bool left = abs(thetaLeft) < abs(thetaRight);
+        // Eigen::Vector2f pCloseSafe;
+        // Eigen::Vector2f pFarSafe;
 
-        if (left)
-        {
-            pCloseSafe = pLeftSafe;
-            pFarSafe = pRightSafe;
-        } else
-        {
-            pCloseSafe = pRightSafe;
-            pFarSafe = pLeftSafe;
-        }
+        // if (left)
+        // {
+        //     pCloseSafe = pLeftSafe;
+        //     pFarSafe = pRightSafe;
+        // } else
+        // {
+        //     pCloseSafe = pRightSafe;
+        //     pFarSafe = pLeftSafe;
+        // }
 
         Eigen::Vector2f q1;
         Eigen::Vector2f q2;
-        bool success = false;
+        // bool success = false;
 
         ///////////////////////////////////////////////////////////
         // If the goal is inside the circle, directly go to goal //
@@ -206,36 +206,40 @@ namespace quad_gap
         float robot_geo_diagonal_thresh = robot_geo_proc_.getRobotMaxRadius() * boxGeomScale;
         // float q1MaxNorm = minSafeDist - robot_geo_diagonal_thresh;
 
+        bool success = findBezierControlPtsNew(pLeftSafe, pRightSafe, pGoal,
+                                                scaledMinDim, q1IdealNorm, q1MaxNorm,
+                                                rbt_orient_vec, q1, q2);
+
         // Conditions
-        if (thetaLeft < thetaRight)
-        {
-            findBackFacingBezierControlPts(left,
-                                            pCloseSafe,
-                                            pFarSafe,
-                                            scaledMinDim,
-                                            robot_geo_diagonal_thresh,
-                                            q1IdealNorm,
-                                            q1MaxNorm,
-                                            rbt_orient_vec,
-                                            pGoal,
-                                            q1,
-                                            q2,
-                                            success);
-        } else
-        {
-            findFrontFacingBezierControlPts(left,
-                                            pCloseSafe,
-                                            pFarSafe,
-                                            scaledMinDim,
-                                            robot_geo_diagonal_thresh,
-                                            q1IdealNorm,
-                                            q1MaxNorm,
-                                            rbt_orient_vec,
-                                            pGoal,
-                                            q1,
-                                            q2,
-                                            success);
-        }
+        // if (thetaLeft < thetaRight)
+        // {
+        //     findBackFacingBezierControlPts(left,
+        //                                     pCloseSafe,
+        //                                     pFarSafe,
+        //                                     scaledMinDim,
+        //                                     robot_geo_diagonal_thresh,
+        //                                     q1IdealNorm,
+        //                                     q1MaxNorm,
+        //                                     rbt_orient_vec,
+        //                                     pGoal,
+        //                                     q1,
+        //                                     q2,
+        //                                     success);
+        // } else
+        // {
+        //     findFrontFacingBezierControlPts(left,
+        //                                     pCloseSafe,
+        //                                     pFarSafe,
+        //                                     scaledMinDim,
+        //                                     robot_geo_diagonal_thresh,
+        //                                     q1IdealNorm,
+        //                                     q1MaxNorm,
+        //                                     rbt_orient_vec,
+        //                                     pGoal,
+        //                                     q1,
+        //                                     q2,
+        //                                     success);
+        // }
         // // if (thetaLeft > 0 && thetaRight <= 0)
         // {
 
@@ -246,12 +250,99 @@ namespace quad_gap
 
         if (success)
         {
-            BezierCurve = Bezier::Bezier<2>({ {q0(0), q0(1)}, 
+            BezierCurve = Bezier::Bezier<2>({ {q0[0], q0[1]}, 
                                                 {q1[0], q1[1]}, 
                                                 {q2[0], q2[1]} });
         }
 
         return success;
+    }
+
+    bool GapTrajGenerator::findBezierControlPtsNew(const Eigen::Vector2f pLeftSafe,
+                                                    const Eigen::Vector2f pRightSafe,    
+                                                    const Eigen::Vector2f & pGoal,
+                                                    const float & scaledMinDim,
+                                                    const float & q1IdealNorm,
+                                                    const float & q1MaxNorm,
+                                                    const Eigen::Vector2f & rbt_orient_vec,
+                                                    Eigen::Vector2f & q1,
+                                                    Eigen::Vector2f & q2)
+    {
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[findBezierControlPtsNew]");
+
+        ///////////////
+        // Max's way //
+        ///////////////
+
+        // 1. Calculate q1
+        if (q1IdealNorm > q1MaxNorm)
+        {
+            q1 = q1MaxNorm * rbt_orient_vec;
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1IdealNorm is larger than q1MaxNorm");
+        } else
+        {
+            q1 = q1IdealNorm * rbt_orient_vec;
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1IdealNorm is smaller than q1MaxNorm");
+        }
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());
+
+        // 2. Calculate qL_infl and qL_infl
+        Eigen::Vector2f eLeft = pLeftSafe.normalized();
+        Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eLeft; 
+
+        Eigen::Vector2f pLeftSafeInfl = pLeftSafe + scaledMinDim * leftAngularInflDir;
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pLeftSafeInfl: " << pLeftSafeInfl.transpose());
+
+        Eigen::Vector2f eRight = pRightSafe.normalized();
+        Eigen::Vector2f rightAngularInflDir = Rpi2 * eRight; 
+
+        Eigen::Vector2f pRightSafeInfl = pRightSafe + scaledMinDim * rightAngularInflDir;
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pRightSafeInfl: " << pRightSafeInfl.transpose());
+
+        // Check if inflation failed
+
+        float origLeftToRightAngle = getSweptLeftToRightAngle(pLeftSafe, pRightSafe);
+        float newLeftToRightAngle = getSweptLeftToRightAngle(pLeftSafeInfl, pRightSafeInfl);
+
+        if (newLeftToRightAngle > origLeftToRightAngle)
+        {
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Inflation failed. The new angle is larger than the original angle.");
+            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Inflation failed. The new angle is larger than the original angle.");
+            return false;
+        }
+
+        // 3. Calculate q2
+
+        // WHAT IF NEW LINES INTERSECT?
+
+        // if goal in between, set q2 to goal
+        float leftToGoalSignedAngle = getSignedLeftToRightAngle(pLeftSafeInfl, pGoal);
+        float rightToGoalSignedAngle = getSignedLeftToRightAngle(pRightSafeInfl, pGoal);
+
+        if (leftToGoalSignedAngle >= 0 && rightToGoalSignedAngle <= 0)
+        {
+            // Goal is in between the inflated lines
+            q2 = pGoal;
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal is in between the inflated lines.");
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q2 set to goal: " << q2.transpose());
+            return true;
+        }
+
+        // if goal closer to left side, set q2 to left side
+        if (std::abs(leftToGoalSignedAngle) < std::abs(rightToGoalSignedAngle))
+        {
+            // Goal is closer to the left side
+            q2 = pLeftSafeInfl.normalized() * pGoal.norm();
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal is closer to the left side.");
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q2 set to left side: " << q2.transpose());
+            return true;
+        }
+
+        // if goal closer to right side, set q2 to right side
+        q2 = pRightSafeInfl.normalized() * pGoal.norm();
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal is closer to the right side.");
+        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q2 set to right side: " << q2.transpose());
+        return true;
     }
 
     void GapTrajGenerator::findFrontFacingBezierControlPts(const bool & left,
@@ -293,6 +384,8 @@ namespace quad_gap
                 success = true;
 
                 // ROS_INFO_STREAM("Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+                
+                // INFLATING
                 Eigen::Vector2f l_used_vec = pCloseSafe;
                 Eigen::Vector2f r_used_vec = pFarSafe;
                 if (left)
@@ -315,10 +408,12 @@ namespace quad_gap
 
                 if (!isLargerAngle(r_new, l_new))
                 {
+                    // Inflation failed
                     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 1]");
                     success = false;
                 } else
                 {
+                    // Setting q2
                     bool larger_than_l = isLargerAngle(pGoal, l_new);
                     bool larger_than_r = isLargerAngle(pGoal, r_new);
 

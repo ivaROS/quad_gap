@@ -76,6 +76,16 @@ namespace quad_gap
             geometry_msgs::PoseArray processTrajectory(const geometry_msgs::PoseArray & pose_arr);
 
         private: 
+            bool findBezierControlPtsNew(const Eigen::Vector2f pLeftSafe,
+                                            const Eigen::Vector2f pRightSafe,    
+                                            const Eigen::Vector2f & pGoal,
+                                            const float & scaledMinDim,
+                                            const float & q1IdealNorm,
+                                            const float & q1MaxNorm,
+                                            const Eigen::Vector2f & rbt_orient_vec,
+                                            Eigen::Vector2f & q1,
+                                            Eigen::Vector2f & q2);
+
             void findFrontFacingBezierControlPts(const bool & left,
                                                     const Eigen::Vector2f pCloseSafe,
                                                     const Eigen::Vector2f pFarSafe,

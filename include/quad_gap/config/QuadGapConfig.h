@@ -126,7 +126,7 @@ namespace quad_gap
                 float terminal_weight = 10;
                 float robot_geo_scale = 1;
                 bool bezier_interp = true;
-                float bezier_unit_time = 0.1;             
+                float bezier_unit_time = 1.0; // 0.1;             
             } traj;
 
 
