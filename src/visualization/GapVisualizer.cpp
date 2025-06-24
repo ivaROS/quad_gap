@@ -215,7 +215,8 @@ namespace quad_gap
     void GapVisualizer::drawManipGap(visualization_msgs::Marker & marker, 
                                         const std::vector<Gap *> & gaps, 
                                         // const std::string & ns,
-                                        bool & circle)
+                                        const bool & circle,
+                                        const bool & sides)
     {
         marker.header.stamp = ros::Time();
         marker.ns = "manip_gaps";
@@ -326,7 +327,7 @@ namespace quad_gap
                 // this_marker.ns = "simp_extent";
     
                 // The Circle
-                if (!circle) 
+                if (circle) 
                 {
                     std::vector<geometry_msgs::Point> lines;
                     geometry_msgs::Point linel;
@@ -354,48 +355,51 @@ namespace quad_gap
                         // this_marker.lifetime = ros::Duration();
                         // vis_arr.markers.push_back(this_marker);
                     }
-                    circle = true;
+                    // circle = true;
                 }
     
-                // this_marker.ns = "extent_line";
-                getline(gap->manipRightIdx(), 
-                        gap->manipRightRange(), 
-                        gap->getQB(), 
-                        // lines, 
-                        // linel, 
-                        // liner, 
-                        marker, 
-                        convex_color);
-                
-                getline(gap->manipLeftIdx(),
-                        gap->manipLeftRange(), 
-                        gap->getQB(), 
-                        // lines, 
-                        // linel, 
-                        // liner, 
-                        marker, 
-                        convex_color);
-                Eigen::Vector2f origin(0, 0);
+                if (sides)
+                {
+                    // this_marker.ns = "extent_line";
+                    getline(gap->manipRightIdx(), 
+                            gap->manipRightRange(), 
+                            gap->getQB(), 
+                            // lines, 
+                            // linel, 
+                            // liner, 
+                            marker, 
+                            convex_color);
+                    
+                    getline(gap->manipLeftIdx(),
+                            gap->manipLeftRange(), 
+                            gap->getQB(), 
+                            // lines, 
+                            // linel, 
+                            // liner, 
+                            marker, 
+                            convex_color);
+                    Eigen::Vector2f origin(0, 0);
 
 
-                // this_marker.ns = "orig_line";
-                getline(gap->RIdx(), 
-                        gap->RRange(), 
-                        origin, 
-                        // lines, 
-                        // linel, 
-                        // liner, 
-                        marker, 
-                        colorMap["simp_agc"]);
+                    // this_marker.ns = "orig_line";
+                    getline(gap->RIdx(), 
+                            gap->RRange(), 
+                            origin, 
+                            // lines, 
+                            // linel, 
+                            // liner, 
+                            marker, 
+                            colorMap["simp_agc"]);
 
-                getline(gap->LIdx(), 
-                        gap->LRange(), 
-                        origin, 
-                        // lines, 
-                        // linel, 
-                        // liner, 
-                        marker, 
-                        colorMap["simp_agc"]);
+                    getline(gap->LIdx(), 
+                            gap->LRange(), 
+                            origin, 
+                            // lines, 
+                            // linel, 
+                            // liner, 
+                            marker, 
+                            colorMap["simp_agc"]);
+                }
             }            
         }
 
@@ -407,9 +411,10 @@ namespace quad_gap
         clearMarkerPublisher(manipGapsPublisher);
 
         bool circle = false;
+        bool sides = false;
 
         visualization_msgs::Marker marker;
-        drawManipGap(marker, gaps, circle); // , true);
+        drawManipGap(marker, gaps, circle, sides); // , true);
 
         manipGapsPublisher.publish(marker);
     }

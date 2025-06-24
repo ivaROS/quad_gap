@@ -369,7 +369,7 @@ namespace quad_gap
         
         gap->setAGC();
 
-        gap->setManipPoints(newLeftIdx, newRightIdx, newLeftRange, newRightRange);
+        gap->setManipPoints(newLeftIdx, newLeftRange, newRightIdx, newRightRange);
 
         gap->getManipLCartesian(xLeft, yLeft);
         gap->getManipRCartesian(xRight, yRight);
@@ -397,8 +397,6 @@ namespace quad_gap
         }
         // TODO: check if the idx are correct when they cross the 0.
 
-        float s = gap->getMinSafeDist();
-
         int leftIdx = gap->manipLeftIdx();
         int rightIdx = gap->manipRightIdx();
         float leftRange = gap->manipLeftRange();
@@ -414,47 +412,65 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
-        Eigen::Vector2f ptLeft(xLeft, yLeft);
-        Eigen::Vector2f ptRight(xRight, yRight);
+        // Eigen::Vector2f ptLeft(xLeft, yLeft);
+        // Eigen::Vector2f ptRight(xRight, yRight);
 
-        Eigen::Vector2f eRight = ptRight / ptRight.norm();
-        Eigen::Vector2f eLeft = ptLeft / ptLeft.norm();
+        // Eigen::Vector2f eRight = ptRight / ptRight.norm();
+        // Eigen::Vector2f eLeft = ptLeft / ptLeft.norm();
 
-        Eigen::Vector2f eB = (eLeft + eRight) / 2;
-        eB.normalize();
-        float gap_size = std::acos(eLeft.dot(eRight));
+        // Eigen::Vector2f eB = (eLeft + eRight) / 2;
+        // eB.normalize();
+        // float gap_size = std::acos(eLeft.dot(eRight));
 
-        Eigen::Vector2f qB = -s * eB;
+        // Eigen::Vector2f qB = -s * eB;
         
-        // Shifted Back Frame
-        Eigen::Vector2f qLp = ptRight - qB;
-        Eigen::Vector2f qRp = ptLeft - qB;
+        // // Shifted Back Frame
+        // Eigen::Vector2f qLp = ptRight - qB;
+        // Eigen::Vector2f qRp = ptLeft - qB;
 
-        Eigen::Vector2f pLp = car2pol(qLp);
-        // pLp(1) += M_PI;
-        Eigen::Vector2f pRp = car2pol(qRp);
-        // pRp(1) += M_PI;
+        // Eigen::Vector2f pLp = car2pol(qLp);
+        // // pLp(1) += M_PI;
+        // Eigen::Vector2f pRp = car2pol(qRp);
+        // // pRp(1) += M_PI;
 
-        float phiB = pRp(1) - pLp(1);
+        // float phiB = pRp(1) - pLp(1);
 
-        Eigen::Vector2f pB = car2pol(-qB);
-        // pB(2) += M_PI;
+        // Eigen::Vector2f pB = car2pol(-qB);
+        // // pB(2) += M_PI;
 
-        float thL = pB(1) - gap_size / 4;
-        float thR = pB(1) + gap_size / 4;
+        // float thL = pB(1) - gap_size / 4;
+        // float thR = pB(1) + gap_size / 4;
 
-        Eigen::Vector2f pLn = pTheta(thL, phiB, pLp, pRp);
-        Eigen::Vector2f pRn = pTheta(thR, phiB, pLp, pRp);
+        // Eigen::Vector2f pLn = pTheta(thL, phiB, pLp, pRp);
+        // Eigen::Vector2f pRn = pTheta(thR, phiB, pLp, pRp);
 
-        Eigen::Vector2f qLn = pol2car(pLn) + qB;
-        Eigen::Vector2f qRn = pol2car(pRn) + qB;
+        // Eigen::Vector2f qLn = pol2car(pLn) + qB;
+        // Eigen::Vector2f qRn = pol2car(pRn) + qB;
 
-        // Store info back to original gap;
-        Eigen::Vector2f polqLn = car2pol(qLn);
-        Eigen::Vector2f polqRn = car2pol(qRn);
+        // // Store info back to original gap;
+        // Eigen::Vector2f polqLn = car2pol(qLn);
+        // Eigen::Vector2f polqRn = car2pol(qRn);
 
-        gap->setManipPoints(theta2idx(polqRn(1)), polqRn(0), 
-                            theta2idx(polqLn(1)), polqLn(0));
+        // gap->setManipPoints(theta2idx(polqRn(1)), polqRn(0), 
+        //                     theta2idx(polqLn(1)), polqLn(0));
+
+        Eigen::Vector2f leftPt(xLeft, yLeft);
+        Eigen::Vector2f rightPt(xRight, yRight);
+
+        float leftToRightAngle = getSweptLeftToRightAngle(leftPt, rightPt);
+
+        float thetaCenter = (leftTheta - 0.5*leftToRightAngle);
+
+        // middle of gap direction
+        Eigen::Vector2f eB(std::cos(thetaCenter), std::sin(thetaCenter));
+        // ROS_INFO_STREAM_NAMED("GapManipulator", "eB: (" << eB[0] << ", " << eB[1] << ")");
+
+        Eigen::Vector2f norm_eB = eB.normalized();         
+
+        float s = gap->getMinSafeDist();
+
+        Eigen::Vector2f qB = -s * norm_eB; // Shifted Back Frame
+
         // gap->convex.leftIdx_ = theta2idx(polqRn(1));
         // gap->convex.rightIdx_ = theta2idx(polqLn(1));
         // gap->convex.leftRange_ = polqRn(0);

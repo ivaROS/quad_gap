@@ -21,8 +21,8 @@ namespace quad_gap
                             const std::string & ns);
             void drawManipGap(visualization_msgs::Marker & marker, 
                                 const std::vector<Gap *> & gaps, 
-                                // const std::string & ns,
-                                bool & circle);
+                                const bool & circle,
+                                const bool & sides);
 
             void getline(const int & idx, 
                             const float & dist,
