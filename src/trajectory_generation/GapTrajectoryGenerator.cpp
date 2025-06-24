@@ -96,8 +96,7 @@ namespace quad_gap
 
     bool GapTrajGenerator::findBezierControlPts(Gap * gap, 
                                                 Bezier::Bezier<2>& BezierCurve, 
-                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
-                                                const geometry_msgs::TransformStamped & odom2rbt)
+                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame)
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[findBezierControlPts()]");
 
@@ -755,8 +754,7 @@ namespace quad_gap
     }
 
     geometry_msgs::PoseArray GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
-                                                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
-                                                                        const geometry_msgs::TransformStamped & odom2rbt)
+                                                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame)
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[generateBezierTrajectory()]");
         geometry_msgs::PoseArray posearr;
@@ -771,7 +769,7 @@ namespace quad_gap
         // }
 
         Bezier::Bezier<2> quadraBezier;
-        bool success = findBezierControlPts(gap, quadraBezier, rbtVelRbtFrame, odom2rbt);
+        bool success = findBezierControlPts(gap, quadraBezier, rbtVelRbtFrame);
         
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Bezier control points:");
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "P0: " << quadraBezier[0][0] << " " << quadraBezier[0][1]);

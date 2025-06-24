@@ -61,12 +61,10 @@ namespace quad_gap
 
             bool findBezierControlPts(Gap * selectedGap, 
                                         Bezier::Bezier<2>&, 
-                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
-                                        const geometry_msgs::TransformStamped & odom2rbt);
+                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame);
 
             geometry_msgs::PoseArray generateBezierTrajectory(Gap * selectedGap, 
-                                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame, 
-                                                                const geometry_msgs::TransformStamped & odom2rbt);
+                                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame);
             
             // std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
 
