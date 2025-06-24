@@ -195,11 +195,12 @@ namespace quad_gap
             * @param Vector of corresponding trajectory scores
             * @return the best trajectory
             */
-            geometry_msgs::PoseArray pickTraj(const std::vector<geometry_msgs::PoseArray> & prr, 
-                                                const std::vector<std::vector<float>> & pathPoseCosts, 
-                                                const std::vector<float> & pathTerminalPoseCosts, 
-                                                const std::vector<geometry_msgs::PoseArray> & virtual_path, 
-                                                geometry_msgs::PoseArray& chosen_virtual_path);
+            void pickTraj(const std::vector<geometry_msgs::PoseArray> & paths, 
+                            const std::vector<geometry_msgs::PoseArray> & virtualGapPaths, 
+                            const std::vector<std::vector<float>> & pathPoseCosts, 
+                            const std::vector<float> & pathTerminalPoseCosts, 
+                            geometry_msgs::PoseArray& chosen_path,
+                            geometry_msgs::PoseArray& chosen_virtual_path);
 
             /**
             * Compare to the old trajectory and pick the best one

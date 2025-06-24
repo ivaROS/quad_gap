@@ -525,10 +525,9 @@ namespace quad_gap
 
     }
 
-    // std::vector<geometry_msgs::PoseArray> 
     void Planner::generateGapTrajectories(const std::vector<Gap *> & gaps, 
-                                            std::vector<geometry_msgs::PoseArray>& res, 
-                                            std::vector<geometry_msgs::PoseArray>& virtual_decayed,
+                                            std::vector<geometry_msgs::PoseArray>& gapPaths, 
+                                            std::vector<geometry_msgs::PoseArray>& virtualGapPaths,
                                             std::vector<std::vector<float>> & pathPoseCosts,
                                             std::vector<float> & pathTerminalPoseCosts) 
     {
@@ -536,9 +535,8 @@ namespace quad_gap
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        res = std::vector<geometry_msgs::PoseArray> (gaps.size());
-        virtual_decayed = std::vector<geometry_msgs::PoseArray> (gaps.size());
-        // std::vector<std::vector<float>> ret_traj_scores(gaps.size());
+        gapPaths = std::vector<geometry_msgs::PoseArray> (gaps.size());
+        virtualGapPaths = std::vector<geometry_msgs::PoseArray> (gaps.size());
         pathPoseCosts = std::vector<std::vector<float>>(gaps.size());
         pathTerminalPoseCosts = std::vector<float>(gaps.size());
 
@@ -579,14 +577,13 @@ namespace quad_gap
                 // std::chrono::steady_clock::time_point proc_traj_time = std::chrono::steady_clock::now();
 
                 geometry_msgs::PoseArray virtual_score_path = getOrientDecayedPath(tmp);
-                virtual_decayed.at(i) = virtual_score_path;
+                virtualGapPaths.at(i) = virtual_score_path;
 
                 // std::chrono::steady_clock::time_point orient_traj_time = std::chrono::steady_clock::now();
 
                 std::vector<float> pathPoseCost;
                 float pathTerminalCost;                
                 trajEvaluator_->scoreTrajectory(virtual_score_path, pathPoseCost, pathTerminalCost);
-                // ret_traj_scores.at(i) = pathPoseCost;
                 pathPoseCosts.at(i) = pathPoseCost;
                 pathTerminalPoseCosts.at(i) = pathTerminalCost;
 
@@ -595,7 +592,7 @@ namespace quad_gap
 
                 // std::chrono::steady_clock::time_point score_traj_time = std::chrono::steady_clock::now();
 
-                res.at(i) = gapTrajGenerator_->transformPath(tmp, rbt2odom_);
+                gapPaths.at(i) = gapTrajGenerator_->transformPath(tmp, rbt2odom_);
             
                 // std::chrono::steady_clock::time_point transform_traj_time = std::chrono::steady_clock::now();
 
@@ -621,9 +618,7 @@ namespace quad_gap
         }
         
         // trajVisualizer_->pubAllScore(ret_traj, ret_traj_scores);
-        trajVisualizer_->drawGapTrajectories(res);
-        // res = ret_traj;
-        // virtual_decayed = virtual_traj;
+        trajVisualizer_->drawGapTrajectories(gapPaths);
         return;
     }
 
@@ -705,29 +700,35 @@ namespace quad_gap
         return decayed_path;
     }
 
-    geometry_msgs::PoseArray Planner::pickTraj(const std::vector<geometry_msgs::PoseArray> & paths, 
-                                                const std::vector<std::vector<float>> & pathPoseCosts, 
-                                                const std::vector<float> & pathTerminalPoseCosts, 
-                                                const std::vector<geometry_msgs::PoseArray> & virtual_path, 
-                                                geometry_msgs::PoseArray& chosen_virtual_path) 
+    void Planner::pickTraj(const std::vector<geometry_msgs::PoseArray> & gapPaths, 
+                            const std::vector<geometry_msgs::PoseArray> & virtualGapPaths, 
+                            const std::vector<std::vector<float>> & pathPoseCosts, 
+                            const std::vector<float> & pathTerminalPoseCosts, 
+                            geometry_msgs::PoseArray& bestGapPath,
+                            geometry_msgs::PoseArray& bestVirtualGapPath) 
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        ROS_INFO_STREAM_NAMED("qg_trajCount", "qg_trajCount, " << paths.size());
-        if (paths.size() == 0) {
-            ROS_WARN_STREAM("No traj synthesized");
-            return geometry_msgs::PoseArray();
-        }
-
-        if (paths.size() != pathPoseCosts.size() ||
-            paths.size() != pathTerminalPoseCosts.size())
+        ROS_INFO_STREAM_NAMED("qg_trajCount", "qg_trajCount, " << gapPaths.size());
+        if (gapPaths.size() == 0) 
         {
-            ROS_FATAL_STREAM("pickTraj size mismatch: paths = " << paths.size() << " != pathPoseCosts =" << pathPoseCosts.size() << 
-                             " != pathTerminalPoseCosts = " << pathTerminalPoseCosts.size());
-            return geometry_msgs::PoseArray();
+            ROS_WARN_STREAM("No traj synthesized");
+            bestGapPath = geometry_msgs::PoseArray();
+            bestVirtualGapPath = geometry_msgs::PoseArray();
+            return;
         }
 
-        std::vector<float> result_score(paths.size());
+        if (gapPaths.size() != pathPoseCosts.size() ||
+            gapPaths.size() != pathTerminalPoseCosts.size())
+        {
+            ROS_FATAL_STREAM("pickTraj size mismatch: gapPaths = " << gapPaths.size() << " != pathPoseCosts =" << pathPoseCosts.size() << 
+                             " != pathTerminalPoseCosts = " << pathTerminalPoseCosts.size());
+            bestGapPath = geometry_msgs::PoseArray();
+            bestVirtualGapPath = geometry_msgs::PoseArray();
+            return;
+        }
+
+        std::vector<float> result_score(gapPaths.size());
         
         try 
         {
@@ -738,7 +739,7 @@ namespace quad_gap
             {
                 result_score.at(i) = pathTerminalPoseCosts.at(i) + std::accumulate(pathPoseCosts.at(i).begin(), 
                                                                                     pathPoseCosts.at(i).end(), float(0)) / float(pathPoseCosts.at(i).size());
-                result_score.at(i) = paths.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : result_score.at(i);
+                result_score.at(i) = gapPaths.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : result_score.at(i);
                 ROS_DEBUG_STREAM("Score: " << result_score.at(i));
             }
         } catch (...) 
@@ -759,9 +760,9 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("Planner", "------------------");
         }
 
-        chosen_virtual_path = virtual_path.at(idx);
+        bestGapPath = gapPaths.at(idx);
+        bestVirtualGapPath = virtualGapPaths.at(idx);
         ROS_INFO_STREAM_NAMED("Planner", "Picked [" << idx << "] traj" );
-        return paths.at(idx);
     }
 
     geometry_msgs::PoseArray Planner::compareToCurrentTraj(const geometry_msgs::PoseArray & incomingPath, 
@@ -1151,67 +1152,70 @@ namespace quad_gap
         //////////////////////////////////////////////////////////////////////////////////////
 
         timeKeeper_->startTimer(GAP_TRAJ_GEN);
-        std::vector<geometry_msgs::PoseArray> traj_set;
-        std::vector<geometry_msgs::PoseArray> virtual_traj_set;
+        std::vector<geometry_msgs::PoseArray> gapPaths;
+        std::vector<geometry_msgs::PoseArray> virtualGapPaths;
         std::vector<std::vector<float>> pathPoseCosts; 
         std::vector<float> pathTerminalPoseCosts;        
-        generateGapTrajectories(manipGaps, traj_set, virtual_traj_set, pathPoseCosts, pathTerminalPoseCosts);
+        generateGapTrajectories(manipGaps, gapPaths, virtualGapPaths, pathPoseCosts, pathTerminalPoseCosts);
         timeKeeper_->stopTimer(GAP_TRAJ_GEN);
 
-        //////////////////////////////////////////////////////////////////////////////////////
-        //                                PICK TRAJECTORY                                   //
-        //////////////////////////////////////////////////////////////////////////////////////
+        geometry_msgs::PoseArray chosenGapPath;
+        // //////////////////////////////////////////////////////////////////////////////////////
+        // //                                PICK TRAJECTORY                                   //
+        // //////////////////////////////////////////////////////////////////////////////////////
 
-        timeKeeper_->startTimer(TRAJ_PICK);
-        geometry_msgs::PoseArray chosen_virtual_traj_set;
-        geometry_msgs::PoseArray picked_traj = pickTraj(traj_set, pathPoseCosts, pathTerminalPoseCosts, 
-                                                        virtual_traj_set, chosen_virtual_traj_set);
-        // virtual_orient_traj_pub.publish(chosen_virtual_traj_set);
-        timeKeeper_->stopTimer(TRAJ_PICK);
+        // timeKeeper_->startTimer(TRAJ_PICK);
+        // geometry_msgs::PoseArray bestGapPath;
+        // geometry_msgs::PoseArray bestVirtualGapPath;
+        // pickTraj(gapPaths, virtualGapPaths, 
+        //          pathPoseCosts, pathTerminalPoseCosts, 
+        //          bestGapPath, bestVirtualGapPath);
+        // // virtual_orient_traj_pub.publish(bestVirtualGapPath);
+        // timeKeeper_->stopTimer(TRAJ_PICK);
 
-        //////////////////////////////////////////////////////////////////////////////////////
-        //                              GAP TRAJECTORY COMPARISON                           //
-        //////////////////////////////////////////////////////////////////////////////////////
+        // //////////////////////////////////////////////////////////////////////////////////////
+        // //                              GAP TRAJECTORY COMPARISON                           //
+        // //////////////////////////////////////////////////////////////////////////////////////
 
-        timeKeeper_->startTimer(TRAJ_COMP);
-        geometry_msgs::PoseArray chosen_final_virtual_traj_set;
-        geometry_msgs::PoseArray final_traj = compareToCurrentTraj(picked_traj, chosen_final_virtual_traj_set);
-        timeKeeper_->stopTimer(TRAJ_COMP);
+        // timeKeeper_->startTimer(TRAJ_COMP);
+        // geometry_msgs::PoseArray chosenVirtualGapPath;
+        // geometry_msgs::PoseArray chosenGapPath = compareToCurrentTraj(bestGapPath, chosenVirtualGapPath);
+        // timeKeeper_->stopTimer(TRAJ_COMP);
 
-        /////////////////////////////////////////////////////////////////////////////////////
-        //                                 COLLISION CHECKING                              //
-        /////////////////////////////////////////////////////////////////////////////////////
+        // /////////////////////////////////////////////////////////////////////////////////////
+        // //                                 COLLISION CHECKING                              //
+        // /////////////////////////////////////////////////////////////////////////////////////
 
-        timeKeeper_->startTimer(COLL_CHECK);
-        CollisionResults cc_results;
-        if (cfg_.collision_checker.collision_checker_enable)
-        {
-            ros::WallTime start = ros::WallTime::now();
+        // timeKeeper_->startTimer(COLL_CHECK);
+        // CollisionResults cc_results;
+        // if (cfg_.collision_checker.collision_checker_enable)
+        // {
+        //     ros::WallTime start = ros::WallTime::now();
 
-            // cc_results = checkCollision(final_traj);
-            cc_results = checkCollision(chosen_final_virtual_traj_set);
+        //     // cc_results = checkCollision(chosenGapPath);
+        //     cc_results = checkCollision(chosenVirtualGapPath);
 
-            ROS_INFO_STREAM_NAMED("Planner", "Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
+        //     ROS_INFO_STREAM_NAMED("Planner", "Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
         
-            int cc_ite_min = 10;
-            float cc_itc_ratio = 0.2;
+        //     int cc_ite_min = 10;
+        //     float cc_itc_ratio = 0.2;
 
-            if(cc_results.collision_idx_ >= 0 && float(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
-            {
-                ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
-                setCurrentTraj(geometry_msgs::PoseArray());
-            }
-        }
-        timeKeeper_->stopTimer(COLL_CHECK);
+        //     if(cc_results.collision_idx_ >= 0 && float(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
+        //     {
+        //         ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
+        //         setCurrentTraj(geometry_msgs::PoseArray());
+        //     }
+        // }
+        // timeKeeper_->stopTimer(COLL_CHECK);
 
-        // delete set of planning gaps
-        for (Gap * planningGap : planningGaps)
-            delete planningGap;
+        // // delete set of planning gaps
+        // for (Gap * planningGap : planningGaps)
+        //     delete planningGap;
 
-        timeKeeper_->stopTimer(PLAN);
-        timeKeeper_->computeAverageNumberGaps(gapCount);        
+        // timeKeeper_->stopTimer(PLAN);
+        // timeKeeper_->computeAverageNumberGaps(gapCount);        
 
-        return final_traj;
+        return chosenGapPath;
     }
 
     bool Planner::recordAndCheckVel(const geometry_msgs::Twist & cmd_vel) 
