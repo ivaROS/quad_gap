@@ -157,7 +157,7 @@ namespace quad_gap
         Eigen::Vector2f pRightSafe = minSafeDist * pRight / pRight.norm();
         Eigen::Vector2f pGoal(goal_x, goal_y);
 
-        Eigen::Vector2f rbt_orient_vec(1, 0);
+        // Eigen::Vector2f rbt_orient_vec(1, 0);
         float x_speed = rbtVelRbtFrame.twist.linear.x;
         float q1IdealNorm = x_speed / 2; // For quadratic bezier curve, the ideally length B'(0) = 2 (P_1 - P_0) 
 
@@ -189,9 +189,9 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal is within circle.");
 
             if (q1IdealNorm > q1MaxNorm)
-                q1 = q1MaxNorm * rbt_orient_vec;
+                q1 = q1MaxNorm * robotOrientationVector;
             else
-                q1 = q1IdealNorm * rbt_orient_vec;
+                q1 = q1IdealNorm * robotOrientationVector;
             
             q2 = pGoal;
 
@@ -208,7 +208,7 @@ namespace quad_gap
 
         bool success = findBezierControlPtsNew(pLeftSafe, pRightSafe, pGoal,
                                                 scaledMinDim, q1IdealNorm, q1MaxNorm,
-                                                rbt_orient_vec, q1, q2);
+                                                q1, q2);
 
         // Conditions
         // if (thetaLeft < thetaRight)
@@ -264,7 +264,6 @@ namespace quad_gap
                                                     const float & scaledMinDim,
                                                     const float & q1IdealNorm,
                                                     const float & q1MaxNorm,
-                                                    const Eigen::Vector2f & rbt_orient_vec,
                                                     Eigen::Vector2f & q1,
                                                     Eigen::Vector2f & q2)
     {
@@ -277,11 +276,11 @@ namespace quad_gap
         // 1. Calculate q1
         if (q1IdealNorm > q1MaxNorm)
         {
-            q1 = q1MaxNorm * rbt_orient_vec;
+            q1 = q1MaxNorm * robotOrientationVector;
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1IdealNorm is larger than q1MaxNorm");
         } else
         {
-            q1 = q1IdealNorm * rbt_orient_vec;
+            q1 = q1IdealNorm * robotOrientationVector;
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1IdealNorm is smaller than q1MaxNorm");
         }
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());

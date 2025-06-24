@@ -87,7 +87,7 @@ namespace quad_gap
                 rot << cos(rot_ang), -sin(rot_ang), sin(rot_ang), cos(rot_ang);
                 Eigen::Vector2f o_new_vec = rot * o_vec;
                 float o_new_ang = atan2(o_new_vec[1], o_new_vec[0]);
-                Eigen::Vector2f m_new_vec(1, 0);
+                // Eigen::Vector2f m_new_vec(1, 0);
                 
                 Eigen::Vector2f length_vec = robot_.length / 2 * o_new_vec;
                 Eigen::Vector2f left_pt_vec;
@@ -178,12 +178,14 @@ namespace quad_gap
                 // Eigen::Vector2f o_new_vec(cos(o_new_ang), sin(o_new_ang));
                 float rot_ang = 0 - o_ang;
                 Eigen::Matrix2f rot;
-                rot << cos(rot_ang), -sin(rot_ang), sin(rot_ang), cos(rot_ang);
+                rot << cos(rot_ang), -sin(rot_ang), 
+                        sin(rot_ang), cos(rot_ang);
+
                 Eigen::Vector2f m_new_vec = motion_vec.norm() * rot * m_vec;
-                Eigen::Vector2f o_new_vec(1, 0);
-                float o_new_ang = atan2(o_new_vec[1], o_new_vec[0]);
-                Eigen::Vector2f o_normal(-o_new_vec[1], o_new_vec[0]);
-                Eigen::Vector2f robot_f_vec = robot_.length / 2 * o_new_vec / o_new_vec.norm();
+                Eigen::Vector2f robotOrientationVector(1, 0);
+                float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
+                Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
+                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
                 Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
                 
                 // 8 points ccw from -pi angle
@@ -214,7 +216,7 @@ namespace quad_gap
                     ang = (ang >= -M_PI) ? ang : -M_PI;
 
                     Eigen::Vector2f i_vec(cos(ang), sin(ang));
-                    float er = getEquivalentR(o_new_vec, i_vec);
+                    float er = getEquivalentR(robotOrientationVector, i_vec);
 
                     Eigen::Vector2f i_bound = er * i_vec;
 
@@ -300,7 +302,7 @@ namespace quad_gap
                     return -1;
                 }
                 
-                Eigen::Vector2f o_new_vec(1, 0);
+                // Eigen::Vector2f o_new_vec(1, 0);
 
                 std::vector<float> dists;
 
@@ -311,7 +313,7 @@ namespace quad_gap
                     ang = (ang >= -M_PI) ? ang : -M_PI;
 
                     Eigen::Vector2f i_vec(cos(ang), sin(ang));
-                    float dist = getEquivalentR(o_new_vec, i_vec);
+                    float dist = getEquivalentR(robotOrientationVector, i_vec);
 
                     Eigen::Vector2f i_bound = dist * i_vec;
 
@@ -319,8 +321,8 @@ namespace quad_gap
                 }
 
                 // 8 corner points
-                Eigen::Vector2f o_normal(-o_new_vec[1], o_new_vec[0]);
-                Eigen::Vector2f robot_f_vec = robot_.length / 2 * o_new_vec / o_new_vec.norm();
+                Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
+                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
                 Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
                 
                 // 8 points ccw from -pi angle

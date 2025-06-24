@@ -82,7 +82,7 @@ namespace quad_gap
                                             const float & scaledMinDim,
                                             const float & q1IdealNorm,
                                             const float & q1MaxNorm,
-                                            const Eigen::Vector2f & rbt_orient_vec,
+                                            // const Eigen::Vector2f & rbt_orient_vec,
                                             Eigen::Vector2f & q1,
                                             Eigen::Vector2f & q2);
 

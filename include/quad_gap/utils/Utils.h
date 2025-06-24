@@ -95,6 +95,8 @@ namespace quad_gap
  
     static Eigen::Matrix2f Rnegpi2 = (Eigen::Matrix2f() << 0.0, 1.0, -1.0, 0.0).finished(); /**< Rotation matrix for -pi/2 */
 
+    static Eigen::Vector2f robotOrientationVector(1, 0);
+
     enum trajFlags {    NONE = -1,
                         GAP = 0,
                         UNGAP = 1,

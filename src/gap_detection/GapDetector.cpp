@@ -62,10 +62,10 @@ namespace quad_gap
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
         // Find equivalent passing length
-        Eigen::Vector2f orient_vec(1, 0);
+        // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f m_pt_vec = detected_gap->get_middle_pt_vec();
         // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
 
         return detected_gap->get_dist_side() > epl;
     }
@@ -239,9 +239,8 @@ namespace quad_gap
             // float max_r_er = robot_geo_proc_.getRobotMaxRadius();
             float farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
             Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
-            Eigen::Vector2f orient_vec(1, 0);
-            float erlLRange = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, currLRange);
-            float erlRRange = robot_geo_proc_.getLinearDecayEquivalentRL(orient_vec, farside_vec, simpGaps[j]->RRange());
+            float erlLRange = robot_geo_proc_.getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
+            float erlRRange = robot_geo_proc_.getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simpGaps[j]->RRange());
             bool second_test = currLRange <= (*farside_iter - erlLRange) && simpGaps[j]->RRange() <= (*farside_iter - erlRRange);
             bool dist_diff = simpGaps[j]->isRightType() || !simpGaps[j]->isRadial();
             bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;

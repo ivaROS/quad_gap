@@ -116,18 +116,11 @@ namespace quad_gap
         return;
     }
 
-    void GapManipulator::convertAxialGap(Gap * gap) 
+    void GapManipulator::convertRadialGap(Gap * gap) 
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [convertRadialGap()]");
 
-        // Return if not radial gap or disabled
-        if (!gap->isRadial() || !cfg_->gap_manip.radial_convert) 
-        {
-            // ROS_INFO_STREAM("Swept gap.");
-            return;
-        }
-
-        sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
+        sensor_msgs::LaserScan desScan = *scan_.get();
         
         bool right = gap->isRightType();
         // Extend of rotation to the radial gap 
@@ -149,24 +142,39 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
+        // Return if not radial gap or disabled
+        if (!gap->isRadial()) 
+        {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap is not radial, no conversion needed");
+            return;
+        }
+
+        if (!cfg_->gap_manip.radial_convert)
+        {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap radial conversion disabled, no conversion needed");
+            return;
+        }
+
         Eigen::Vector2f leftPt(xLeft, yLeft);
         Eigen::Vector2f rightPt(xRight, yRight);
 
         Eigen::Vector2f mid = (rightPt + leftPt) / 2;
-        Eigen::Vector2f robot_orient(1,0);
-        float robot_el = float(robot_geo_proc_.getLinearDecayEquivalentPL(robot_orient, mid, mid.norm()));
-        float robot_er = float(robot_geo_proc_.getLinearDecayEquivalentRL(robot_orient, mid, mid.norm()));
+        // Eigen::Vector2f robot_orient(1,0);
+        float equivPassingLength = float(robot_geo_proc_.getLinearDecayEquivalentPL(robotOrientationVector, mid, mid.norm()));
+        float equivRadialLength = float(robot_geo_proc_.getLinearDecayEquivalentRL(robotOrientationVector, mid, mid.norm()));
         
-        float nomPivotAngle = (float) std::atan2(robot_el / 2 * cfg_->gap_manip.rot_ratio, robot_er / 2);
+        float nomPivotAngle = (float) std::atan2(equivPassingLength / 2 * cfg_->gap_manip.rot_ratio, equivRadialLength / 2);
+        
         int nearIdx = 0.0, farIdx = 0.0;
         float nearRange = 0.0, farRange = 0.0;
+        float nearTheta = 0.0, farTheta = 0.0;
         float signedNomPivotAngle = 0.0; //  = right ? (rot_val + 1e-3): -(rot_val + 1e-3);
         
         if (right) 
         {
             nearIdx = rightIdx;
-            farIdx = leftIdx;
             nearRange = rightRange;
+            farIdx = leftIdx;
             farRange = leftRange;
             signedNomPivotAngle = nomPivotAngle;
         } else 
@@ -178,34 +186,44 @@ namespace quad_gap
             signedNomPivotAngle = -nomPivotAngle;
         }
         
-        Eigen::Matrix3f rot_mat;
-        rot_mat << cos(signedNomPivotAngle), -sin(signedNomPivotAngle), 0,
-                    sin(signedNomPivotAngle), cos(signedNomPivotAngle), 0,
-                    0, 0, 1;
-
-        Eigen::Matrix3f near_rbt;
-        near_rbt << 1, 0, nearRange * cos(idx2theta(nearIdx)),
-                    0, 1, nearRange * sin(idx2theta(nearIdx)),
-                    0, 0, 1;
-        Eigen::Matrix3f far_rbt;
-        far_rbt  << 1, 0, farRange * cos(idx2theta(farIdx)),
-                    0, 1, farRange * sin(idx2theta(farIdx)),
-                    0, 0, 1;
+        Eigen::Matrix2f nomPivotAngleRotationMatrix;
+        // nomPivotAngleRotationMatrix: SE(3) matrix that represents desired rotation amount
+        nomPivotAngleRotationMatrix << cos(signedNomPivotAngle), -sin(signedNomPivotAngle),
+                                        sin(signedNomPivotAngle), cos(signedNomPivotAngle);
         
-        Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
+        nearTheta = idx2theta(nearIdx);
+        farTheta = idx2theta(farIdx);   
 
-        float r = float(sqrt(pow(rot_rbt(0, 2), 2) + pow(rot_rbt(1, 2), 2)));
-        float theta = std::atan2(rot_rbt(1, 2), rot_rbt(0, 2));
-        int idx = theta2idx(theta);
+        Eigen::Vector2f nearPt(nearRange * cos(nearTheta), nearRange * sin(nearTheta));
+        Eigen::Vector2f farPt(farRange * cos(farTheta), farRange * sin(farTheta));
+                                
+        Eigen::Vector2f nearToFar = farPt - nearPt;
+        
+        Eigen::Vector2f rotatedNearToFar = nomPivotAngleRotationMatrix * nearToFar;
+
+        // Eigen::Matrix3f rot_rbt = near_rbt * (rot_mat * (near_rbt.inverse() * far_rbt));
+
+        Eigen::Vector2f pivotedPt = nearPt + rotatedNearToFar;
+
+        // float r = float(sqrt(pow(rot_rbt(0, 2), 2) + pow(rot_rbt(1, 2), 2)));
+        // float theta = std::atan2(rot_rbt(1, 2), rot_rbt(0, 2));
+        // int idx = theta2idx(theta);
+
+        // Extracting theta and idx of pivoted point
+        float nomPivotedTheta = std::atan2(pivotedPt[1], pivotedPt[0]);
+        int nomPivotedIdx = theta2idx(nomPivotedTheta);
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        nomPivotedTheta: " << nomPivotedTheta);
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        nomPivotedIdx: " << nomPivotedIdx);
 
         // Rotation Completed
         // Get minimum dist range val from start to target index location
         // For wraparound
-        int offset = right ? gap->LIdx() : idx;
-        int upperbound = right ? idx : gap->RIdx();
-        int intermediate_pt = offset + 1;
-        int second_inter_pt = intermediate_pt;
-        int size = upperbound - offset;
+        // int offset = right ? gap->LIdx() : idx;
+        // int upperbound = right ? idx : gap->RIdx();
+        // int intermediate_pt = offset + 1;
+        // int second_inter_pt = intermediate_pt;
+        // int size = upperbound - offset;
 
         // if ((upperbound - offset) < 3) 
         // {
@@ -214,65 +232,128 @@ namespace quad_gap
         //     return;
         // }
 
-        offset = std::max(offset, 0);
-        upperbound = std::min(upperbound, num_of_scan - 1);
-        std::vector<float> min_dist(upperbound - offset);
-
-        if (size == 0) 
-        {
-            // This shouldn't happen
-            return;
-        }
-
-
-        if (stored_scan_msgs.ranges.size() < 500) 
-        {
-            ROS_FATAL_STREAM("Scan range incorrect gap manip");
-        }
-
-        try
-        {
-            for (int i = 0; i < min_dist.size(); i++) 
-            {
-                min_dist.at(i) = sqrt(pow(nearRange, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
-                    2 * nearRange * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - nearIdx) * stored_scan_msgs.angle_increment));
-            }
-        } catch(...) 
-        {
-            ROS_FATAL_STREAM("convertAxialGap outofBound");
-        }
-
-        // auto farside_iter = ;
-        float farside = *std::min_element(min_dist.begin(), min_dist.end());
-
-        Eigen::Matrix3f far_near = near_rbt.inverse() * far_rbt;
-        float coefs = far_near.block<2, 1>(0, 2).norm();
-        // ROS_INFO_STREAM()
-        far_near(0, 2) *= farside / coefs;
-        far_near(1, 2) *= farside / coefs;
-        Eigen::Matrix3f short_pt = near_rbt * (rot_mat * far_near);
-
-        r = float(sqrt(pow(short_pt(0, 2), 2) + pow(short_pt(1, 2), 2)));
-        theta = std::atan2(short_pt(1, 2), short_pt(0, 2));
-        idx = theta2idx(theta);
-
-        // Recalculate end point location based on length
+        int scanSearchStartIdx = 0, scanSearchEndIdx = 0;
         if (right)
-        {
-            gap->setManipPoints(idx, r, nearIdx, nearRange);
-
-            // gap->convex.leftIdx_ = idx;
-            // gap->convex.leftRange_ = r;
-            // gap->convex.rightIdx_ = nearIdx;
-            // gap->convex.rightRange_ = nearRange;
+        {   
+            scanSearchStartIdx = leftIdx;
+            scanSearchEndIdx = nomPivotedIdx;
         } else
         {
-            gap->setManipPoints(nearIdx, nearRange, idx, r);
+            scanSearchStartIdx = nomPivotedIdx;
+            scanSearchEndIdx = rightIdx;
+        }
 
-            // gap->convex.leftIdx_ = nearIdx;
-            // gap->convex.leftRange_ = nearRange;
-            // gap->convex.rightIdx_ = idx;
-            // gap->convex.rightRange_ = r;
+        int scanSearchSize = scanSearchEndIdx - scanSearchStartIdx;
+
+        // offset = std::max(offset, 0);
+        // upperbound = std::min(upperbound, num_of_scan - 1);
+        // std::vector<float> min_dist(upperbound - offset);
+
+        // if (size == 0) 
+        // {
+        //     // This shouldn't happen
+        //     return;
+        // }
+
+        if (scanSearchSize == 0)
+        {
+            ROS_WARN_STREAM_NAMED("GapManipulator", "        scanSearchSize is 0, SHOULD NOT BE HAPPENING");
+            return;
+        } else if (scanSearchSize < 0)
+        {
+            scanSearchSize += cfg_->scan.full_scan; // int(2*gap->half_scan);
+        }
+
+        // if (stored_scan_msgs.ranges.size() < 500) 
+        // {
+        //     ROS_FATAL_STREAM("Scan range incorrect gap manip");
+        // }
+
+        int gapIdxSpan = (leftIdx - rightIdx);
+        if (gapIdxSpan < 0)
+            gapIdxSpan += cfg_->scan.full_scan;
+
+        std::vector<float> nearPtToScanDists(scanSearchSize);
+
+        int checkIdx = 0;
+        float checkRange = 0.0, checkIdxSpan = 0.0;
+        for (int i = 0; i < nearPtToScanDists.size(); i++) 
+        {
+            checkIdx = (i + scanSearchStartIdx) % cfg_->scan.full_scan; // int(2 * gap->half_scan);
+            checkRange = desScan.ranges.at(checkIdx);
+            checkIdxSpan = gapIdxSpan + (scanSearchSize - i);
+            nearPtToScanDists.at(i) = sqrt(pow(nearRange, 2) + pow(checkRange, 2) -
+                                        2.0 * nearRange * checkRange * cos(checkIdxSpan * cfg_->scan.angle_increment));
+            // // ROS_INFO_STREAM("checking idx: " << checkIdx << ", range of: " << range << ", diff in idx: " << checkIdxSpan << ", dist of " << dist.at(i));
+        }
+
+        auto minDistIter = std::min_element(nearPtToScanDists.begin(), nearPtToScanDists.end());
+        int minDistIdx = (scanSearchStartIdx + std::distance(nearPtToScanDists.begin(), minDistIter)) % cfg_->scan.full_scan; // int(2*gap->half_scan);
+        
+        float minDist = *minDistIter;
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        from " << scanSearchStartIdx << " to " << scanSearchEndIdx << ", min dist of " << minDist << " at " << minDistIdx);         
+
+        // Eigen::Vector2f rotatedNearToFarVector = rotatedNearToFarTranslationMatrix.col(2).head(2);
+        // Eigen::Vector2f rotatedNearToFarDirection = rotatedNearToFarVector.normalized();    
+
+        // Eigen::Vector2f nearPt = Eigen::Vector2f(nearRange * cos(nearTheta), nearRange * sin(nearTheta));
+        // Eigen::Vector2f pivotedPt = nearPt + rotatedNearToFarDirection * minDist;
+
+        Eigen::Vector2f adjustedNearToFar = pivotedPt - nearPt; 
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        adjustedNearToFar: " << adjustedNearToFar[0] << ", " << adjustedNearToFar[1]);
+        Eigen::Vector2f adjustedNearToFarDirection = adjustedNearToFar.normalized();
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        adjustedNearToFarDirection: " << adjustedNearToFarDirection[0] << ", " << adjustedNearToFarDirection[1]);
+
+        Eigen::Vector2f convertedPt = nearPt + adjustedNearToFarDirection * minDist;
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        convertedPt: " << convertedPt[0] << ", " << convertedPt[1]);
+
+        float convertedPtTheta = std::atan2(convertedPt[1], convertedPt[0]);
+        int convertedPtIdx = theta2idx(convertedPtTheta);
+        float convertedPtRange = convertedPt.norm();
+
+        // try
+        // {
+        //     for (int i = 0; i < min_dist.size(); i++) 
+        //     {
+        //         min_dist.at(i) = sqrt(pow(nearRange, 2) + pow(stored_scan_msgs.ranges.at(i + offset), 2) -
+        //             2 * nearRange * stored_scan_msgs.ranges.at(i + offset) * cos((i + offset - nearIdx) * stored_scan_msgs.angle_increment));
+        //     }
+        // } catch(...) 
+        // {
+        //     ROS_FATAL_STREAM("convertRadialGap outofBound");
+        // }
+
+        // // auto farside_iter = ;
+        // float farside = *std::min_element(min_dist.begin(), min_dist.end());
+
+        // Eigen::Matrix3f far_near = near_rbt.inverse() * far_rbt;
+        // float coefs = far_near.block<2, 1>(0, 2).norm();
+        // // ROS_INFO_STREAM()
+        // far_near(0, 2) *= farside / coefs;
+        // far_near(1, 2) *= farside / coefs;
+        // Eigen::Matrix3f short_pt = near_rbt * (rot_mat * far_near);
+
+        // r = float(sqrt(pow(short_pt(0, 2), 2) + pow(short_pt(1, 2), 2)));
+        // theta = std::atan2(short_pt(1, 2), short_pt(0, 2));
+        // idx = theta2idx(theta);
+
+        // Recalculate end point location based on length
+        float newLeftIdx = 0.0, newRightIdx = 0.0, newLeftRange = 0.0, newRightRange = 0.0;
+        if (right)
+        {
+            newLeftIdx = convertedPtIdx;
+            newLeftRange = convertedPtRange;
+            newRightIdx = nearIdx;
+            newRightRange = nearRange;
+        } else
+        {
+            newLeftIdx = nearIdx;
+            newLeftRange = nearRange;
+            newRightIdx = convertedPtIdx;
+            newRightRange = convertedPtRange;
         }
 
         // if (right && gap->convex.leftIdx_ < gap->convex.rightIdx_) 
@@ -288,23 +369,21 @@ namespace quad_gap
         
         gap->setAGC();
 
+        gap->setManipPoints(newLeftIdx, newRightIdx, newLeftRange, newRightRange);
 
-        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
-        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+        gap->getManipLCartesian(xLeft, yLeft);
+        gap->getManipRCartesian(xRight, yRight);
 
-        xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
-        yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
-        xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
-        yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
-                
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << gap->manipLeftIdx() << ", " 
-                                                                                        << gap->manipLeftRange() << "), right: (" 
-                                                                                        << gap->manipRightIdx() << ", " 
-                                                                                        << gap->manipRightRange() << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in cart. left: (" << xLeft << ", " 
-                                                                                        << yLeft << "), right: (" 
-                                                                                        << xRight << ", " 
-                                                                                        << yRight << ")");
+        // Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        // Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+
+        // xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        // yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        // xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        // yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+            
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-AGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
     }
 
     void GapManipulator::radialExtendGap(Gap * gap) 

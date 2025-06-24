@@ -494,7 +494,7 @@ namespace quad_gap
             for (size_t i = 0; i < manipGaps.size(); i++)
             {
                 gapManipulator_->reduceGap(manipGaps.at(i), local_goal_rbt_frame);
-                gapManipulator_->convertAxialGap(manipGaps.at(i));
+                gapManipulator_->convertRadialGap(manipGaps.at(i));
                 gapManipulator_->radialExtendGap(manipGaps.at(i));
             }
         } catch(...) 

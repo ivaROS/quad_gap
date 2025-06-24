@@ -27,10 +27,10 @@ namespace quad_gap
         // if agc. then the shorter side need to be further in
         
         // Get the equivalent passing length
-        Eigen::Vector2f orient_vec(1, 0);
+        // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f m_pt_vec = (pRight.cast<float>() + pLeft.cast<float>()) / 2;
         // float epl = robot_geo_proc_.getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        float epl = robot_geo_proc_.getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
         
         Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         float thetalr = car2pol(lr)(1);
@@ -176,10 +176,12 @@ namespace quad_gap
         float min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot
-        Eigen::Vector2f orient_vec(1, 0);
+        // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f goal_vec(localgoal.pose.position.x, localgoal.pose.position.y);
         float er = robot_geo_proc_.getRobotMaxRadius();
-        if (dist2goal < 2 * er) {
+        
+        if (dist2goal < 2 * er) 
+        {
             return true;
         }
 
