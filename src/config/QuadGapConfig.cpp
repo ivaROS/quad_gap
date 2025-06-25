@@ -118,7 +118,7 @@ namespace quad_gap
             ros_throw_param_load(nh, "integrate_stept", traj.integrate_stept);
             ros_throw_param_load(nh, "rmax", traj.rmax);
             ros_throw_param_load(nh, "inf_ratio", traj.inf_ratio);
-            ros_throw_param_load(nh, "terminal_weight", traj.terminal_weight);
+            ros_throw_param_load(nh, "Q_f", traj.Q_f);
             ros_throw_param_load(nh, "robot_geo_scale", traj.robot_geo_scale);
             ros_throw_param_load(nh, "bezier_interp", traj.bezier_interp);
             ros_throw_param_load(nh, "bezier_unit_time", traj.bezier_unit_time);

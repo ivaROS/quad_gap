@@ -54,8 +54,8 @@ namespace quad_gap {
             void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
                                                             const geometry_msgs::TransformStamped & odom2rbt);
             
-            std::vector<float> scoreGaps();
-            Gap * returnAndScoreGaps();
+            // std::vector<float> scoreGaps();
+            // Gap * returnAndScoreGaps();
             
             // Full Scoring
             // std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
@@ -69,10 +69,10 @@ namespace quad_gap {
             
             float costFn(Gap * g, int goal_idx);
 
-            float scorePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan);
+            float evaluatePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan);
             // int searchIdx(geometry_msgs::Pose pose);
             float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
-            float chapterScore(const float & d, const float & rmax_offset_val);
+            float chapterCost(const float & d, const float & rmax_offset_val);
             float terminalGoalCost(const geometry_msgs::Pose & pose);
 
             const QuadGapConfig* cfg_;

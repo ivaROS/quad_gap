@@ -661,36 +661,36 @@ namespace quad_gap
         //     return;
         // }
 
-        std::vector<float> gapTrajScores(gapTrajs.size());
+        std::vector<float> gapTrajCosts(gapTrajs.size());
         
         try 
         {
             if (omp_get_dynamic()) 
                 omp_set_dynamic(0);
             
-            for (size_t i = 0; i < gapTrajScores.size(); i++) 
+            for (size_t i = 0; i < gapTrajCosts.size(); i++) 
             {
-                gapTrajScores.at(i) = gapTrajs.at(i).getTerminalPoseCost() + gapTrajs.at(i).getAveragePosewiseCost();
+                gapTrajCosts.at(i) = gapTrajs.at(i).getTerminalPoseCost() + gapTrajs.at(i).getAveragePosewiseCost();
                 // float averagedPoseCost = std::accumulate(pathPoseCosts.at(i).begin(), 
                 //                                             pathPoseCosts.at(i).end(), float(0)) / (pathPoseCosts.at(i).size() + eps);
-                // gapTrajScores.at(i) = pathTerminalPoseCosts.at(i) + averagedPoseCost;
-                // gapTrajScores.at(i) = gapTrajs.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : gapTrajScores.at(i);
-                ROS_DEBUG_STREAM("Score: " << gapTrajScores.at(i));
+                // gapTrajCosts.at(i) = pathTerminalPoseCosts.at(i) + averagedPoseCost;
+                // gapTrajCosts.at(i) = gapTrajs.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : gapTrajCosts.at(i);
+                ROS_DEBUG_STREAM("Cost: " << gapTrajCosts.at(i));
             }
         } catch (...) 
         {
             ROS_FATAL_STREAM("pickTraj");
         }
 
-        auto iter = std::max_element(gapTrajScores.begin(), gapTrajScores.end());
-        int idx = std::distance(gapTrajScores.begin(), iter);
+        auto iter = std::max_element(gapTrajCosts.begin(), gapTrajCosts.end());
+        int idx = std::distance(gapTrajCosts.begin(), iter);
 
-        if (gapTrajScores.at(idx) == -std::numeric_limits<float>::infinity()) 
+        if (gapTrajCosts.at(idx) == std::numeric_limits<float>::infinity()) 
         {
             ROS_WARN_STREAM("No executable trajectory, values: ");
-            for (const float & gapTrajScore : gapTrajScores) 
+            for (const float & gapTrajCost : gapTrajCosts) 
             {
-                ROS_INFO_STREAM_NAMED("Planner", "Score: " << gapTrajScore);
+                ROS_INFO_STREAM_NAMED("Planner", "Cost: " << gapTrajCost);
             }
             ROS_INFO_STREAM_NAMED("Planner", "------------------");
         }
@@ -735,7 +735,7 @@ namespace quad_gap
 
             // float averagedIncomingPoseCost = std::accumulate(incomingPathPoseCosts.begin(), 
             //                                                     incomingPathPoseCosts.end(), float(0)) / (incomingPathPoseCosts.size() + eps);
-            float incomingTrajScore = incomingTraj.getTerminalPoseCost() + incomingTraj.getAveragePosewiseCost(); // incomingPathTerminalCost + averagedIncomingPoseCost;
+            float incomingTrajCost = incomingTraj.getTerminalPoseCost() + incomingTraj.getAveragePosewiseCost(); // incomingPathTerminalCost + averagedIncomingPoseCost;
 
             ///////////////////////////////////////////////////////////////////////
             //  Evaluate the incoming path to determine if we can switch onto it //
@@ -747,7 +747,7 @@ namespace quad_gap
             {
                 incomingTrajStatus = "incoming path is empty";
                 ableToSwitchToIncomingPath = false;
-            } else if (incomingTrajScore == -std::numeric_limits<float>::infinity()) 
+            } else if (incomingTrajCost == std::numeric_limits<float>::infinity()) 
             {
                 incomingTrajStatus = "incoming path is not feasible";
                 ableToSwitchToIncomingPath = false;
@@ -763,7 +763,7 @@ namespace quad_gap
                 {
                     // geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
                     // virtual_currTraj = empty_traj;
-                    ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0, curr traj score -inf.");
+                    ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0, curr traj score inf.");
                     setCurrentTraj(chosenTraj);
                     return chosenTraj;
                 } else
@@ -778,12 +778,12 @@ namespace quad_gap
                 }
             }
 
-            //     if (incomingTrajScore == -std::numeric_limits<float>::infinity()) 
+            //     if (incomingTrajCost == -std::numeric_limits<float>::infinity()) 
             //     {
             //         geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
             //         setCurrentTraj(empty_traj);
             //         virtual_currTraj = empty_traj;
-            //         ROS_WARN_STREAM("Old Traj length 0, curr traj score -inf.");
+            //         ROS_WARN_STREAM("Old Traj length 0, curr traj score inf.");
             //         return empty_traj;
             //     } else 
             //     {
@@ -830,9 +830,9 @@ namespace quad_gap
 
             // float currAveragedPoseCost = std::accumulate(reducedCurrentPathPoseCosts.begin(), 
             //                                                 reducedCurrentPathPoseCosts.end(), float(0)) / (reducedCurrentPathPoseCosts.size() + eps);
-            float reducedCurrTrajScore = reducedCurrentTraj.getTerminalPoseCost() + reducedCurrentTraj.getAveragePosewiseCost(); // reducedCurrentPathTerminalCost + currAveragedPoseCost;
+            float reducedCurrTrajCost = reducedCurrentTraj.getTerminalPoseCost() + reducedCurrentTraj.getAveragePosewiseCost(); // reducedCurrentPathTerminalCost + currAveragedPoseCost;
             
-            // incomingTrajScore = std::accumulate(incomingTrajPoseCosts.begin(), incomingTrajPoseCosts.begin() + counts, float(0));
+            // incomingTrajCost = std::accumulate(incomingTrajPoseCosts.begin(), incomingTrajPoseCosts.begin() + counts, float(0));
 
             // std::vector<std::vector<float>> ret_traj_scores(2);
             // ret_traj_scores.at(0) = incomingTrajPoseCosts;
@@ -843,11 +843,11 @@ namespace quad_gap
             // viz_traj.at(1) = reducedCurrentPathRobotFrame;
             // trajVisualizer_->pubAllScore(viz_traj, ret_traj_scores);
 
-            ROS_INFO_STREAM_NAMED("Planner", "Reduced curr score: " << reducedCurrTrajScore << ", incom Score:" << incomingTrajScore);
+            ROS_INFO_STREAM_NAMED("Planner", "Reduced curr score: " << reducedCurrTrajCost << ", incom Cost:" << incomingTrajCost);
 
-            if (reducedCurrTrajScore == -std::numeric_limits<float>::infinity())
+            if (reducedCurrTrajCost == std::numeric_limits<float>::infinity())
             {
-                ROS_WARN_STREAM("current score infinity, switching to incoming path, score of: " << incomingTrajScore);
+                ROS_WARN_STREAM("current score infinity, switching to incoming path, score of: " << incomingTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
                 incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
                 // trajectory_pub.publish(incomingTraj);
@@ -856,7 +856,7 @@ namespace quad_gap
                 return incomingTraj;                
             }
 
-            // if (reducedCurrTrajScore == -std::numeric_limits<float>::infinity() && incomingTrajScore == -std::numeric_limits<float>::infinity()) 
+            // if (reducedCurrTrajCost == -std::numeric_limits<float>::infinity() && incomingTrajCost == -std::numeric_limits<float>::infinity()) 
             // {
             //     ROS_WARN_STREAM("Both Failed");
             //     geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
@@ -865,9 +865,9 @@ namespace quad_gap
             //     return empty_traj;
             // }
 
-            if (incomingTrajScore > reducedCurrTrajScore) 
+            if (incomingTrajCost > reducedCurrTrajCost) 
             {
-                ROS_WARN_STREAM("Swap to new for better score: " << incomingTrajScore << " > " << reducedCurrTrajScore);
+                ROS_WARN_STREAM("Swap to new for better score: " << incomingTrajCost << " > " << reducedCurrTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
                 incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
                 // trajectory_pub.publish(incomingTraj);

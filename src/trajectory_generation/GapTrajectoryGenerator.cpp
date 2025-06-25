@@ -307,7 +307,7 @@ namespace quad_gap
         if (newLeftToRightAngle > origLeftToRightAngle)
         {
             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Inflation failed. The new angle is larger than the original angle.");
-            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Inflation failed. The new angle is larger than the original angle.");
+            // ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Inflation failed. The new angle is larger than the original angle.");
             return false;
         }
 
