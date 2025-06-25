@@ -127,7 +127,7 @@ namespace quad_gap
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
-    float TrajectoryEvaluator::scorePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan) 
+    float TrajectoryEvaluator::scorePose(const geometry_msgs::Pose & poseRbtFrame, const sensor_msgs::LaserScan & scan) 
     {
         // boost::mutex::scoped_lock lock(scanMutex_);
 
@@ -137,7 +137,6 @@ namespace quad_gap
         // int center_idx = (int) std::round((pose_ori + M_PI) / msg.get()->angle_increment);
         
         // int scan_size = (int) ;
-        std::vector<float> dist(scan.ranges.size());
         // std::vector<float> rmax_offset(scan_size);
 
         // This size **should** be ensured
@@ -148,23 +147,23 @@ namespace quad_gap
 
         // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
         // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
-        float yaw = quaternionToYaw(pose.orientation);
+        float yaw = quaternionToYaw(poseRbtFrame.orientation);
         Eigen::Vector2f orient_vec(cos(yaw), sin(yaw));
-        Eigen::Vector2f poseVec(pose.position.x, pose.position.y); // TODO: pose should be in robot frame
+        Eigen::Vector2f poseRbtFrameVec(poseRbtFrame.position.x, poseRbtFrame.position.y);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose: " << poseVec.transpose() << 
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose: " << poseRbtFrameVec.transpose() << 
                                                      ", Orientation: " << orient_vec.transpose());
 
-        float poseTheta = atan2(poseVec[1], poseVec[0]);
-        int poseIdx = theta2idx(poseTheta);
+        float poseRbtFrameTheta = atan2(poseRbtFrameVec[1], poseRbtFrameVec[0]);
+        int poseRbtFrameIdx = theta2idx(poseRbtFrameTheta);
 
-        ROS_INFO_STREAM("Pose Index: " << poseIdx << ", Pose Theta: " << poseTheta);
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Index: " << poseRbtFrameIdx << ", Pose Theta: " << poseRbtFrameTheta);
 
-        float poseIdxRange = scan.ranges.at(poseIdx);
+        float poseRbtFrameIdxRange = scan.ranges.at(poseRbtFrameIdx);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Idx Range: " << poseIdxRange);
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Idx Range: " << poseRbtFrameIdxRange);
 
-        if (poseVec.norm() >= poseIdxRange)
+        if (poseRbtFrameVec.norm() >= poseRbtFrameIdxRange)
             return -std::numeric_limits<float>::infinity();
 
         float range_i = 0.0;
@@ -172,12 +171,18 @@ namespace quad_gap
         Eigen::Vector2f scanPt;
         Eigen::Vector2f rel_pt_vec;
         // float nearest_dist = 0.0;
+
+        std::vector<float> dist(scan.ranges.size());
         for (int i = 0; i < dist.size(); i++) 
         {
             float range_i = scan.ranges.at(i);
             float theta_i = idx2theta(i);
             scanPt << range_i * cos(theta_i), range_i * sin(theta_i);
             
+            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
+            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
+            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
+
             // range_i = range_i == 3 ? range_i + cfg_->traj.rmax : range_i;
 
             // Iterate through robot boundary
@@ -189,7 +194,7 @@ namespace quad_gap
             // Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
             // pt_vec = range_i * pt_vec;
             
-            rel_pt_vec = scanPt - poseVec;
+            rel_pt_vec = scanPt - poseRbtFrameVec;
             // nearest_dist = 
             dist.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));

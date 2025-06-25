@@ -303,22 +303,37 @@ namespace quad_gap
 
             float getNearestDistance(const Eigen::Vector2f & orientation_vec, const Eigen::Vector2f & poseToScan)
             {
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "[getNearestDistance()]");
+
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Robot shape: " << robot_.shape);
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  orientation_vec: " << orientation_vec.transpose());
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  poseToScan: " << poseToScan.transpose());
+
                 // poseToScan: relative vector from robot origin to scan point.
 
                 // distsForNearestDist_.clear();
 
                 float o_ang = atan2(orientation_vec[1], orientation_vec[0]);
+
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  o_ang: " << o_ang);
                 float rot_ang = 0.0 - o_ang;
 
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  rot_ang: " << rot_ang);
+
+                // ????
                 Eigen::Matrix2f rot;
                 rot << cos(rot_ang), -sin(rot_ang), 
                         sin(rot_ang), cos(rot_ang);
                 
                 Eigen::Vector2f pt_new_vec = rot * poseToScan;
 
-                if (std::abs(pt_new_vec[0]) < robot_.length / 2 || 
+                ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  pt_new_vec: " << pt_new_vec.transpose());
+
+                if (std::abs(pt_new_vec[0]) < robot_.length / 2 && 
                     std::abs(pt_new_vec[1]) < robot_.width / 2)
                 {
+                    ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
+                    ROS_WARN_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
                     // The point is outside the robot bounding box.
                     return -1;
                 }
