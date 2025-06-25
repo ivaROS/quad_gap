@@ -984,7 +984,7 @@ namespace quad_gap
 
                     float avg_speed = 0.2;
                     float t = length / avg_speed;
-                    float avg_ang = cfg_->control.ang_absmax / cfg_->control.speed_factor;
+                    float avg_ang = cfg_->control.vang_absmax / cfg_->control.speed_factor;
 
                     Eigen::Quaternionf q(curr_pose.orientation.w, curr_pose.orientation.x, curr_pose.orientation.y, curr_pose.orientation.z);
                     Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);

@@ -62,6 +62,7 @@ namespace quad_gap
             struct PlanningMode 
             {
                 bool holonomic = false;
+                bool heading = false; /**< Enable heading control */
                 bool projection_operator = true;
                 int halt_size = 5;           
                 bool robot_path_orient_linear_decay = true; /**< Enable linear decay of robot path orientation */
@@ -81,7 +82,7 @@ namespace quad_gap
                 int ctrl_ahead_pose = 2;
                 float vx_absmax = 0.5;
                 float vy_absmax = 0.5;
-                float ang_absmax = 0.2;       
+                float vang_absmax = 0.2;       
                 float speed_factor = 2.0;
             } control;
             
@@ -107,11 +108,9 @@ namespace quad_gap
 
             struct ProjectionParam 
             {
-                float k_po = 0.8;
-                float r_min = 0.5;
-                float r_norm = 0.75;
-                float r_norm_offset = 0.5;
-                float k_po_turn = 1;
+                float k_po_x = 1.0; /**< Proportional gain in x-direction for projection operator */
+                float r_unity = 0.5; /**< Robot to environment distance at which projection operator takes on a value of 1 */
+                float r_zero = 1.0; /**< Robot to environment distance at which projection operator takes on a value of 0 */
             } projection;
 
             struct Trajectory 

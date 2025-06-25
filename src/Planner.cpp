@@ -124,13 +124,13 @@ namespace quad_gap
         rbt2map_.transform.rotation.w = 1;
         odom2rbt_.transform.rotation.w = 1;
         rbt2odom_.transform.rotation.w = 1;
-        rbtPoseRbtFrame_.pose.orientation.w = 1;
-        rbtPoseRbtFrame_.header.frame_id = cfg_.robot_frame_id;
+        rbtPoseInRbtFrame_.pose.orientation.w = 1;
+        rbtPoseInRbtFrame_.header.frame_id = cfg_.robot_frame_id;
 
         // Set collision checker
         if(!cfg_.collision_checker.collision_checker_enable)
         {
-            ROS_WARN_STREAM("Collision checking is disabled.");
+            ROS_WARN_STREAM_NAMED("Planner", "Collision checking is disabled.");
             // return;
         }
 
@@ -165,8 +165,8 @@ namespace quad_gap
     bool Planner::isGoalReached()
     {
         // Linear distance
-        float globalGoalXDiff = globalGoalOdomFrame_.pose.position.x - rbtPoseOdomFrame_.pose.position.x;
-        float globalGoalYDiff = globalGoalOdomFrame_.pose.position.y - rbtPoseOdomFrame_.pose.position.y;
+        float globalGoalXDiff = globalGoalOdomFrame_.pose.position.x - rbtPoseInOdomFrame_.pose.position.x;
+        float globalGoalYDiff = globalGoalOdomFrame_.pose.position.y - rbtPoseInOdomFrame_.pose.position.y;
         float globalGoalLinDist = sqrt(pow(globalGoalXDiff, 2) + pow(globalGoalYDiff, 2));
 
         // Angular distance
@@ -328,7 +328,7 @@ namespace quad_gap
         // Transform the msg to odom frame
         if (rbtOdomMsg->header.frame_id != cfg_.odom_frame_id)
         {
-            ROS_WARN_STREAM("Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg_ odom frame:" << cfg_.odom_frame_id);
+            ROS_WARN_STREAM_NAMED("Planner", "Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg_ odom frame:" << cfg_.odom_frame_id);
 
             geometry_msgs::TransformStamped origFrame2OdomFrame = tfBuffer->lookupTransform(cfg_.odom_frame_id, 
                                                                                             rbtOdomMsg->header.frame_id, 
@@ -339,11 +339,11 @@ namespace quad_gap
             poseIn.pose = rbtOdomMsg->pose.pose;
 
             tf2::doTransform(poseIn, poseOut, origFrame2OdomFrame);
-            rbtPoseOdomFrame_ = poseOut;
+            rbtPoseInOdomFrame_ = poseOut;
         } else
         {
-            rbtPoseOdomFrame_.header = rbtOdomMsg->header;
-            rbtPoseOdomFrame_.pose = rbtOdomMsg->pose.pose;
+            rbtPoseInOdomFrame_.header = rbtOdomMsg->header;
+            rbtPoseInOdomFrame_.pose = rbtOdomMsg->pose.pose;
         }
 
         ///////////////////////////
@@ -353,7 +353,7 @@ namespace quad_gap
         // if (rbtOdomMsg->child_frame_id != cfg_.robot_frame_id)
         // {
 
-        ROS_WARN_STREAM("Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg_ rbt frame:" << cfg_.robot_frame_id);
+        // ROS_WARN_STREAM_NAMED("Planner", "Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg_ rbt frame: " << cfg_.robot_frame_id);
 
         geometry_msgs::Vector3Stamped velIn, velOut;
         velIn.header = rbtOdomMsg->header; // TODO: make sure this is correct frame
@@ -460,7 +460,7 @@ namespace quad_gap
             rbt2cam_ = tfBuffer->lookupTransform(cfg_.sensor_frame_id, cfg_.robot_frame_id, ros::Time(0));
             cam2rbt_ = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
 
-            tf2::doTransform(rbtPoseRbtFrame_, rbtPoseCamFrame_, rbt2cam_);
+            tf2::doTransform(rbtPoseInRbtFrame_, rbtPoseInSensorFrame_, rbt2cam_);
         
             haveTFs_ = true;
         } catch (tf2::TransformException &ex) 
@@ -685,7 +685,7 @@ namespace quad_gap
 
         if (gapTrajCosts.at(candidateLowestCostTrajIdx) == std::numeric_limits<float>::infinity()) 
         {
-            ROS_WARN_STREAM("No executable trajectory, values: ");
+            ROS_WARN_STREAM_NAMED("Planner", "No executable trajectory, values: ");
             for (const float & gapTrajCost : gapTrajCosts) 
             {
                 ROS_INFO_STREAM_NAMED("Planner", "Cost: " << gapTrajCost);
@@ -781,14 +781,14 @@ namespace quad_gap
             //         geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
             //         setCurrentTraj(empty_traj);
             //         virtual_currTraj = empty_traj;
-            //         ROS_WARN_STREAM("Old Traj length 0, curr traj score inf.");
+            //         ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0, curr traj score inf.");
             //         return empty_traj;
             //     } else 
             //     {
             //         setCurrentTraj(incomingTraj);
             //         virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
             //         trajectory_pub.publish(incomingTraj);
-            //         ROS_WARN_STREAM("Old Traj length 0");
+            //         ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0");
             //         return incomingTraj;
             //     }
             // } 
@@ -845,7 +845,7 @@ namespace quad_gap
 
             if (reducedCurrTrajCost == std::numeric_limits<float>::infinity())
             {
-                ROS_WARN_STREAM("current score infinity, switching to incoming path, score of: " << incomingTrajCost);
+                ROS_WARN_STREAM_NAMED("Planner", "current score infinity, switching to incoming path, score of: " << incomingTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
                 incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
                 // trajectory_pub.publish(incomingTraj);
@@ -856,7 +856,7 @@ namespace quad_gap
 
             // if (reducedCurrTrajCost == -std::numeric_limits<float>::infinity() && incomingTrajCost == -std::numeric_limits<float>::infinity()) 
             // {
-            //     ROS_WARN_STREAM("Both Failed");
+            //     ROS_WARN_STREAM_NAMED("Planner", "Both Failed");
             //     geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
             //     setCurrentTraj(empty_traj);
             //     virtual_currTraj = empty_traj;
@@ -865,7 +865,7 @@ namespace quad_gap
 
             if (incomingTrajCost < reducedCurrTrajCost)  
             {
-                ROS_WARN_STREAM("Swap to new for better score: " << incomingTrajCost << " > " << reducedCurrTrajCost);
+                ROS_WARN_STREAM_NAMED("Planner", "Swap to new for better score: " << incomingTrajCost << " > " << reducedCurrTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
                 incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
                 // trajectory_pub.publish(incomingTraj);
@@ -897,11 +897,11 @@ namespace quad_gap
 
         // TrajPlan orig_ref = trajController_->trajGen(orientedPathRbtFrame);
         orientedPathRbtFrame.header.frame_id = cfg_.robot_frame_id;
-        ctrl_idx = trajController_->targetPoseIdx(curr_pose, orientedPathRbtFrame);
+        int targetTrajectoryPoseIdx_ = trajController_->extractTargetPoseIdx(curr_pose, orientedPathRbtFrame);
 
         pips_trajectory_msgs::trajectory_points local_traj;
         local_traj.header.frame_id = cfg_.robot_frame_id;
-        for (int i = ctrl_idx; i < orientedPathRbtFrame.poses.size(); i++)
+        for (int i = targetTrajectoryPoseIdx_; i < orientedPathRbtFrame.poses.size(); i++)
         {
             pips_trajectory_msgs::trajectory_point pt;
             pt.x = orientedPathRbtFrame.poses[i].position.x;
@@ -967,49 +967,83 @@ namespace quad_gap
 
     geometry_msgs::Twist Planner::ctrlGeneration(const Trajectory & traj) 
     {
-        geometry_msgs::PoseArray pathOdomFrame = traj.getPathOdomFrame();
-
-        if (!haveTFs_)
-            return geometry_msgs::Twist();
-
-        if (pathOdomFrame.poses.size() < 1)
-        {
-            ROS_WARN_STREAM("Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
-            return geometry_msgs::Twist();
-        }
+        ROS_INFO_STREAM_NAMED("Controller", "[ctrlGeneration()]");
 
         timeKeeper_->startTimer(CONTROL);
 
-        // Know Current Pose
-        geometry_msgs::PoseStamped currPoseStRobotFrame;
-        currPoseStRobotFrame.header.frame_id = cfg_.robot_frame_id;
-        currPoseStRobotFrame.pose.orientation.w = 1;
+        geometry_msgs::Twist rawCmdVel = geometry_msgs::Twist();
+        geometry_msgs::Twist cmdVel = rawCmdVel;
 
-        geometry_msgs::PoseStamped currPoseStampedOdomFrame;
-        currPoseStampedOdomFrame.header.frame_id = cfg_.odom_frame_id;
-        currPoseStampedOdomFrame.pose.orientation.w = 1;
+        try
+        {        
+            if (!haveTFs_)
+            return cmdVel;
 
-        tf2::doTransform(currPoseStRobotFrame, currPoseStampedOdomFrame, rbt2odom_);
-        geometry_msgs::Pose currPoseOdomFrame = currPoseStampedOdomFrame.pose;
+            geometry_msgs::PoseArray pathOdomFrame = traj.getPathOdomFrame();
 
-        // TrajPlan orig_ref = trajController_->trajGen(pathOdomFrame);
-        ctrl_idx = trajController_->targetPoseIdx(currPoseOdomFrame, pathOdomFrame);
+            if (pathOdomFrame.poses.size() < 1)
+            {
+                ROS_WARN_STREAM_NAMED("Planner", "Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
+                return cmdVel;
+            }
+    
+            // Current Pose (Robot frame)
+            geometry_msgs::PoseStamped currPoseStRobotFrame;
+            currPoseStRobotFrame.header.frame_id = cfg_.robot_frame_id;
+            currPoseStRobotFrame.pose.orientation.w = 1;
 
-        geometry_msgs::Pose ctrl_target_pose_odom = pathOdomFrame.poses.at(ctrl_idx);
+            // Current Pose (Odom frame)
+            geometry_msgs::PoseStamped currPoseStampedOdomFrame;
+            currPoseStampedOdomFrame.header.frame_id = cfg_.odom_frame_id;
+            tf2::doTransform(currPoseStRobotFrame, currPoseStampedOdomFrame, rbt2odom_);
+            geometry_msgs::Pose currPoseOdomFrame = currPoseStampedOdomFrame.pose;
 
-        // nav_msgs::Odometry ctrl_target_pose;
-        // ctrl_target_pose.header = pathOdomFrame.header;
-        // ctrl_target_pose.pose.pose = pathOdomFrame.poses.at(ctrl_idx);
-        // ctrl_target_pose.twist.twist = orig_ref.twist.at(ctrl_idx);
+            // TrajPlan orig_ref = trajController_->trajGen(pathOdomFrame);
+            int targetTrajectoryPoseIdx_ = trajController_->extractTargetPoseIdx(currPoseOdomFrame, pathOdomFrame);
 
-        sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
+            geometry_msgs::Pose targetTrajectoryPoseOdomFrame = pathOdomFrame.poses.at(targetTrajectoryPoseIdx_);
 
-        timeKeeper_->startTimer(FEEBDACK);
-        geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, ctrl_target_pose_odom, stored_scan_msgs, currPoseStRobotFrame);
-        timeKeeper_->stopTimer(FEEBDACK);
+            // sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
+
+            // timeKeeper_->startTimer(FEEBDACK);
+            // geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, targetTrajectoryPoseOdomFrame, stored_scan_msgs, currPoseStRobotFrame);
+            // timeKeeper_->stopTimer(FEEBDACK);
+
+
+            if (cfg_.planning.holonomic)
+            {
+                timeKeeper_->startTimer(FEEBDACK);
+                rawCmdVel = trajController_->controlLawHolonomic(currPoseOdomFrame, targetTrajectoryPoseOdomFrame);
+                timeKeeper_->stopTimer(FEEBDACK);
+
+                timeKeeper_->startTimer(PO);
+                cmdVel = trajController_->processCmdVelHolonomic(rawCmdVel, rbtPoseInSensorFrame_); 
+                timeKeeper_->stopTimer(PO);
+            } else
+            {
+                timeKeeper_->startTimer(FEEBDACK);
+                rawCmdVel = trajController_->controlLawNonholonomic(currPoseOdomFrame, targetTrajectoryPoseOdomFrame);
+                timeKeeper_->stopTimer(FEEBDACK);
+
+                timeKeeper_->startTimer(PO);
+                cmdVel = trajController_->processCmdVelNonholonomic(currPoseOdomFrame,
+                                                                    targetTrajectoryPoseOdomFrame,
+                                                                    rawCmdVel,
+                                                                    rbtPoseInSensorFrame_); 
+                timeKeeper_->stopTimer(FEEBDACK);
+            }
+
+        } catch (const std::exception &e)
+        {
+            ROS_ERROR_STREAM_NAMED("Controller", "Exception in ctrlGeneration: " << e.what());
+        } catch (...)
+        {
+            ROS_ERROR_STREAM_NAMED("Controller", "Unknown exception in ctrlGeneration");
+        }
 
         timeKeeper_->stopTimer(CONTROL);
-        return cmd_vel;
+
+        return cmdVel;        
     }
 
     // void Planner::rcfgCallback(qgConfig &config, uint32_t level)
@@ -1164,7 +1198,7 @@ namespace quad_gap
 
             if(cc_results.collision_idx_ >= 0 && float(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
             {
-                ROS_WARN_STREAM("Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
+                ROS_WARN_STREAM_NAMED("Planner", "Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
                 setCurrentTraj(Trajectory()); // geometry_msgs::PoseArray()
             }
         }

@@ -60,6 +60,7 @@ namespace quad_gap
             // Planning Mode //
             ///////////////////
             ros_throw_param_load(nh, "holonomic", planning.holonomic);
+            ros_throw_param_load(nh, "heading", planning.heading);
             ros_throw_param_load(nh, "projection_operator", planning.projection_operator);
             ros_throw_param_load(nh, "halt_size", planning.halt_size);
             ros_throw_param_load(nh, "robot_path_orient_linear_decay", planning.robot_path_orient_linear_decay);
@@ -79,7 +80,7 @@ namespace quad_gap
             ros_throw_param_load(nh, "ctrl_ahead_pose", control.ctrl_ahead_pose);
             ros_throw_param_load(nh, "vx_absmax", control.vx_absmax);
             ros_throw_param_load(nh, "vy_absmax", control.vy_absmax);
-            ros_throw_param_load(nh, "ang_absmax", control.ang_absmax);
+            ros_throw_param_load(nh, "vang_absmax", control.vang_absmax);
             ros_throw_param_load(nh, "speed_factor", control.speed_factor);
 
             ///////////////////////////
@@ -105,11 +106,9 @@ namespace quad_gap
             ///////////////////////
             // Projection Params //
             ///////////////////////
-            ros_throw_param_load(nh, "k_po", projection.k_po);
-            ros_throw_param_load(nh, "k_po_turn", projection.k_po_turn);
-            ros_throw_param_load(nh, "r_min", projection.r_min);
-            ros_throw_param_load(nh, "r_norm", projection.r_norm);
-            ros_throw_param_load(nh, "r_norm_offset", projection.r_norm_offset);
+            ros_throw_param_load(nh, "k_po_x", projection.k_po_x);
+            ros_throw_param_load(nh, "r_unity", projection.r_unity);
+            ros_throw_param_load(nh, "r_zero", projection.r_zero);
 
             ///////////////////////
             // Trajectory Params //

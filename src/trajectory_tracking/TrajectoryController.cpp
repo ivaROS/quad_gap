@@ -4,10 +4,13 @@ namespace quad_gap
 {
     TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
     {
-        projection_viz = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
+        projOpPublisher_ = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
         cfg_ = & cfg;
-        thres = 0.1;
-        last_time = ros::Time::now();
+
+        // thres = 0.1;
+        // last_time = ros::Time::now();
+
+        l_ = cfg_->rbt.r_inscr * cfg_->traj.inf_ratio; // error.norm();
     }
 
     void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan)
@@ -17,429 +20,618 @@ namespace quad_gap
     }
 
     // [[deprecated("Not Used, Deemed Unnecessary")]]
-    std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
-    {
-        sensor_msgs::LaserScan egocircle = *scan_.get();
-        std::vector<float> dist(egocircle.ranges.size());
+    // std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
+    // {
+    //     sensor_msgs::LaserScan egocircle = *scan_.get();
+    //     std::vector<float> dist(egocircle.ranges.size());
 
-        if (!scan_) {
-            return std::vector<geometry_msgs::Point>(0);
-        }
+    //     if (!scan_) {
+    //         return std::vector<geometry_msgs::Point>(0);
+    //     }
         
-        if (egocircle.ranges.size() < 500) {
-            ROS_FATAL_STREAM("Scan range incorrect findLocalLine");
-        }
+    //     if (egocircle.ranges.size() < 500) {
+    //         ROS_FATAL_STREAM("Scan range incorrect findLocalLine");
+    //     }
 
 
 
-        for (int i = 1; i < dist.size(); i++) {
-            float l1 = egocircle.ranges.at(i);
-            float t1 = float(i) * egocircle.angle_increment + egocircle.angle_min;
-            float l2 = egocircle.ranges.at(i - 1);
-            float t2 = float(i - 1) * egocircle.angle_increment + egocircle.angle_min;
-            if (l1 > 2.9) {
-                dist.at(i) = 10;
-            } else {
-                dist.at(i) = polDist(l1, t1, l2, t2);
-            } 
-        }
+    //     for (int i = 1; i < dist.size(); i++) {
+    //         float l1 = egocircle.ranges.at(i);
+    //         float t1 = float(i) * egocircle.angle_increment + egocircle.angle_min;
+    //         float l2 = egocircle.ranges.at(i - 1);
+    //         float t2 = float(i - 1) * egocircle.angle_increment + egocircle.angle_min;
+    //         if (l1 > 2.9) {
+    //             dist.at(i) = 10;
+    //         } else {
+    //             dist.at(i) = polDist(l1, t1, l2, t2);
+    //         } 
+    //     }
 
-        dist.at(0) = polDist(egocircle.ranges.at(0), egocircle.angle_min, egocircle.ranges.at(511), float(511) * egocircle.angle_increment + egocircle.angle_min);
+    //     dist.at(0) = polDist(egocircle.ranges.at(0), egocircle.angle_min, egocircle.ranges.at(511), float(511) * egocircle.angle_increment + egocircle.angle_min);
 
-        auto result_fwd = std::find_if(dist.begin() + idx, dist.end(), 
-            std::bind1st(std::mem_fun(&TrajectoryController::geqThres), this));
+    //     auto result_fwd = std::find_if(dist.begin() + idx, dist.end(), 
+    //         std::bind1st(std::mem_fun(&TrajectoryController::geqThres), this));
 
-        auto res_rev = std::find_if(dist.rbegin() + (dist.size() - idx), dist.rend(),
-            std::bind1st(std::mem_fun(&TrajectoryController::geqThres), this));
+    //     auto res_rev = std::find_if(dist.rbegin() + (dist.size() - idx), dist.rend(),
+    //         std::bind1st(std::mem_fun(&TrajectoryController::geqThres), this));
         
 
-        if (res_rev == dist.rend()) {
-            return std::vector<geometry_msgs::Point>(0);
-        }
+    //     if (res_rev == dist.rend()) {
+    //         return std::vector<geometry_msgs::Point>(0);
+    //     }
 
-        int idx_fwd = std::distance(dist.begin(), std::prev(result_fwd));
-        int idx_rev = std::distance(res_rev, dist.rend());
+    //     int idx_fwd = std::distance(dist.begin(), std::prev(result_fwd));
+    //     int idx_rev = std::distance(res_rev, dist.rend());
 
-        int min_idx_range = 0;
-        int max_idx_range = int(egocircle.ranges.size() - 1);
-        if (idx_fwd < min_idx_range || idx_fwd > max_idx_range || idx_rev < min_idx_range || idx_rev > max_idx_range) {
-            return std::vector<geometry_msgs::Point>(0);
-        }
+    //     int min_idx_range = 0;
+    //     int max_idx_range = int(egocircle.ranges.size() - 1);
+    //     if (idx_fwd < min_idx_range || idx_fwd > max_idx_range || idx_rev < min_idx_range || idx_rev > max_idx_range) {
+    //         return std::vector<geometry_msgs::Point>(0);
+    //     }
         
-        float dist_fwd = egocircle.ranges.at(idx_fwd);
-        float dist_rev = egocircle.ranges.at(idx_rev);
-        float dist_cent = egocircle.ranges.at(idx);
+    //     float dist_fwd = egocircle.ranges.at(idx_fwd);
+    //     float dist_rev = egocircle.ranges.at(idx_rev);
+    //     float dist_cent = egocircle.ranges.at(idx);
 
-        float angle_fwd = float(idx_fwd) * egocircle.angle_increment + egocircle.angle_min;
-        float angle_rev = float(idx_rev) * egocircle.angle_increment + egocircle.angle_min;
+    //     float angle_fwd = float(idx_fwd) * egocircle.angle_increment + egocircle.angle_min;
+    //     float angle_rev = float(idx_rev) * egocircle.angle_increment + egocircle.angle_min;
         
-        if (idx_fwd < idx || idx_rev > idx) {
-            return std::vector<geometry_msgs::Point>(0);
-        }
+    //     if (idx_fwd < idx || idx_rev > idx) {
+    //         return std::vector<geometry_msgs::Point>(0);
+    //     }
 
-        Eigen::Vector2f fwd_pol(dist_fwd, angle_fwd);
-        Eigen::Vector2f rev_pol(dist_rev, angle_rev);
-        Eigen::Vector2f cent_pol(dist_cent, float(idx) * egocircle.angle_increment + egocircle.angle_min);
-        Eigen::Vector2f fwd_car = pol2car(fwd_pol);
-        Eigen::Vector2f rev_car = pol2car(rev_pol);
-        Eigen::Vector2f cent_car = pol2car(cent_pol);
+    //     Eigen::Vector2f fwd_pol(dist_fwd, angle_fwd);
+    //     Eigen::Vector2f rev_pol(dist_rev, angle_rev);
+    //     Eigen::Vector2f cent_pol(dist_cent, float(idx) * egocircle.angle_increment + egocircle.angle_min);
+    //     Eigen::Vector2f fwd_car = pol2car(fwd_pol);
+    //     Eigen::Vector2f rev_car = pol2car(rev_pol);
+    //     Eigen::Vector2f cent_car = pol2car(cent_pol);
 
-        Eigen::Vector2f pf;
-        Eigen::Vector2f pr;
+    //     Eigen::Vector2f pf;
+    //     Eigen::Vector2f pr;
 
-        if (dist_cent < dist_fwd && dist_cent < dist_rev) {
-            // ROS_INFO_STREAM("Non line");
-            Eigen::Vector2f a = cent_car - fwd_car;
-            Eigen::Vector2f b = rev_car - fwd_car;
-            Eigen::Vector2f a1 = (a.dot(b / b.norm())) * (b / b.norm());
-            Eigen::Vector2f a2 = a - a1;
-            pf = fwd_car + a2;
-            pr = rev_car + a2;
-        } else {
-            pf = fwd_car;
-            pr = rev_car;
-        }
+    //     if (dist_cent < dist_fwd && dist_cent < dist_rev) {
+    //         // ROS_INFO_STREAM("Non line");
+    //         Eigen::Vector2f a = cent_car - fwd_car;
+    //         Eigen::Vector2f b = rev_car - fwd_car;
+    //         Eigen::Vector2f a1 = (a.dot(b / b.norm())) * (b / b.norm());
+    //         Eigen::Vector2f a2 = a - a1;
+    //         pf = fwd_car + a2;
+    //         pr = rev_car + a2;
+    //     } else {
+    //         pf = fwd_car;
+    //         pr = rev_car;
+    //     }
 
-        geometry_msgs::Point lower_point;
-        lower_point.x = pf(0);
-        lower_point.y = pf(1);
-        lower_point.z = 3;
-        geometry_msgs::Point upper_point;
-        upper_point.x = pr(0);
-        upper_point.y = pr(1);
-        upper_point.z = 3;
-        // if form convex hull
-        std::vector<geometry_msgs::Point> retArr(0);
-        retArr.push_back(lower_point);
-        retArr.push_back(upper_point);
-        return retArr;
-    }
+    //     geometry_msgs::Point lower_point;
+    //     lower_point.x = pf(0);
+    //     lower_point.y = pf(1);
+    //     lower_point.z = 3;
+    //     geometry_msgs::Point upper_point;
+    //     upper_point.x = pr(0);
+    //     upper_point.y = pr(1);
+    //     upper_point.z = 3;
+    //     // if form convex hull
+    //     std::vector<geometry_msgs::Point> retArr(0);
+    //     retArr.push_back(lower_point);
+    //     retArr.push_back(upper_point);
+    //     return retArr;
+    // }
 
-    bool TrajectoryController::geqThres(const float dist)
-    {
-        return dist >= thres;
-    }
+    // bool TrajectoryController::geqThres(const float dist)
+    // {
+    //     return dist >= thres;
+    // }
 
     float TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
     {
         return abs(float(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
     }
 
-    geometry_msgs::Twist TrajectoryController::controlLaw(const geometry_msgs::Pose & current, 
-                                                            const geometry_msgs::Pose & desired,
-                                                            const sensor_msgs::LaserScan & inflated_egocircle, 
-                                                            const geometry_msgs::PoseStamped & init_pose) 
+    // ,
+    // const sensor_msgs::LaserScan & inflated_egocircle, 
+    // const geometry_msgs::PoseStamped & init_pose    
+    geometry_msgs::Twist TrajectoryController::controlLawHolonomic(const geometry_msgs::Pose & currentPoseOdomFrame, 
+                                                                    const geometry_msgs::Pose & desiredPoseOdomFrame) 
     {
         // Setup Vars
         boost::mutex::scoped_lock lock(egocircle_l);
-        bool holonomic = cfg_->planning.holonomic;
-        bool projection_operator = cfg_->planning.projection_operator;
-        float k_turn_ = cfg_->control.k_turn;
-        if (holonomic) k_turn_ = 0.8;
-        float k_drive_x_ = cfg_->control.k_drive_x;
-        float k_drive_y_ = cfg_->control.k_drive_y;
-        float k_po_ = cfg_->projection.k_po;
-        float v_ang_const = cfg_->control.v_ang_const;
-        float v_lin_x_const = cfg_->control.v_lin_x_const;
-        float v_lin_y_const = cfg_->control.v_lin_y_const;
-        float r_min = cfg_->projection.r_min;
-        float r_norm = cfg_->projection.r_norm;
-        float r_norm_offset = cfg_->projection.r_norm_offset; 
-        float k_po_turn_ = cfg_->projection.k_po_turn;
+        // bool holonomic = cfg_->planning.holonomic;
+        // bool projection_operator = cfg_->planning.projection_operator;
+        // float k_turn_ = cfg_->control.k_turn;
+        // if (holonomic) k_turn_ = 0.8;
+        // float k_drive_x_ = cfg_->control.k_drive_x;
+        // float k_drive_y_ = cfg_->control.k_drive_y;
+        // float k_po_ = cfg_->projection.k_po;
+        // float v_ang_const = cfg_->control.v_ang_const;
+        // float v_lin_x_const = cfg_->control.v_lin_x_const;
+        // float v_lin_y_const = cfg_->control.v_lin_y_const;
+        // float r_min = cfg_->projection.r_min;
+        // float r_norm = cfg_->projection.r_norm;
+        // float r_norm_offset = cfg_->projection.r_norm_offset; 
+        // float k_po_turn_ = cfg_->projection.k_po_turn;
 
         // auto inflated_egocircle = *scan_.get();
-        geometry_msgs::Twist cmd_vel;
-        geometry_msgs::Point position = current.position;
-        geometry_msgs::Quaternion orientation = current.orientation;
+        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
 
-        tf::Quaternion q_c(orientation.x,
-                            orientation.y,
-                            orientation.z,
-                            orientation.w);
-        // tf::Matrix3x3 m_c(q_c);
-        // float c_roll, c_pitch, c_yaw;
-        // m_c.getRPY(c_roll, c_pitch, c_yaw);
-        float currYaw = quaternionToYaw(q_c);
+        // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
+        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
+        float currYaw = quaternionToYaw(currQuat); 
 
-        Eigen::Matrix2cf g_curr = getComplexMatrix(position.x, position.y, currYaw);
+        // get current x,y,theta
+        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
-        position = desired.position;
-        orientation = desired.orientation;
+        // obtaining RPY of desired orientation
+        geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
+        geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
 
-        tf::Quaternion q_d(orientation.x,
-                            orientation.y,
-                            orientation.z,
-                            orientation.w);
-        // tf::Matrix3x3 m_d(q_d);
-        // float d_roll, d_pitch, d_yaw;
-        // m_d.getRPY(d_roll, d_pitch, d_yaw);
-        float desYaw = quaternionToYaw(q_d);
+        float desYaw = quaternionToYaw(desQuat);
 
-        Eigen::Matrix2cf g_des = getComplexMatrix(position.x, position.y, desYaw);
+        // get desired x,y,theta
+        Eigen::Matrix2cf desRbtTransform = getComplexMatrix(desPosn.x, desPosn.y, desYaw);
 
-        Eigen::Matrix2cf g_error = g_curr.inverse() * g_des;
-        float theta_error = std::arg(g_error(0, 0));
-        float x_error = g_error.real()(0, 1);
-        float y_error = g_error.imag()(0, 1);
+        // get x,y,theta error
+        Eigen::Matrix2cf errorMat = currRbtTransform.inverse() * desRbtTransform;
+        float errorX = errorMat.real()(0, 1);
+        float errorY = errorMat.imag()(0, 1);
+        float errorTheta = std::arg(errorMat(0, 0));
 
+        float v_lin_x_fb = errorX * cfg_->control.k_drive_x;
+        float v_lin_y_fb = errorY * cfg_->control.k_drive_y;
+        float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.k_turn;
 
-        float u_add_x = 0;
-        float u_add_y = 0;
-        float v_ang_fb = 0;
-        float v_lin_x_fb = 0;
-        float v_lin_y_fb = 0;
+        cmdVel.linear.x = v_lin_x_fb;
+        cmdVel.linear.y = v_lin_y_fb;
+        cmdVel.angular.z = v_ang_fb;
 
-        if (cfg_->man.man_ctrl) 
-        {
-            ROS_INFO_STREAM("Manual Control");
-            v_ang_fb = cfg_->man.man_theta;
-            v_lin_x_fb = cfg_->man.man_x;
-            v_lin_y_fb = cfg_->man.man_y;
-        } else 
-        {
-            v_ang_fb = theta_error * k_turn_;
-            v_lin_x_fb = x_error * k_drive_x_;
-            v_lin_y_fb = y_error * k_drive_y_;
-        }
-
-        float min_dist_ang = 0;
-        float min_dist = 0;
-
-        float min_diff_x = 0;
-        float min_diff_y = 0;
-
-        // ROS_INFO_STREAM(init_pose.pose);
+        // // ROS_INFO_STREAM(init_pose.pose);
         
-        Eigen::Vector3f comp;
-        float prod_mul;
-        Eigen::Vector2f si_der;
-        Eigen::Vector2f v_err(v_lin_x_fb, v_lin_y_fb);
+        // Eigen::Vector3f comp;
+        // float prod_mul;
+        // Eigen::Vector2f si_der;
+        // Eigen::Vector2f v_err(v_lin_x_fb, v_lin_y_fb);
 
 
-        if (inflated_egocircle.ranges.size() < 500) 
-        {
-            ROS_FATAL_STREAM("Scan range incorrect controlLaw");
-        }
+        // if (inflated_egocircle.ranges.size() < 500) 
+        // {
+        //     ROS_FATAL_STREAM("Scan range incorrect controlLaw");
+        // }
 
-        if (projection_operator)
-        {
-            std::vector<float> min_dist_arr(inflated_egocircle.ranges.size());
-            for (int i = 0; i < min_dist_arr.size(); i++) 
-            {
-                float angle = i * inflated_egocircle.angle_increment - M_PI;
-                float dist = inflated_egocircle.ranges.at(i);
-                min_dist_arr.at(i) = dist2Pose(angle, dist, init_pose.pose);
-            }
-            int min_idx = std::min_element( min_dist_arr.begin(), min_dist_arr.end() ) - min_dist_arr.begin();
+        // if (holonomic)
+        // {
+        //     v_ang_fb = v_ang_fb + v_ang_const;
+        //     v_lin_x_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
+        //     v_lin_y_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_y_fb + v_lin_y_const + k_po_ * u_add_y;
 
-            // ROS_INFO_STREAM("Local Line Start");
-            std::vector<geometry_msgs::Point> vec = findLocalLine(min_idx);
-            // ROS_INFO_STREAM("Local Line End");
-            
-            if (vec.size() > 1) 
-            {
-                // Visualization and Recenter
-                vec.at(0).x -= init_pose.pose.position.x;
-                vec.at(0).y -= init_pose.pose.position.y;
-                vec.at(1).x -= init_pose.pose.position.x;
-                vec.at(1).y -= init_pose.pose.position.y;
+        //     if (v_lin_x_fb < 0)
+        //         v_lin_x_fb = 0;
+        // }
+        // else
+        // {
+        //     v_ang_fb = v_ang_fb + v_lin_y_fb + k_po_turn_ * u_add_y + v_ang_const;
+        //     v_lin_x_fb = v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
 
-                std::vector<std_msgs::ColorRGBA> color;
-                std_msgs::ColorRGBA std_color;
-                std_color.a = 1;
-                std_color.r = 1;
-                std_color.g = 0.1;
-                std_color.b = 0.1;
-                color.push_back(std_color);
-                color.push_back(std_color);
-                visualization_msgs::Marker line_viz;
-                line_viz.header.frame_id = cfg_->robot_frame_id;
-                line_viz.type = visualization_msgs::Marker::LINE_STRIP;
-                line_viz.action = visualization_msgs::Marker::ADD;
-                line_viz.points = vec;
-                line_viz.colors = color;
-                line_viz.scale.x = 0.01;
-                line_viz.scale.y = 0.1;
-                line_viz.scale.z = 0.1;
-                line_viz.id = 10;
-                projection_viz.publish(line_viz);
-            }
+        //     if (projection_operator && min_dist_ang > - M_PI / 4 && min_dist_ang < M_PI / 4 && min_dist < cfg_->rbt.r_inscr)
+        //     {
+        //         v_lin_x_fb = 0;
+        //         v_ang_fb *= 2;
+        //     }
 
-            // ROS_DEBUG_STREAM("Elapsed: " << (ros::Time::now() - last_time).toSec());
-            last_time = ros::Time::now();
-            float r_max = r_norm + r_norm_offset;
-            min_dist = (float) min_dist_arr.at(min_idx);
-            min_dist = min_dist >= r_max ? r_max : min_dist;
-            if (min_dist <= 0) ROS_INFO_STREAM("Min dist <= 0, : " << min_dist);
-            min_dist = min_dist <= 0 ? 0.01 : min_dist;
+        //     v_lin_y_fb = 0;
 
-            min_dist_ang = (float)(min_idx) * inflated_egocircle.angle_increment + inflated_egocircle.angle_min;
-            float min_x = min_dist * cos(min_dist_ang) - init_pose.pose.position.x;
-            float min_y = min_dist * sin(min_dist_ang) - init_pose.pose.position.y;
-            min_dist = sqrt(pow(min_x, 2) + pow(min_y, 2));
+        //     if(v_lin_x_fb < 0)
+        //         v_lin_x_fb = 0;
+        // }
 
-            // ROS_INFO_STREAM("min_dist: " << min_dist);
+        // cmdVel.linear.x = std::max(-cfg_->control.vx_absmax, std::min(cfg_->control.vx_absmax, v_lin_x_fb));
+        // cmdVel.linear.y = std::max(-cfg_->control.vy_absmax, std::min(cfg_->control.vy_absmax, v_lin_y_fb));
+        // cmdVel.angular.z = std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, v_ang_fb));
 
-            if (cfg_->man.line && vec.size() > 0) {
-                // Dist to 
-                Eigen::Vector2f pt1(vec.at(0).x, vec.at(0).y);
-                Eigen::Vector2f pt2(vec.at(1).x, vec.at(1).y);
-                Eigen::Vector2f rbt(0, 0);
-                Eigen::Vector2f a = rbt - pt1;
-                Eigen::Vector2f b = pt2 - pt1;
-                Eigen::Vector2f c = rbt - pt2;
-                
-                if (a.dot(b) < 0) {
-                    // Dist to pt1
-                    // ROS_INFO_STREAM("Pt1");
-                    min_diff_x = - pt1(0);
-                    min_diff_y = - pt1(1);
-                    comp = projection_method(min_diff_x, min_diff_y);
-                    si_der = Eigen::Vector2f(comp(0), comp(1));
-                    prod_mul = v_err.dot(si_der);
-                } else if (c.dot(-b) < 0) {
-                    min_diff_x = - pt2(0);
-                    min_diff_y = - pt2(1);
-                    comp = projection_method(min_diff_x, min_diff_y);
-                    si_der = Eigen::Vector2f(comp(0), comp(1));
-                    prod_mul = v_err.dot(si_der);
-                } else {
-                    float line_dist = (pt1(0) * pt2(1) - pt2(0) * pt1(1)) / (pt1 - pt2).norm();
-                    float sign;
-                    sign = line_dist < 0 ? -1 : 1;
-                    line_dist *= sign;
-                    
-                    float line_si = (r_min / line_dist - r_min / r_norm) / (1. - r_min / r_norm);
-                    float line_si_der_base = r_min / (pow(line_dist, 2) * (r_min / r_norm - 1));
-                    float line_si_der_x = - (pt2(1) - pt1(1)) / (pt1 - pt2).norm() * line_si_der_base;
-                    float line_si_der_y = - (pt1(0) - pt2(0)) / (pt1 - pt2).norm() * line_si_der_base;
-                    Eigen::Vector2f der(line_si_der_x, line_si_der_y);
-                    der /= der.norm();
-                    comp = Eigen::Vector3f(der(0), der(1), line_si);
-                    si_der = der;
-                    si_der(1) /= 3;
-                    prod_mul = v_err.dot(si_der);
-                }
-
-            } else {
-                min_diff_x = - min_x;
-                min_diff_y = - min_y;
-                comp = projection_method(min_diff_x, min_diff_y);
-                si_der = Eigen::Vector2f(comp(0), comp(1));
-                si_der(1) /= 3;
-                prod_mul = v_err.dot(si_der);
-            }
-
-
-            if(comp(2) >= 0 && prod_mul <= 0)
-            {
-                u_add_x = comp(2) * prod_mul * - comp(0);
-                u_add_y = comp(2) * prod_mul * - comp(1);
-            }
-
-            visualization_msgs::Marker res;
-            res.header.frame_id = cfg_->robot_frame_id;
-            res.type = visualization_msgs::Marker::ARROW;
-            res.action = visualization_msgs::Marker::ADD;
-            res.pose.position.x = 0;
-            res.pose.position.y = 0;
-            res.pose.position.z = 1;
-            float dir = std::atan2(u_add_y, u_add_x);
-            tf2::Quaternion dir_quat;
-            dir_quat.setRPY(0, 0, dir);
-            res.pose.orientation = tf2::toMsg(dir_quat);
-
-            res.scale.x = sqrt(pow(u_add_y, 2) + pow(u_add_x, 2));
-            res.scale.y = 0.01; 
-            res.scale.y = 0.01; 
-            res.scale.y = 0.01; 
-            res.scale.z = 0.01;
-            
-            res.color.a = 1;
-            res.color.r = 0.9;
-            res.color.g = 0.9;
-            res.color.b = 0.9;
-            res.id = 0;
-            projection_viz.publish(res);
-
-            // Min Direction
-            res.header.frame_id = cfg_->sensor_frame_id;
-            res.scale.x = 1;
-            dir_quat.setRPY(0, 0, min_dist_ang);
-            res.pose.orientation = tf2::toMsg(dir_quat);
-            res.id = 1;
-            res.color.a = 0.5;
-            res.pose.position.z = 0.9;
-            projection_viz.publish(res);
-
-            res.header.frame_id = cfg_->robot_frame_id;
-            res.type = visualization_msgs::Marker::SPHERE;
-            res.action = visualization_msgs::Marker::ADD;
-            res.pose.position.x = -min_diff_x;
-            res.pose.position.y = -min_diff_y;
-            res.pose.position.z = 1;
-            res.scale.x = 0.1;
-            res.scale.y = 0.1;
-            res.scale.z = 0.1;
-            res.id = 2;
-            // res.color.a = 0.5;
-            // res.pose.position.z = 0.9;
-            projection_viz.publish(res);
-        } else {
-            ROS_DEBUG_STREAM_THROTTLE(10, "Projection operator off");
-        }
-
-        // Make sure no ejection
-        u_add_x = std::min(u_add_x, float(0));
-
-        if (holonomic)
-        {
-            v_ang_fb = v_ang_fb + v_ang_const;
-            v_lin_x_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
-            v_lin_y_fb = abs(theta_error) > M_PI / 3 ? 0 : v_lin_y_fb + v_lin_y_const + k_po_ * u_add_y;
-
-            if (v_lin_x_fb < 0)
-                v_lin_x_fb = 0;
-        }
-        else
-        {
-            v_ang_fb = v_ang_fb + v_lin_y_fb + k_po_turn_ * u_add_y + v_ang_const;
-            v_lin_x_fb = v_lin_x_fb + v_lin_x_const + k_po_ * u_add_x;
-
-            if (projection_operator && min_dist_ang > - M_PI / 4 && min_dist_ang < M_PI / 4 && min_dist < cfg_->rbt.r_inscr)
-            {
-                v_lin_x_fb = 0;
-                v_ang_fb *= 2;
-            }
-
-            v_lin_y_fb = 0;
-
-            if(v_lin_x_fb < 0)
-                v_lin_x_fb = 0;
-        }
-
-        cmd_vel.linear.x = std::max(-cfg_->control.vx_absmax, std::min(cfg_->control.vx_absmax, v_lin_x_fb));
-        cmd_vel.linear.y = std::max(-cfg_->control.vy_absmax, std::min(cfg_->control.vy_absmax, v_lin_y_fb));
-        cmd_vel.angular.z = std::max(-cfg_->control.ang_absmax, std::min(cfg_->control.ang_absmax, v_ang_fb));
-        return cmd_vel;
+        return cmdVel;
     }
 
-    Eigen::Vector3f TrajectoryController::projection_method(const float & min_diff_x, const float & min_diff_y) 
+
+    geometry_msgs::Twist TrajectoryController::controlLawNonholonomic(const geometry_msgs::Pose & currentPoseOdomFrame, 
+                                                                        const geometry_msgs::Pose & desiredPoseOdomFrame) 
+    { 
+        ROS_INFO_STREAM_NAMED("Controller", "    [constantVelocityControlLawNonHolonomicLookahead()]");
+        // Setup Vars
+        // boost::mutex::scoped_lock lock(scanMutex_);
+
+        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+
+        // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
+        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
+        float currYaw = quaternionToYaw(currQuat); 
+
+        // get current x,y,theta
+        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
+
+        ROS_INFO_STREAM_NAMED("Controller", "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
+
+        // obtaining RPY of desired orientation
+        geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
+        geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
+        float desYaw = quaternionToYaw(desQuat);
+
+        ROS_INFO_STREAM_NAMED("Controller", "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
+
+        // get desired x,y,theta
+        Eigen::Matrix2cf desRbtTransform = getComplexMatrix(desPosn.x, desPosn.y, desYaw);
+
+        // get x,y,theta error
+        Eigen::Matrix2cf errorMat = currRbtTransform.inverse() * desRbtTransform;
+        float errorX = desPosn.x - currPosn.x; // errorMat.real()(0, 1);
+        float errorY = desPosn.y - currPosn.y; // errorMat.imag()(0, 1);
+        // float errorTheta = std::arg(errorMat(0, 0));
+
+        float v_lin_x_fb = errorX * cfg_->control.k_drive_x;
+        float v_lin_y_fb = errorY * cfg_->control.k_drive_y;
+        // float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.k_turn;
+
+        // Eigen::Vector2f errorDir = epsilonDivide(error, error.norm());
+
+        Eigen::Vector2f constantVelocityCommand(v_lin_x_fb, v_lin_y_fb); 
+
+        // lookahead distance
+
+        // float l_adj = l; // 0.5 * l;
+
+        ROS_INFO_STREAM_NAMED("Controller", "        error: (" << errorX << ", " << errorY << "), l: " << l_); //  << ", l_adj: " << l_adj
+
+        Eigen::Matrix2f negRotMat = getRotMat(-currYaw);
+
+        Eigen::Matrix2f nidMat = Eigen::Matrix2f::Identity();
+        nidMat(1, 1) = (1.0 / l_);
+
+        Eigen::Vector2f nonholoVelocityCommand = nidMat * negRotMat * constantVelocityCommand;
+
+        float velLinXFeedback = nonholoVelocityCommand[0];
+        float velLinYFeedback = 0.0;
+        float velAngFeedback = nonholoVelocityCommand[1];
+
+        // Just storing desired displacement for now
+        cmdVel.linear.x = velLinXFeedback;
+        cmdVel.linear.y = velLinYFeedback;
+        cmdVel.angular.z = velAngFeedback;
+
+        return cmdVel; 
+    }
+
+    geometry_msgs::Twist TrajectoryController::processCmdVelHolonomic(const geometry_msgs::Twist & rawCmdVel,
+                                                                        const geometry_msgs::PoseStamped & rbtPoseInSensorFrame) 
     {
-        float r_min = cfg_->projection.r_min;
-        float r_norm = cfg_->projection.r_norm;
+        ROS_INFO_STREAM_NAMED("Controller", "    [processCmdVel()]");
 
-        float min_dist = sqrt(pow(min_diff_x, 2) + pow(min_diff_y, 2));
-        float si = (r_min / min_dist - r_min / r_norm) / (1. - r_min / r_norm);
-        float base_const = sqrt(pow(min_dist, 3)) * (r_min - r_norm);
-        float up_const = r_min * r_norm;
-        float si_der_x = up_const * - min_diff_x / base_const;
-        float si_der_y = up_const * - min_diff_y / base_const;
+        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
 
-        float norm_si_der = sqrt(pow(si_der_x, 2) + pow(si_der_y, 2));
-        float norm_si_der_x = si_der_x / norm_si_der;
-        float norm_si_der_y = si_der_y / norm_si_der;
-        return Eigen::Vector3f(norm_si_der_x, norm_si_der_y, si);
+        float velLinXFeedback = rawCmdVel.linear.x;
+        float velLinYFeedback = rawCmdVel.linear.y;
+        float velAngFeedback = rawCmdVel.angular.z;
+
+        // ROS_INFO_STREAM_NAMED("Controller", rbtPoseInSensorFrame.pose);
+        float minRangeTheta = 0;
+        float minRange = 0;
+
+        ROS_INFO_STREAM_NAMED("Controller", "        feedback command velocities: " << velLinXFeedback << ", " << velLinYFeedback);
+
+        // applies PO
+        float velLinXSafe = 0.;
+        float velLinYSafe = 0.;
+        
+        if (cfg_->planning.projection_operator)
+        {
+            ROS_INFO_STREAM_NAMED("Controller", "        running projection operator");
+            
+            Eigen::Vector2f cmdVelFeedback(rawCmdVel.linear.x, rawCmdVel.linear.y);
+
+            runProjectionOperator(rbtPoseInSensorFrame,
+                                    cmdVelFeedback, velLinXSafe, velLinYSafe,
+                                    minRangeTheta, minRange);
+            
+        } else 
+        {
+            ROS_DEBUG_STREAM_THROTTLE_NAMED(10, "Controller", "Projection operator off");
+        }
+        
+        float weightedVelLinXSafe = cfg_->projection.k_po_x * velLinXSafe;
+        float weightedVelLinYSafe = cfg_->projection.k_po_x * velLinYSafe;
+
+        ROS_INFO_STREAM_NAMED("Controller", "        safe command velocity, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
+
+        // cmdVel_safe
+        visualizeProjectionOperator(weightedVelLinXSafe, weightedVelLinYSafe, minRangeTheta, minRange);
+
+        velLinXFeedback += weightedVelLinXSafe;
+        velLinYFeedback += weightedVelLinYSafe; 
+
+        ROS_INFO_STREAM_NAMED("Controller", "        summed command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
+        clipRobotVelocity(velLinXFeedback, velLinYFeedback, velAngFeedback);
+        ROS_INFO_STREAM_NAMED("Controller", "        clipped command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
+
+        cmdVel.linear.x = velLinXFeedback;
+        cmdVel.linear.y = velLinYFeedback;
+        cmdVel.angular.z = velAngFeedback;
+
+        // ROS_INFO_STREAM_NAMED("Controller", "ultimate command velocity: " << cmdVel.linear.x << ", " << cmdVel.linear.y << ", " << cmdVel.angular.z);
+
+        return cmdVel;       
+    }
+
+
+    geometry_msgs::Twist TrajectoryController::processCmdVelNonholonomic(const geometry_msgs::Pose & currentPoseOdomFrame,
+                                                                            const geometry_msgs::Pose & desiredPoseOdomFrame,
+                                                                            const geometry_msgs::Twist & nonholoCmdVel,
+                                                                            const geometry_msgs::PoseStamped & rbtPoseInSensorFrame) 
+    {
+        ROS_INFO_STREAM_NAMED("Controller", "    [processCmdVelNonHolonomic()]");
+
+        // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
+        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
+        float currYaw = quaternionToYaw(currQuat); 
+
+        // get current x,y,theta
+        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
+
+        ROS_INFO_STREAM_NAMED("Controller", "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
+
+        // // obtaining RPY of desired orientation
+        // geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
+        // geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        // tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
+        // float desYaw = quaternionToYaw(desQuat);
+
+        // ROS_INFO_STREAM_NAMED("Controller", "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
+
+        // // get desired x,y,theta
+        // Eigen::Matrix2cf desRbtTransform = getComplexMatrix(desPosn.x, desPosn.y, desYaw);
+
+        // // get x,y,theta error
+        // Eigen::Matrix2cf errorMat = currRbtTransform.inverse() * desRbtTransform;
+        // float errorX = desPosn.x - currPosn.x; // errorMat.real()(0, 1);
+        // float errorY = desPosn.y - currPosn.y; // errorMat.imag()(0, 1);
+        // float errorTheta = std::arg(errorMat(0, 0));
+
+        // Eigen::Vector2f error(errorX, errorY);
+
+        // float l = error.norm();
+
+        // float l_adj = l; // 0.5 * l;
+
+        // Map nonholonomic command velocities to holonomic command velocities
+        geometry_msgs::Twist holoCmdVel = geometry_msgs::Twist();
+        holoCmdVel.linear.x = nonholoCmdVel.linear.x;
+        holoCmdVel.linear.y = l_ * nonholoCmdVel.angular.z;
+        holoCmdVel.angular.z = 0.0;
+
+
+
+        // float errorX = rawCmdVel.linear.x;
+        // float errorY = rawCmdVel.linear.y;
+        // float errorTheta = rawCmdVel.angular.z;
+
+        // ROS_INFO_STREAM_NAMED("Controller", rbtPoseInSensorFrame.pose);
+        float minRangeTheta = 0;
+        float minRange = 0;
+
+        // ROS_INFO_STREAM_NAMED("Controller", "        feedback errors: x: " << errorX << ", y: " << errorY << ", theta: " << errorTheta);
+
+        // applies PO
+        float velLinXSafe = 0.;
+        float velLinYSafe = 0.;
+        
+        if (cfg_->planning.projection_operator)
+        {
+            ROS_INFO_STREAM_NAMED("Controller", "        running projection operator");
+
+            Eigen::Vector2f holoCmdVelVector(holoCmdVel.linear.x, holoCmdVel.linear.y);
+
+            runProjectionOperator(rbtPoseInSensorFrame,
+                                    holoCmdVelVector, velLinXSafe, velLinYSafe,
+                                    minRangeTheta, minRange);
+            
+        } else 
+        {
+            ROS_DEBUG_STREAM_THROTTLE_NAMED(10, "Controller", "Projection operator off");
+        }
+        
+        float weightedVelLinXSafe = cfg_->projection.k_po_x * velLinXSafe;
+        float weightedVelLinYSafe = cfg_->projection.k_po_x * velLinYSafe;
+
+        // cmdVel_safe
+        visualizeProjectionOperator(weightedVelLinXSafe, weightedVelLinYSafe, minRangeTheta, minRange);
+
+        ROS_INFO_STREAM_NAMED("Controller", "        safe desired direction, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
+
+        float safeErrorX = holoCmdVel.linear.x + weightedVelLinXSafe;
+        float safeErrorY = holoCmdVel.linear.y + weightedVelLinYSafe; 
+
+        ROS_INFO_STREAM_NAMED("Controller", "        summed desired direction, v_x:" << safeErrorX << ", v_y: " << safeErrorY);
+        Eigen::Vector2f safeError(safeErrorX, safeErrorY);
+
+        // Eigen::Matrix2f negRotMat = getRotMat(-currYaw);
+
+        Eigen::Matrix2f nidMat = Eigen::Matrix2f::Identity();
+        nidMat(1, 1) = (1.0 / l_);
+
+        Eigen::Vector2f nonholoVelocityCommand = nidMat * safeError; // negRotMat * 
+
+        float velLinXFeedback = nonholoVelocityCommand[0]; // nonholoCmdVel.linear.x; // 
+        float velLinYFeedback = 0.0;
+        float velAngFeedback = nonholoVelocityCommand[1]; // nonholoCmdVel.angular.z; //  
+
+        ROS_INFO_STREAM_NAMED("Controller", "        generating nonholonomic control signal");            
+        ROS_INFO_STREAM_NAMED("Controller", "        Feedback command velocities, v_x: " << velLinXFeedback << ", v_ang: " << velAngFeedback);
+
+        float clippedVelLinXFeedback = 0.0;
+        if (std::abs(velLinXFeedback) < cfg_->control.vx_absmax)
+        {
+            clippedVelLinXFeedback = velLinXFeedback;
+        } else
+        {
+            clippedVelLinXFeedback = cfg_->control.vx_absmax * epsilonDivide(velLinXFeedback, std::abs(velLinXFeedback));
+        }
+
+        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        cmdVel.linear.x = clippedVelLinXFeedback;
+        cmdVel.linear.y = 0.0;
+        cmdVel.angular.z = std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, velAngFeedback));
+
+        // clipRobotVelocity(velLinXFeedback, velLinYFeedback, velAngFeedback);
+        ROS_INFO_STREAM_NAMED("Controller", "        clipped nonholonomic command velocity, v_x:" << cmdVel.linear.x << ", v_ang: " << cmdVel.angular.z);
+
+        return cmdVel;
+    }
+
+    void TrajectoryController::visualizeProjectionOperator(const float & weightedVelLinXSafe, 
+                                                           const float & weightedVelLinYSafe,
+                                                           const float & minRangeTheta, 
+                                                           const float & minRange) 
+    {
+        ROS_INFO_STREAM_NAMED("Controller", "[visualizeProjectionOperator()]");
+
+        if (cfg_->robot_frame_id.empty())
+        {
+            ROS_WARN_STREAM_NAMED("Controller", "robot_frame_id not set, cannot visualize projection operator");
+            return;
+        }
+
+        visualization_msgs::Marker projOpMarker;
+        projOpMarker.header.frame_id = cfg_->robot_frame_id;
+        projOpMarker.header.stamp = ros::Time();
+        projOpMarker.id = 0;
+
+        projOpMarker.type = visualization_msgs::Marker::ARROW;
+        projOpMarker.action = visualization_msgs::Marker::ADD;
+        projOpMarker.pose.position.x = minRange * std::cos(minRangeTheta);
+        projOpMarker.pose.position.y = minRange * std::sin(minRangeTheta);
+        projOpMarker.pose.position.z = 0.01;
+        float dir = std::atan2(weightedVelLinYSafe, weightedVelLinXSafe);
+        tf2::Quaternion projOpQuat;
+        projOpQuat.setRPY(0, 0, dir);
+        projOpMarker.pose.orientation = tf2::toMsg(projOpQuat);
+
+        projOpMarker.scale.x = sqrt(pow(weightedVelLinXSafe, 2) + pow(weightedVelLinYSafe, 2)) + 0.00001;
+        projOpMarker.scale.y = 0.1;
+        projOpMarker.scale.z = 0.000001;
+        
+
+        
+        projOpMarker.color.a = 1;
+        projOpMarker.color.r = 0.0;
+        projOpMarker.color.g = 0.0;
+        projOpMarker.color.b = 0.0;
+        projOpMarker.lifetime = ros::Duration(0);
+
+        projOpPublisher_.publish(projOpMarker);
+    }
+
+    void TrajectoryController::clipRobotVelocity(float & velLinXFeedback, float & velLinYFeedback, float & velAngFeedback) 
+    {
+        float speedLinXFeedback = std::abs(velLinXFeedback);
+        float speedLinYFeedback = std::abs(velLinYFeedback);
+        
+        if (speedLinXFeedback <= cfg_->control.vx_absmax && speedLinYFeedback <= cfg_->control.vy_absmax) 
+        {
+            // std::cout << "not clipping" << std::endl;
+        } else 
+        {
+            velLinXFeedback *= epsilonDivide(cfg_->control.vx_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
+            velLinYFeedback *= epsilonDivide(cfg_->control.vy_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
+        }
+
+        std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, velAngFeedback));
+        return;
+    }
+
+    void TrajectoryController::runProjectionOperator(const geometry_msgs::PoseStamped & rbtPoseInSensorFrame,
+                                                     Eigen::Vector2f & cmdVelFeedback,
+                                                     float & velLinXSafe, float & velLinYSafe,
+                                                     float & minRangeTheta, float & minRange) 
+    {
+        ROS_INFO_STREAM_NAMED("Controller", "        [runProjectionOperator()]");
+        float Psi = 0.0;
+        Eigen::Vector2f dPsiDx(0.0, 0.0);
+
+        // iterates through current egocircle and finds the minimum distance to the robot's pose
+        // ROS_INFO_STREAM_NAMED("Controller", "rbtPoseInSensorFrame pose: " << rbtPoseInSensorFrame.pose.position.x << ", " << rbtPoseInSensorFrame.pose.position.y);
+        std::vector<float> minScanDists(scan_->ranges.size());
+        float theta = 0.0, dist = 0.0;
+        for (int i = 0; i < minScanDists.size(); i++) 
+        {
+            theta = idx2theta(i);
+            dist = scan_->ranges.at(i);
+            minScanDists.at(i) = dist2Pose(theta, dist, rbtPoseInSensorFrame.pose);
+        }
+        auto minDistScanIter = std::min_element(minScanDists.begin(), minScanDists.end());
+        int minDistScanIdx = std::distance(minScanDists.begin(), minDistScanIter);
+        minRangeTheta = idx2theta(minDistScanIdx);
+
+        minRange = minScanDists.at(minDistScanIdx);
+
+        ROS_INFO_STREAM_NAMED("Controller", "           minDistScanIdx: " << minDistScanIdx << ", minRangeTheta: "<< minRangeTheta << ", minRange: " << minRange);
+        // ROS_INFO_STREAM_NAMED("Controller", "min_x: " << min_x << ", min_y: " << min_y);
+              
+        Eigen::Vector2f closestScanPtToRobot(-minRange * std::cos(minRangeTheta), -minRange * std::sin(minRangeTheta));
+
+        // float psi = 0.0;
+        // Eigen::Vector2f dPsiDx(0.0, 0.0);
+        // Eigen::Vector3f PsiDerAndPsi = 
+        calculateProjectionOperator(closestScanPtToRobot, Psi, dPsiDx); // return Psi, and dPsiDx
+        // dPsiDx = Eigen::Vector2f(PsiDerAndPsi(0), PsiDerAndPsi(1));
+
+        Eigen::Vector2f normDPsiDx = dPsiDx.normalized();
+
+        float projOpDotProd = cmdVelFeedback.dot(normDPsiDx);
+
+        // Psi = PsiDerAndPsi(2);
+
+        ROS_INFO_STREAM_NAMED("Controller", "           Psi: " << Psi);
+        ROS_INFO_STREAM_NAMED("Controller", "           dPsiDx: " << dPsiDx[0] << ", " << dPsiDx[1]);
+        ROS_INFO_STREAM_NAMED("Controller", "           Dot product check: " << projOpDotProd);
+
+        if (Psi >= 0 && projOpDotProd >= 0)
+        {
+            velLinXSafe = - Psi * projOpDotProd * normDPsiDx(0);
+            velLinYSafe = - Psi * projOpDotProd * normDPsiDx(1);
+        }
+        ROS_INFO_STREAM_NAMED("Controller", "           cmdVel_safe: " << velLinXSafe << ", " << velLinYSafe);
+    }
+
+    void TrajectoryController::calculateProjectionOperator(const Eigen::Vector2f & closestScanPtToRobot,
+                                                            float & Psi, Eigen::Vector2f & dPsiDx)
+
+    {
+        float rUnity = cfg_->projection.r_unity;
+        float rZero = cfg_->projection.r_zero;
+
+        float minRange = closestScanPtToRobot.norm(); // sqrt(pow(min_diff_x, 2) + pow(min_diff_y, 2)); // (closest_pt - rbt)
+        
+        // Psi
+        Psi = (rUnity / minRange - rUnity / rZero) / (1.0 - rUnity / rZero);
+        
+        // dPsiDx
+        float derivativeDenominator = pow(minRange, 3) * (rUnity - rZero);
+        float derivatorNominatorTerm = rUnity * rZero;
+        float PsiDerivativeXTerm = epsilonDivide(derivatorNominatorTerm * closestScanPtToRobot[0], derivativeDenominator);
+        float PsiDerivativeYTerm = epsilonDivide(derivatorNominatorTerm * closestScanPtToRobot[1], derivativeDenominator);
+
+        // float dPsiDxNorm = sqrt(pow(PsiDerivativeXTerm, 2) + pow(PsiDerivativeYTerm, 2));
+        // float normPsiDerivativeXTerm = epsilonDivide(PsiDerivativeXTerm, dPsiDxNorm);
+        // float normPsiDerivativeYTerm = epsilonDivide(PsiDerivativeYTerm, dPsiDxNorm);
+        
+        dPsiDx[0] = PsiDerivativeXTerm;
+        dPsiDx[1] = PsiDerivativeYTerm;
+        
+        // return Eigen::Vector3f(normPsiDerivativeXTerm, normPsiDerivativeYTerm, Psi);
     }
 
     Eigen::Matrix2cf TrajectoryController::getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z)
@@ -483,26 +675,38 @@ namespace quad_gap
         return g;
     }
 
-
-    int TrajectoryController::targetPoseIdx(const geometry_msgs::Pose & curr_pose, const geometry_msgs::PoseArray & path) 
+    int TrajectoryController::extractTargetPoseIdx(const geometry_msgs::Pose & currPose, const geometry_msgs::PoseArray & localTrajectory) 
     {
         // Find pose right ahead
-        std::vector<float> pose_diff(path.poses.size());
-        // ROS_INFO_STREAM("Ref_pose length: " << path.poses.size());
-        for (int i = 0; i < pose_diff.size(); i++) // i will always be positive, so this is fine
+        std::vector<float> localTrajectoryDeviations(localTrajectory.poses.size());
+        ROS_INFO_STREAM_NAMED("Controller", "[extractTargetPoseIdx()]");
+
+        // obtain distance from entire ref traj and current pose
+        for (int i = 0; i < localTrajectoryDeviations.size(); i++) // i will always be positive, so this is fine
         {
-            pose_diff[i] = sqrt(pow(curr_pose.position.x - path.poses[i].position.x, 2) + 
-                                pow(curr_pose.position.y - path.poses[i].position.y, 2)) + 
-                                0.5 * (1 - (   curr_pose.orientation.x * path.poses[i].orientation.x + 
-                                        curr_pose.orientation.y * path.poses[i].orientation.y +
-                                        curr_pose.orientation.z * path.poses[i].orientation.z +
-                                        curr_pose.orientation.w * path.poses[i].orientation.w)
-                                );
+            tf::Quaternion currQuatInv(currPose.orientation.x, currPose.orientation.y, currPose.orientation.z, -currPose.orientation.w); // -w for inverse
+  
+            tf::Quaternion desQuat(localTrajectory.poses[i].orientation.x, localTrajectory.poses[i].orientation.y, 
+                                   localTrajectory.poses[i].orientation.z, localTrajectory.poses[i].orientation.w);
+            
+            tf::Quaternion deviationQuat = desQuat * currQuatInv;
+            float deviationYaw = quaternionToYaw(deviationQuat);
+
+            // ROS_INFO_STREAM_NAMED("Controller", "   pose" << i << ", yaw_curr: " << yaw_curr << ", yaw_des: " << yaw_des << ", deviationYaw: " << deviationYaw);
+
+            localTrajectoryDeviations.at(i) = sqrt(pow(currPose.position.x - localTrajectory.poses[i].position.x, 2) + 
+                                                pow(currPose.position.y - localTrajectory.poses[i].position.y, 2)) + 
+                                                0.5 * std::abs(deviationYaw);
         }
 
-        auto min_element_iter = std::min_element(pose_diff.begin(), pose_diff.end());
-        int target_pose = std::distance(pose_diff.begin(), min_element_iter) + cfg_->control.ctrl_ahead_pose;
-        return std::min(target_pose, int(path.poses.size() - 1));
+        // find pose in ref traj with smallest difference
+        auto minimumDeviationIter = std::min_element(localTrajectoryDeviations.begin(), localTrajectoryDeviations.end());
+        
+        // go n steps ahead of pose with smallest difference
+        int targetPose = std::distance(localTrajectoryDeviations.begin(), minimumDeviationIter) + cfg_->control.ctrl_ahead_pose;
+
+        // make sure pose does note exceed trajectory size
+        return std::min(targetPose, int(localTrajectory.poses.size() - 1));
     }
 
     float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 

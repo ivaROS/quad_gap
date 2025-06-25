@@ -309,9 +309,9 @@ namespace quad_gap
             geometry_msgs::TransformStamped cam2rbt_;
 
             // Robot poses
-            geometry_msgs::PoseStamped rbtPoseRbtFrame_;
-            geometry_msgs::PoseStamped rbtPoseCamFrame_;
-            geometry_msgs::PoseStamped rbtPoseOdomFrame_;
+            geometry_msgs::PoseStamped rbtPoseInRbtFrame_;
+            geometry_msgs::PoseStamped rbtPoseInSensorFrame_;
+            geometry_msgs::PoseStamped rbtPoseInOdomFrame_;
             
             std::shared_ptr<tf2_ros::Buffer> tfBuffer;
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
@@ -362,7 +362,7 @@ namespace quad_gap
             geometry_msgs::PoseArray pose_arr_odom;
 
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
-            int ctrl_idx = 0;
+            // int ctrl_idx = 0;
 
             geometry_msgs::TwistStamped rbtVelRbtFrame_;
 
