@@ -780,7 +780,7 @@ namespace quad_gap
 
         if (!success)
         {
-            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "No path is generated.");
+            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "No path is generated.");
             Trajectory traj(pathRbtFrame);
             return traj;
         }

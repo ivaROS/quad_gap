@@ -682,10 +682,10 @@ namespace quad_gap
             ROS_FATAL_STREAM("pickTraj");
         }
 
-        auto iter = std::max_element(gapTrajCosts.begin(), gapTrajCosts.end());
-        int idx = std::distance(gapTrajCosts.begin(), iter);
+        auto lowestCostTrajIter = std::min_element(gapTrajCosts.begin(), gapTrajCosts.end());
+        int candidateLowestCostTrajIdx = std::distance(gapTrajCosts.begin(), lowestCostTrajIter);
 
-        if (gapTrajCosts.at(idx) == std::numeric_limits<float>::infinity()) 
+        if (gapTrajCosts.at(candidateLowestCostTrajIdx) == std::numeric_limits<float>::infinity()) 
         {
             ROS_WARN_STREAM("No executable trajectory, values: ");
             for (const float & gapTrajCost : gapTrajCosts) 
@@ -697,9 +697,9 @@ namespace quad_gap
 
         // bestGapPath = gapTrajs.at(idx);
         // bestVirtualGapPath = virtualGapPaths.at(idx);
-        ROS_INFO_STREAM_NAMED("Planner", "Picked [" << idx << "] traj" );
+        ROS_INFO_STREAM_NAMED("Planner", "Picked [" << candidateLowestCostTrajIdx << "] traj" );
 
-        return idx;
+        return candidateLowestCostTrajIdx;
     }
 
     // , 
@@ -865,7 +865,7 @@ namespace quad_gap
             //     return empty_traj;
             // }
 
-            if (incomingTrajCost > reducedCurrTrajCost) 
+            if (incomingTrajCost < reducedCurrTrajCost)  
             {
                 ROS_WARN_STREAM("Swap to new for better score: " << incomingTrajCost << " > " << reducedCurrTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);

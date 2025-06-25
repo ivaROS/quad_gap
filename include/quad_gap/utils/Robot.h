@@ -2,7 +2,8 @@
 
 namespace quad_gap
 {
-    enum RobotShape { circle, box };
+    enum RobotShape { circle = 0,  
+                        box = 1};
 
     struct Robot
     {

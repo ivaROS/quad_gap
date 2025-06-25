@@ -31,8 +31,7 @@ namespace quad_gap
                 float width = 0.45; /**< Robot width */
                 float avg_lin_speed = 0.2; /**< Average linear speed */
                 float avg_rot_speed = 0.5; /**< Average rotational speed */
-                int shape_id = 1; /**< Robot shape ID, 1 for rectangle,
-                                    2 for circle, 3 for triangle */
+                int shape_id = 0; /**< Robot shape ID, 0: circle, 1: box */
                 bool use_geo_storage = false; /**< Use precomputed robot geometry storage */
             } rbt;
 

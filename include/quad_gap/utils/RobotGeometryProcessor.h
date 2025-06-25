@@ -27,6 +27,7 @@ namespace quad_gap
                     decay_factor_ = 0;
                 else
                     decay_factor_ = decay_factor;
+                
                 initialized_ = true;
 
                 float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
