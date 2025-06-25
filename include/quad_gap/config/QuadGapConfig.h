@@ -132,7 +132,7 @@ namespace quad_gap
 
             struct CollisionChecker
             {
-                bool collision_checker_enable = true;
+                bool collision_checker_enable = false;
                 int cc_type = -1; // assuming depth: 0, depth_ego: 1, egocircle: 2
 
             } collision_checker;

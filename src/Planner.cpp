@@ -502,8 +502,6 @@ namespace quad_gap
             ROS_FATAL_STREAM("gapManipulate");
         }
 
-        goalVisualizer_->drawGapGoals(manipGaps);
-        gapVisualizer_->drawManipGaps(manipGaps);
         return manipGaps;
     }
 
@@ -1106,6 +1104,9 @@ namespace quad_gap
         timeKeeper_->startTimer(GAP_MANIP);
         gapGoalPlace(manipGaps);
         timeKeeper_->stopTimer(GAP_MANIP);
+
+        goalVisualizer_->drawGapGoals(manipGaps);
+        gapVisualizer_->drawManipGaps(manipGaps);
 
         //////////////////////////////////////////////////////////////////////////////////////
         //                          GAP TRAJECTORY GENERATION                               //

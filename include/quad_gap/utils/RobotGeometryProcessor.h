@@ -302,6 +302,16 @@ namespace quad_gap
                 return erl;
             }
 
+            /*
+            * @brief Get the nearest distance from the robot to a scan point. Accounts for the robot shape.
+            * @param orientation_vec The orientation vector of the robot.
+            * @param poseToScan The relative vector from the robot origin to the scan point.
+            * @return The nearest distance from the robot to the scan point.
+            *         If the point is inside the robot bounding box, return -1.
+            *         If the point is outside the robot bounding box, return the distance.
+            *         If the robot is a circle, return the distance from the point to the robot radius.
+            *         If the robot is a box, return the distance from the point to the robot bounding box.
+            */
             float getNearestDistance(const Eigen::Vector2f & orientation_vec, const Eigen::Vector2f & poseToScan)
             {
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "[getNearestDistance()]");
@@ -309,6 +319,12 @@ namespace quad_gap
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Robot shape: " << robot_.shape);
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  orientation_vec: " << orientation_vec.transpose());
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  poseToScan: " << poseToScan.transpose());
+
+                if (robot_.shape == RobotShape::circle)
+                {
+                    // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Robot is circle.");
+                    return poseToScan.norm() - robot_.radius;
+                }
 
                 // poseToScan: relative vector from robot origin to scan point.
 

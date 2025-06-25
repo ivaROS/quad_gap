@@ -172,8 +172,8 @@ namespace quad_gap
         Eigen::Vector2f rel_pt_vec;
         // float nearest_dist = 0.0;
 
-        std::vector<float> dist(scan.ranges.size());
-        for (int i = 0; i < dist.size(); i++) 
+        std::vector<float> scan2RbtDists(scan.ranges.size());
+        for (int i = 0; i < scan2RbtDists.size(); i++) 
         {
             float range_i = scan.ranges.at(i);
             float theta_i = idx2theta(i);
@@ -196,7 +196,7 @@ namespace quad_gap
             
             rel_pt_vec = scanPt - poseRbtFrameVec;
             // nearest_dist = 
-            dist.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
+            scan2RbtDists.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));
             // rmax_offset.at(i) = rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
             
@@ -213,7 +213,7 @@ namespace quad_gap
             // rmax_offset.at(i) = rmax - robot_er * cfg_->traj.inf_ratio;
         }
 
-        auto iter = std::min_element(dist.begin(), dist.end());
+        auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
 
         ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << *iter);
 
