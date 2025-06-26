@@ -11,7 +11,7 @@ namespace quad_gap
         std::string model;
         nh.param("/model", model, model); // Must write as "/model" with leading slash
 
-        if (model == "rto")
+        if (model == "rto" || model == "rto_box")
         {
             ROS_INFO_STREAM_NAMED("Parameters", "Setting model to: " << model);
 
