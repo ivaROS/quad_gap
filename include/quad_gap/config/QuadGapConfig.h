@@ -26,20 +26,24 @@ namespace quad_gap
 
             struct Robot 
             {
-                float r_inscr = 0.225;
-                float length = 0.45; /**< Robot length */
-                float width = 0.45; /**< Robot width */
+                float r_inscr = 0.225; /**< Inscribed radius of the robot (for circle geom) */
+                float length = 0.45; /**< Robot length (for box geom) */
+                float width = 0.45; /**< Robot width (for box geom) */
                 float avg_lin_speed = 0.2; /**< Average linear speed */
                 float avg_rot_speed = 0.5; /**< Average rotational speed */
+                float vx_absmax = 1.0; /**< Maximum linear speed in x-direction for robot */
+                float vy_absmax = 1.0; /**< Maximum linear speed in y-direction for robot */
+                float vang_absmax = 1.0; /**< Maximum angular speed for robot */          
+                float speed_factor = 2.0; /**< Speed factor for robot to divide max angular velocity by for average speed */
                 int shape_id = 0; /**< Robot shape ID, 0: circle, 1: box */
                 bool use_geo_storage = false; /**< Use precomputed robot geometry storage */
             } rbt;
 
             struct Goal 
             {
-                float xy_global_goal_tolerance = 0.2;
-                float yaw_global_goal_tolerance = 0.1;    
-                float xy_waypoint_tolerance = 0.1;
+                float xy_global_goal_tolerance = 0.2; /**< Distance threshold for global goal */
+                float yaw_global_goal_tolerance = M_PI; /**< Angular distance threshold for global goal */
+                float xy_waypoint_tolerance = 0.1; /**< Distance threshold for global path local waypoint */
             } goal;
 
             /**
@@ -61,10 +65,9 @@ namespace quad_gap
 
             struct PlanningMode 
             {
-                bool holonomic = false;
-                bool heading = false; /**< Enable heading control */
-                bool projection_operator = true;
-                int halt_size = 5;           
+                bool holonomic = false; /**< Boolean for if robot is holonomic or not */
+                bool heading = false; /**< Boolean for if robot tracks path headings or not */
+                bool projection_operator = true; /**< Boolean for if planner should apply projection operator */
                 bool robot_path_orient_linear_decay = true; /**< Enable linear decay of robot path orientation */
                 bool virtual_path_decay_enable = true; /**< Enable virtual path decay */    
                 float decay_factor = 0.0; /**< Decay factor for virtual path decay */
@@ -73,17 +76,10 @@ namespace quad_gap
 
             struct ControlParams 
             {
-                float k_drive_x = 3.5;
-                float k_drive_y = 3.5;
-                float k_turn = 0.5;
-                float v_ang_const = 0.0;
-                float v_lin_x_const = 0.0;
-                float v_lin_y_const = 0.0;
-                int ctrl_ahead_pose = 2;
-                float vx_absmax = 0.5;
-                float vy_absmax = 0.5;
-                float vang_absmax = 0.2;       
-                float speed_factor = 2.0;
+                float Kpx = 3.5; /**< Proportional gain for feedback controller for x-dir velocity */
+                float Kpy = 3.5; /**< Proportional gain for feedback controller for y-dir velocity */
+                float Kpz = 0.5; /**< Proportional gain for feedback controller for angular velocity */
+                int ctrl_ahead_pose = 2; /**< Number of poses ahead of closest pose in current trajectory to track */
             } control;
             
             struct ManualControl 
@@ -92,15 +88,13 @@ namespace quad_gap
                 float man_x = 0;
                 float man_y = 0;
                 float man_theta = 0;
-                bool line = false;
             } man;
 
             struct GapManipulation 
             {
-                float sigma = 1.0;
-                float reduction_threshold = M_PI / 2;
-                float reduction_target = M_PI / 4;
-                int max_idx_diff = 256;
+                float reduction_threshold = M_PI / 2; /**< Minimum span of gap for which we will reduce */
+                float reduction_target = M_PI / 4; /**< Target span of gap after reduction */
+                // int max_idx_diff = 256;
                 bool radial_extend = true;
                 bool radial_convert = true;
                 float rot_ratio = 1.5;
@@ -118,6 +112,7 @@ namespace quad_gap
                 float integrate_maxt = 50;
                 float integrate_stept = 1e-2;
                 float rmax = 0.5;
+                float sigma = 1.0; /**< Sigma used in exp term for circular potential field based trajectory synthesis */
                 float Q = 1.0;
                 float pen_exp_weight = 3;
                 float inf_ratio = 1.2;

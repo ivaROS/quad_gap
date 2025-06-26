@@ -18,6 +18,7 @@ namespace quad_gap
 
         Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
         Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+        Eigen::Vector2f pGoal(localgoal.pose.position.x, localgoal.pose.position.y);
 
         xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
         yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
@@ -85,7 +86,7 @@ namespace quad_gap
         //     pow(localgoal.pose.position.x, 2)
         // );
 
-        if (checkGoalVisibility(localgoal)) 
+        if (checkWaypointVisiblity(pLeft, pRight, pGoal)) 
         {
             ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal is visible, setting goal within gap");
             gap->setGoalPos(localgoal.pose.position.x, localgoal.pose.position.y);
@@ -167,41 +168,40 @@ namespace quad_gap
         return;
     }
 
-    bool GapGoalPlacer::checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal) 
+    bool GapGoalPlacer::checkWaypointVisibility(const Eigen::Vector2f & leftPt, 
+                                                const Eigen::Vector2f & rightPt,
+                                                const Eigen::Vector2f & globalGoal) 
     {
-        boost::mutex::scoped_lock lock(egolock);
-        float dist2goal = sqrt(pow(localgoal.pose.position.x, 2) + pow(localgoal.pose.position.y, 2));
+        boost::mutex::scoped_lock lock(scanMutex_);
+        // with robot as 0,0 (globalGoal in robot frame as well)
+        float dist2goal = globalGoal.norm(); // sqrt(pow(globalGoal.pose.position.x, 2) + pow(globalGoal.pose.position.y, 2));
 
         sensor_msgs::LaserScan scan = *scan_.get();
-        float min_val = *std::min_element(scan.ranges.begin(), scan.ranges.end());
+        auto minScanRange = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot
-        // Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f goal_vec(localgoal.pose.position.x, localgoal.pose.position.y);
-        float er = robot_geo_proc_->getRobotMaxRadius();
-        
-        if (dist2goal < 2 * er) 
-        {
+        if (dist2goal < 2 * cfg_->rbt.r_inscr)
             return true;
-        }
 
         // If within closest configuration space
-        float er_max = robot_geo_proc_->getRobotMaxRadius(); //TODO: check
-        if (dist2goal < min_val - cfg_->traj.inf_ratio * er_max) {
+        if (dist2goal < minScanRange - cfg_->traj.inf_ratio * cfg_->rbt.r_inscr)
             return true;
-        }
 
         // Should be sufficiently far, otherwise we are in trouble
-        float goal_angle = std::atan2(localgoal.pose.position.y, localgoal.pose.position.x);
-        int incident_angle = (int) round((goal_angle - scan.angle_min) / scan.angle_increment);
+        float globalGoalAngle = std::atan2(globalGoal[1], globalGoal[0]);
+        int globalGoalIdx = theta2idx(globalGoalAngle);
 
-        // float half_angle = std::asin(cfg_->rbt.r_inscr / dist2goal);
-        // int index = std::ceil(half_angle / scan.angle_increment) * 1.5;
-        int index = (int)(scan.ranges.size()) / 8;
-        int lower_bound = std::max(incident_angle - index, 0);
-        int upper_bound = std::min(incident_angle + index, int(scan.ranges.size() - 1));
-        float min_val_round_goal = *std::min_element(scan.ranges.begin() + lower_bound, scan.ranges.begin() + upper_bound);
-        return dist2goal < min_val_round_goal;
+        // Should be sufficiently far, otherwise we are in trouble
+
+        // get gap's range at globalGoal idx
+
+        // float leftToRightAngle = getSweptLeftToRightAngle(leftPt, rightPt);
+        // float leftToWaypointAngle = getSweptLeftToRightAngle(leftPt, globalGoal);
+        // float gapGoalRange = (rightPt.norm() - leftPt.norm()) * epsilonDivide(leftToWaypointAngle, leftToRightAngle) + leftPt.norm();
+
+        float rangeAtGoalIdx = scan.ranges.at(globalGoalIdx);
+
+        return dist2goal < rangeAtGoalIdx;
     }
 
     Eigen::Vector2f GapGoalPlacer::car2pol(const Eigen::Vector2f & a) 

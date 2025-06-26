@@ -54,8 +54,17 @@ namespace quad_gap
             void setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal);
 
         private:
-            bool checkGoalVisibility(const geometry_msgs::PoseStamped & localgoal);
-
+            /**
+            * \brief checking if global path local waypoint lies within gap
+            * \param leftPt left gap point
+            * \param rightPt right gap point
+            * \param globalPathLocalWaypoint local waypoint along global path in robot frame
+            * \return boolean for if global path local waypoint lies within gap
+            */              
+            bool checkWaypointVisibility(const Eigen::Vector2f & leftPt, 
+                                            const Eigen::Vector2f & rightPt,
+                                            const Eigen::Vector2f & globalPathLocalWaypoint);
+                                            
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             const QuadGapConfig* cfg_;        
             int num_of_scan;

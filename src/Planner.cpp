@@ -158,7 +158,8 @@ namespace quad_gap
         
         // cc_type_ = cfg_.collision_checker.cc_type;
 
-        cmdVelBuffer.set_capacity(cfg_.planning.halt_size);
+        int bufferSize = 5;
+        cmdVelBuffer.set_capacity(bufferSize);
         return true;
     }
 
@@ -203,29 +204,32 @@ namespace quad_gap
         std::vector<float> ranges(msg->ranges.size(), msg->range_max);
         transformed_laser.ranges = ranges;
 
+        float origRange = 0.0;
+        float origAng = 0.0;
+        geometry_msgs::PointStamped orig_pt, transformed_pt;
+        geometry_msgs::TransformStamped trans;
+        float transRange = 0.0;
+        float transTheta = 0.0;
+        int transIdx = 0;
         for (size_t i = 0; i < msg->ranges.size(); i++)
         {
-            float orig_range = msg->ranges[i];
-            float orig_ang = i * msg->angle_increment + msg->angle_min;
-            orig_ang = orig_ang <= msg->angle_max ? orig_ang : msg->angle_max;
+            origRange = msg->ranges[i];
+            origAng = idx2theta(i);
 
-            geometry_msgs::PointStamped orig_pt, transformed_pt;
             orig_pt.header = msg->header;
-            orig_pt.point.x = orig_range * cos(orig_ang);
-            orig_pt.point.y = orig_range * sin(orig_ang);
+            orig_pt.point.x = origRange * cos(origAng);
+            orig_pt.point.y = origRange * sin(origAng);
             
-            geometry_msgs::TransformStamped trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
+            trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
             tf2::doTransform(orig_pt, transformed_pt, trans);
             // ROS_INFO_STREAM(cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
 
-            float transformed_range = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
-            float transformed_ang = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
-            int idx = (int) round((transformed_ang - msg->angle_min) / msg->angle_increment);
-            idx = idx < msg->ranges.size() ? idx : (msg->ranges.size() - 1);
-            idx = idx >= 0 ? idx : 0;
+            transRange = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
+            transTheta = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
+            transIdx = theta2idx(transTheta);
 
-            if (transformed_range < transformed_laser.ranges[idx])
-                transformed_laser.ranges[idx] = transformed_range;
+            if (transRange < transformed_laser.ranges[transIdx])
+                transformed_laser.ranges[transIdx] = transRange;
         }
 
         return boost::make_shared<sensor_msgs::LaserScan const>(transformed_laser);

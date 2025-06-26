@@ -40,6 +40,10 @@ namespace quad_gap
             ros_throw_param_load(nh, "width", rbt.width);
             ros_throw_param_load(nh, "avg_lin_speed", rbt.avg_lin_speed);
             ros_throw_param_load(nh, "avg_rot_speed", rbt.avg_rot_speed);
+            ros_throw_param_load(nh, "vx_absmax", rbt.vx_absmax);
+            ros_throw_param_load(nh, "vy_absmax", rbt.vy_absmax);
+            ros_throw_param_load(nh, "vang_absmax", rbt.vang_absmax);
+            ros_throw_param_load(nh, "speed_factor", rbt.speed_factor);            
             ros_throw_param_load(nh, "shape_id", rbt.shape_id);
             ros_throw_param_load(nh, "use_geo_storage", rbt.use_geo_storage);
 
@@ -62,7 +66,6 @@ namespace quad_gap
             ros_throw_param_load(nh, "holonomic", planning.holonomic);
             ros_throw_param_load(nh, "heading", planning.heading);
             ros_throw_param_load(nh, "projection_operator", planning.projection_operator);
-            ros_throw_param_load(nh, "halt_size", planning.halt_size);
             ros_throw_param_load(nh, "robot_path_orient_linear_decay", planning.robot_path_orient_linear_decay);
             ros_throw_param_load(nh, "virtual_path_decay_enable", planning.virtual_path_decay_enable);
             ros_throw_param_load(nh, "decay_factor", planning.decay_factor);
@@ -71,17 +74,13 @@ namespace quad_gap
             ////////////////////
             // Control Params //
             ////////////////////
-            ros_throw_param_load(nh, "k_drive_x", control.k_drive_x);
-            ros_throw_param_load(nh, "k_drive_y", control.k_drive_y);
-            ros_throw_param_load(nh, "k_turn", control.k_turn);
+            ros_throw_param_load(nh, "Kpx", control.Kpx);
+            ros_throw_param_load(nh, "Kpy", control.Kpy);
+            ros_throw_param_load(nh, "Kpz", control.Kpz);
             ros_throw_param_load(nh, "v_ang_const", control.v_ang_const);
             ros_throw_param_load(nh, "v_lin_x_const", control.v_lin_x_const);
             ros_throw_param_load(nh, "v_lin_y_const", control.v_lin_y_const);
             ros_throw_param_load(nh, "ctrl_ahead_pose", control.ctrl_ahead_pose);
-            ros_throw_param_load(nh, "vx_absmax", control.vx_absmax);
-            ros_throw_param_load(nh, "vy_absmax", control.vy_absmax);
-            ros_throw_param_load(nh, "vang_absmax", control.vang_absmax);
-            ros_throw_param_load(nh, "speed_factor", control.speed_factor);
 
             ///////////////////////////
             // Manual Control Params //
@@ -90,16 +89,15 @@ namespace quad_gap
             ros_throw_param_load(nh, "man_x", man.man_x);
             ros_throw_param_load(nh, "man_y", man.man_y);
             ros_throw_param_load(nh, "man_theta", man.man_theta);
-            ros_throw_param_load(nh, "line", man.line);
 
             ///////////////////////
             // Gap Manipulation //
             ///////////////////////
-            ros_throw_param_load(nh, "sigma", gap_manip.sigma);
+            ros_throw_param_load(nh, "sigma", traj.sigma);
             ros_throw_param_load(nh, "rot_ratio", gap_manip.rot_ratio);
             ros_throw_param_load(nh, "reduction_threshold", gap_manip.reduction_threshold);
             ros_throw_param_load(nh, "reduction_target", gap_manip.reduction_target);
-            ros_throw_param_load(nh, "max_idx_diff", gap_manip.max_idx_diff);
+            // ros_throw_param_load(nh, "max_idx_diff", gap_manip.max_idx_diff);
             ros_throw_param_load(nh, "radial_extend", gap_manip.radial_extend);
             ros_throw_param_load(nh, "radial_convert", gap_manip.radial_convert);
 

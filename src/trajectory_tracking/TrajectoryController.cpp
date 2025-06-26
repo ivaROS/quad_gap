@@ -138,10 +138,10 @@ namespace quad_gap
         boost::mutex::scoped_lock lock(egocircle_l);
         // bool holonomic = cfg_->planning.holonomic;
         // bool projection_operator = cfg_->planning.projection_operator;
-        // float k_turn_ = cfg_->control.k_turn;
-        // if (holonomic) k_turn_ = 0.8;
-        // float k_drive_x_ = cfg_->control.k_drive_x;
-        // float k_drive_y_ = cfg_->control.k_drive_y;
+        // float Kpz_ = cfg_->control.Kpz;
+        // if (holonomic) Kpz_ = 0.8;
+        // float Kpx_ = cfg_->control.Kpx;
+        // float Kpy_ = cfg_->control.Kpy;
         // float k_po_ = cfg_->projection.k_po;
         // float v_ang_const = cfg_->control.v_ang_const;
         // float v_lin_x_const = cfg_->control.v_lin_x_const;
@@ -179,9 +179,9 @@ namespace quad_gap
         float errorY = errorMat.imag()(0, 1);
         float errorTheta = std::arg(errorMat(0, 0));
 
-        float v_lin_x_fb = errorX * cfg_->control.k_drive_x;
-        float v_lin_y_fb = errorY * cfg_->control.k_drive_y;
-        float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.k_turn;
+        float v_lin_x_fb = errorX * cfg_->control.Kpx;
+        float v_lin_y_fb = errorY * cfg_->control.Kpy;
+        float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.Kpz;
 
         cmdVel.linear.x = v_lin_x_fb;
         cmdVel.linear.y = v_lin_y_fb;
@@ -226,9 +226,9 @@ namespace quad_gap
         //         v_lin_x_fb = 0;
         // }
 
-        // cmdVel.linear.x = std::max(-cfg_->control.vx_absmax, std::min(cfg_->control.vx_absmax, v_lin_x_fb));
-        // cmdVel.linear.y = std::max(-cfg_->control.vy_absmax, std::min(cfg_->control.vy_absmax, v_lin_y_fb));
-        // cmdVel.angular.z = std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, v_ang_fb));
+        // cmdVel.linear.x = std::max(-cfg_->rbt.vx_absmax, std::min(cfg_->rbt.vx_absmax, v_lin_x_fb));
+        // cmdVel.linear.y = std::max(-cfg_->rbt.vy_absmax, std::min(cfg_->rbt.vy_absmax, v_lin_y_fb));
+        // cmdVel.angular.z = std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, v_ang_fb));
 
         return cmdVel;
     }
@@ -271,9 +271,9 @@ namespace quad_gap
         float errorY = desPosn.y - currPosn.y; // errorMat.imag()(0, 1);
         // float errorTheta = std::arg(errorMat(0, 0));
 
-        float v_lin_x_fb = errorX * cfg_->control.k_drive_x;
-        float v_lin_y_fb = errorY * cfg_->control.k_drive_y;
-        // float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.k_turn;
+        float v_lin_x_fb = errorX * cfg_->control.Kpx;
+        float v_lin_y_fb = errorY * cfg_->control.Kpy;
+        // float v_ang_fb = cfg_->planning.heading * errorTheta * cfg_->control.Kpz;
 
         // Eigen::Vector2f errorDir = epsilonDivide(error, error.norm());
 
@@ -472,18 +472,18 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("Controller", "        Feedback command velocities, v_x: " << velLinXFeedback << ", v_ang: " << velAngFeedback);
 
         float clippedVelLinXFeedback = 0.0;
-        if (std::abs(velLinXFeedback) < cfg_->control.vx_absmax)
+        if (std::abs(velLinXFeedback) < cfg_->rbt.vx_absmax)
         {
             clippedVelLinXFeedback = velLinXFeedback;
         } else
         {
-            clippedVelLinXFeedback = cfg_->control.vx_absmax * epsilonDivide(velLinXFeedback, std::abs(velLinXFeedback));
+            clippedVelLinXFeedback = cfg_->rbt.vx_absmax * epsilonDivide(velLinXFeedback, std::abs(velLinXFeedback));
         }
 
         geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
         cmdVel.linear.x = clippedVelLinXFeedback;
         cmdVel.linear.y = 0.0;
-        cmdVel.angular.z = std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, velAngFeedback));
+        cmdVel.angular.z = std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, velAngFeedback));
 
         // clipRobotVelocity(velLinXFeedback, velLinYFeedback, velAngFeedback);
         ROS_INFO_STREAM_NAMED("Controller", "        clipped nonholonomic command velocity, v_x:" << cmdVel.linear.x << ", v_ang: " << cmdVel.angular.z);
@@ -539,16 +539,16 @@ namespace quad_gap
         float speedLinXFeedback = std::abs(velLinXFeedback);
         float speedLinYFeedback = std::abs(velLinYFeedback);
         
-        if (speedLinXFeedback <= cfg_->control.vx_absmax && speedLinYFeedback <= cfg_->control.vy_absmax) 
+        if (speedLinXFeedback <= cfg_->rbt.vx_absmax && speedLinYFeedback <= cfg_->rbt.vy_absmax) 
         {
             // std::cout << "not clipping" << std::endl;
         } else 
         {
-            velLinXFeedback *= epsilonDivide(cfg_->control.vx_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
-            velLinYFeedback *= epsilonDivide(cfg_->control.vy_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
+            velLinXFeedback *= epsilonDivide(cfg_->rbt.vx_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
+            velLinYFeedback *= epsilonDivide(cfg_->rbt.vy_absmax, std::max(speedLinXFeedback, speedLinYFeedback));
         }
 
-        std::max(-cfg_->control.vang_absmax, std::min(cfg_->control.vang_absmax, velAngFeedback));
+        std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, velAngFeedback));
         return;
     }
 

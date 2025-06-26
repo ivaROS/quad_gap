@@ -223,34 +223,46 @@ namespace quad_gap
     int GapDetector::checkSimplifiedGapsMergeability(Gap * rawGap, 
                                                      const std::vector<Gap *> & simpGaps)
     {
-        int last_mergable = -1;
+        int lastMergeable = -1;
 
         float currLRange = rawGap->LRange();
         // int erase_counter = 0;
 
+        int startIdx = -1, endIdx = -1;
         // float coefs = cfg_->planning.planning_inflated ? 0 : 1;
         for (int j = (int) (simpGaps.size() - 1); j >= 0; j--)
         {
-            int start_idx = std::min(simpGaps[j]->LIdx(), rawGap->RIdx());
-            int end_idx = std::max(simpGaps[j]->LIdx(), rawGap->RIdx());
-            auto farside_iter = std::min_element(scan_.ranges.begin() + start_idx, scan_.ranges.begin() + end_idx);
-            int farside_idx = farside_iter - scan_.ranges.begin();
+            startIdx = std::min(simplifiedGaps.at(j)->LIdx(), rawGap->RIdx());
+            endIdx = std::max(simplifiedGaps.at(j)->LIdx(), rawGap->RIdx());
+
+            auto minIntergapRangeIter = std::min_element(scan_.ranges.begin() + startIdx, scan_.ranges.begin() + endIdx);
+            float minIntergapRange = *minIntergapRangeIter;
+            int minIntergapIdx = minIntergapRangeIter - scan_.ranges.begin();
+            
+            float farside_angle = idx2theta(minIntergapIdx);
+            Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
+
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
             // float max_r_er = robot_geo_proc_->getRobotMaxRadius();
-            float farside_angle = farside_idx * scan_.angle_increment + scan_.angle_min;
-            Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
+            
+
             float erlLRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
             float erlRRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simpGaps[j]->RRange());
-            bool second_test = currLRange <= (*farside_iter - erlLRange) && simpGaps[j]->RRange() <= (*farside_iter - erlRRange);
-            bool dist_diff = simpGaps[j]->isRightType() || !simpGaps[j]->isRadial();
-            bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
-            if (second_test && dist_diff && idx_diff) 
+            bool second_test = currLRange <= (minIntergapRange - erlLRange) && simpGaps[j]->RRange() <= (minIntergapRange - erlRRange);
+            
+            
+            // 2. Checking if current simplified gap is either right dist < left dist or swept 
+            bool rightTypeOrSweptGap = simplifiedGaps.at(j)->isRightType() || !simplifiedGaps.at(j)->isRadial();
+            
+            // bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
+
+            if (second_test && rightTypeOrSweptGap) //  && idx_diff 
             {
-                last_mergable = j;
+                lastMergeable = j;
             } 
         }
 
-        return last_mergable;
+        return lastMergeable;
     }
 
     bool GapDetector::mergeSweptGapCondition(Gap * rawGap, 
@@ -284,7 +296,7 @@ namespace quad_gap
         // int left_counter = 0;
         // bool changed = true;
 
-        int last_mergable = -1;
+        int lastMergeable = -1;
 
         // for (int i = 0; i < (int) rawGaps.size(); i++)
         for (Gap * rawGap : rawGaps)
@@ -307,14 +319,14 @@ namespace quad_gap
                         simpGaps.push_back(rawGap);
                     } else
                     {
-                        last_mergable = checkSimplifiedGapsMergeability(rawGap, simpGaps);
+                        lastMergeable = checkSimplifiedGapsMergeability(rawGap, simpGaps);
 
-                        if (last_mergable != -1) 
+                        if (lastMergeable != -1) 
                         {
-                            for (auto gapIter = simpGaps.begin() + last_mergable + 1; gapIter != simpGaps.end(); gapIter++)
+                            for (auto gapIter = simpGaps.begin() + lastMergeable + 1; gapIter != simpGaps.end(); gapIter++)
                                 delete *gapIter;
 
-                            simpGaps.erase(simpGaps.begin() + last_mergable + 1, simpGaps.end());
+                            simpGaps.erase(simpGaps.begin() + lastMergeable + 1, simpGaps.end());
                             simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                         } else 
                         {
