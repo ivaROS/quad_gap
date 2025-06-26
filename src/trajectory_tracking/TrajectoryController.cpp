@@ -123,10 +123,10 @@ namespace quad_gap
     //     return dist >= thres;
     // }
 
-    float TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
-    {
-        return abs(float(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
-    }
+    // float TrajectoryController::polDist(const float & l1, const float & t1, const float & l2, const float & t2) 
+    // {
+    //     return abs(float(pow(l1, 2) + pow(l2, 2) - 2 * l1 * l2 * std::cos(t1 - t2)));
+    // }
 
     // ,
     // const sensor_msgs::LaserScan & inflated_egocircle, 
@@ -716,16 +716,15 @@ namespace quad_gap
         return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     }
 
+    // Eigen::Vector2f TrajectoryController::car2pol(const Eigen::Vector2f & a) 
+    // {
+    //     return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
+    // }
 
-    Eigen::Vector2f TrajectoryController::car2pol(const Eigen::Vector2f & a) 
-    {
-        return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
-    }
-
-    Eigen::Vector2f TrajectoryController::pol2car(const Eigen::Vector2f & a) 
-    {
-        return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
-    }
+    // Eigen::Vector2f TrajectoryController::pol2car(const Eigen::Vector2f & a) 
+    // {
+    //     return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
+    // }
 
 
 }

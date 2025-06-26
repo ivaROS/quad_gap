@@ -136,12 +136,12 @@ namespace quad_gap
             */
             bool setPlan(const std::vector<geometry_msgs::PoseStamped> &plan);
 
-            /**
-            * update all tf transform at the beginning of every planning cycle
-            * @param None, all tf received via TF
-            * @return None, all registered via internal variables in TransformStamped
-            */
-            void updateTF();
+            // /**
+            // * update all tf transform at the beginning of every planning cycle
+            // * @param None, all tf received via TF
+            // * @return None, all registered via internal variables in TransformStamped
+            // */
+            // void updateTF();
 
             // /**
             //  * select the gap to pass through based on where the goal is

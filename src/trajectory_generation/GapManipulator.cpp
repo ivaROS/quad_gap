@@ -6,7 +6,7 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock lock(egolock);
         scan_ = msg;
-        num_of_scan = (int)(scan_.get()->ranges.size());
+        // num_of_scan = (int)(scan_.get()->ranges.size());
     }
 
     // In place modification

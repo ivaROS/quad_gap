@@ -85,7 +85,7 @@ namespace quad_gap
 
     static float TWO_M_PI = 2*M_PI; /**< 2 * pi */
     static float M_PI_OVER_TWO = M_PI / 2.0; /**< pi / 2 */
-    static float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
+    // static float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
 
     static int half_num_scan = 256; /**< Half of total rays in scan */
     static float angle_increment = (TWO_M_PI) / (2*half_num_scan - 1); /**< Angular increment of scan */
@@ -96,32 +96,6 @@ namespace quad_gap
     static Eigen::Matrix2f Rnegpi2 = (Eigen::Matrix2f() << 0.0, 1.0, -1.0, 0.0).finished(); /**< Rotation matrix for -pi/2 */
 
     static Eigen::Vector2f robotOrientationVector(1, 0);
-
-    enum trajFlags {    NONE = -1,
-                        GAP = 0,
-                        UNGAP = 1,
-                        IDLING = 2
-                        };
-
-    enum gapEndConditions { UNSET = -1, 
-                            COLLISION = 0, 
-                            SHUT = 1, 
-                            OVERLAPPED = 2, 
-                            TIMED_OUT = 3
-                            };
-
-    struct EstimationParameters
-    {
-        float Q_ = 0.1; /**< Process noise covariance */
-        float R_ = 0.5; /**< Measurement noise covariance */
-    };
-
-    struct ControlParameters
-    {
-        float linear_vel_x_ = 0.0; /**< Linear vel x */
-        float linear_vel_y_ = 0.0; /**< Linear vel y */
-        float angular_vel_z_ = 0.0; /**< Angular vel z */
-    };
 
     //////////////////////////////
     //         CHECKING         // 

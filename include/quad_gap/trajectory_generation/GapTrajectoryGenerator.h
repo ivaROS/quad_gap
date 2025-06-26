@@ -56,7 +56,7 @@ namespace quad_gap
                 robot_geo_proc_ = t.robot_geo_proc_;
             }
 
-            void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
+            // void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
 
             Trajectory generateTrajectory(Gap * gap, const geometry_msgs::PoseStamped & curr_pose);
 
@@ -88,32 +88,31 @@ namespace quad_gap
                                             Eigen::Vector2f & q1,
                                             Eigen::Vector2f & q2);
 
-            void findFrontFacingBezierControlPts(const bool & left,
-                                                    const Eigen::Vector2f pCloseSafe,
-                                                    const Eigen::Vector2f pFarSafe,
-                                                    const float & robot_geo_thresh_dist,
-                                                    const float & robot_geo_diagonal_thresh,
-                                                    const float & ideal_min_cp_length,
-                                                    const float & cp_max_length,
-                                                    const Eigen::Vector2f & rbt_orient_vec,
-                                                    const Eigen::Vector2f & pGoal,
-                                                    Eigen::Vector2f & midControlPt,
-                                                    Eigen::Vector2f & new_goal,
-                                                    bool & success);
+            // void findFrontFacingBezierControlPts(const bool & left,
+            //                                         const Eigen::Vector2f pCloseSafe,
+            //                                         const Eigen::Vector2f pFarSafe,
+            //                                         const float & robot_geo_thresh_dist,
+            //                                         const float & robot_geo_diagonal_thresh,
+            //                                         const float & ideal_min_cp_length,
+            //                                         const float & cp_max_length,
+            //                                         const Eigen::Vector2f & rbt_orient_vec,
+            //                                         const Eigen::Vector2f & pGoal,
+            //                                         Eigen::Vector2f & midControlPt,
+            //                                         Eigen::Vector2f & new_goal,
+            //                                         bool & success);
 
-            void findBackFacingBezierControlPts(const bool & left,
-                                                const Eigen::Vector2f pCloseSafe,
-                                                const Eigen::Vector2f pFarSafe,
-                                                const float & robot_geo_thresh_dist,
-                                                const float & robot_geo_diagonal_thresh,
-                                                const float & ideal_min_cp_length,
-                                                const float & cp_max_length,
-                                                const Eigen::Vector2f & rbt_orient_vec,
-                                                const Eigen::Vector2f & pGoal,
-                                                Eigen::Vector2f & midControlPt,
-                                                Eigen::Vector2f & new_goal,
-                                                bool & success);
-                                                        
+            // void findBackFacingBezierControlPts(const bool & left,
+            //                                     const Eigen::Vector2f pCloseSafe,
+            //                                     const Eigen::Vector2f pFarSafe,
+            //                                     const float & robot_geo_thresh_dist,
+            //                                     const float & robot_geo_diagonal_thresh,
+            //                                     const float & ideal_min_cp_length,
+            //                                     const float & cp_max_length,
+            //                                     const Eigen::Vector2f & rbt_orient_vec,
+            //                                     const Eigen::Vector2f & pGoal,
+            //                                     Eigen::Vector2f & midControlPt,
+            //                                     Eigen::Vector2f & new_goal,
+            //                                     bool & success);
 
             Eigen::Vector2f getRotatedVec(const Eigen::Vector2f & orig_vec, 
                                             const float & chord_length, 
@@ -151,8 +150,6 @@ namespace quad_gap
                 }
                 return approx_dist;
             }
-
-            geometry_msgs::TransformStamped planning2odom;
 
             const QuadGapConfig* cfg_ = NULL;
             RobotGeometryProcessor * robot_geo_proc_ = NULL; 

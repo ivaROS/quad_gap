@@ -144,18 +144,18 @@ namespace quad_gap
             * \param minRange minimum range in scan
             */
             void visualizeProjectionOperator(const float & weightedVelLinXSafe, 
-                                             const float & weightedVelLinYSafe,
-                                             const float & minRangeTheta, 
+                                                const float & weightedVelLinYSafe,
+                                                const float & minRangeTheta, 
                                                 const float & minRange);
 
             // std::vector<geometry_msgs::Point> findLocalLine(const int & idx);
-            float polDist(const float & l1, const float & t1, const float & l2, const float & t2);
+            // float polDist(const float & l1, const float & t1, const float & l2, const float & t2);
 
-            bool geqThres(const float dist);
+            // bool geqThres(const float dist);
 
-            Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
-            Eigen::Vector2f pol2car(const Eigen::Vector2f & a);
-            Eigen::Vector3f projection_method(const float & min_diff_x, const float & min_diff_y);
+            // Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
+            // Eigen::Vector2f pol2car(const Eigen::Vector2f & a);
+            // Eigen::Vector3f projection_method(const float & min_diff_x, const float & min_diff_y);
 
             float l_; /**< Lookahead distance for nonholonomic control */
 

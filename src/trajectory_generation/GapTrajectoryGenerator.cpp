@@ -69,8 +69,8 @@ namespace quad_gap
 
         }
         
-        polar_gap_field inte(xRight, xLeft,
-                            yRight, yLeft,
+        polar_gap_field inte(xLeft, xRight, 
+                            yLeft, yRight,
                             goal_x,
                             goal_y,
                             gap->isRadial(),
@@ -345,415 +345,415 @@ namespace quad_gap
         return true;
     }
 
-    void GapTrajGenerator::findFrontFacingBezierControlPts(const bool & left,
-                                                            const Eigen::Vector2f pCloseSafe,
-                                                            const Eigen::Vector2f pFarSafe,
-                                                            const float & scaledMinDim,
-                                                            const float & robot_geo_diagonal_thresh,
-                                                            const float & q1IdealNorm,
-                                                            const float & q1MaxNorm,
-                                                            const Eigen::Vector2f & rbt_orient_vec,
-                                                            const Eigen::Vector2f & pGoal,
-                                                            Eigen::Vector2f & q1,
-                                                            Eigen::Vector2f & q2,
-                                                            bool & success)
-    {
-        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Front-facing gap");
+    // void GapTrajGenerator::findFrontFacingBezierControlPts(const bool & left,
+    //                                                         const Eigen::Vector2f pCloseSafe,
+    //                                                         const Eigen::Vector2f pFarSafe,
+    //                                                         const float & scaledMinDim,
+    //                                                         const float & robot_geo_diagonal_thresh,
+    //                                                         const float & q1IdealNorm,
+    //                                                         const float & q1MaxNorm,
+    //                                                         const Eigen::Vector2f & rbt_orient_vec,
+    //                                                         const Eigen::Vector2f & pGoal,
+    //                                                         Eigen::Vector2f & q1,
+    //                                                         Eigen::Vector2f & q2,
+    //                                                         bool & success)
+    // {
+    //     ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Front-facing gap");
 
-        float thetaCloseSafe = atan2(pCloseSafe[1], pCloseSafe[0]);
+    //     float thetaCloseSafe = atan2(pCloseSafe[1], pCloseSafe[0]);
 
-        if (abs(thetaCloseSafe) <= M_PI_OVER_TWO)
-        {
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Convex gap");
+    //     if (abs(thetaCloseSafe) <= M_PI_OVER_TWO)
+    //     {
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Convex gap");
 
-            float dist_inter_orient = abs(pCloseSafe[1]);
+    //         float dist_inter_orient = abs(pCloseSafe[1]);
 
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       dist_inter_orient: " << dist_inter_orient);
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       scaledMinDim: " << scaledMinDim);
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       dist_inter_orient: " << dist_inter_orient);
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       scaledMinDim: " << scaledMinDim);
 
-            if (dist_inter_orient >= scaledMinDim)
-            {
-                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       Larger than robot geo thresh dist");
+    //         if (dist_inter_orient >= scaledMinDim)
+    //         {
+    //             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       Larger than robot geo thresh dist");
 
-                if (q1IdealNorm > q1MaxNorm)
-                    q1 = q1MaxNorm * rbt_orient_vec;
-                else
-                    q1 = q1IdealNorm * rbt_orient_vec;
+    //             if (q1IdealNorm > q1MaxNorm)
+    //                 q1 = q1MaxNorm * rbt_orient_vec;
+    //             else
+    //                 q1 = q1IdealNorm * rbt_orient_vec;
 
-                // Goal point region
-                success = true;
+    //             // Goal point region
+    //             success = true;
 
-                // ROS_INFO_STREAM("Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //             // ROS_INFO_STREAM("Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
                 
-                // INFLATING
-                Eigen::Vector2f l_used_vec = pCloseSafe;
-                Eigen::Vector2f r_used_vec = pFarSafe;
-                if (left)
-                {
-                    l_used_vec = pCloseSafe;
-                    r_used_vec = pFarSafe;
-                } else
-                {
-                    l_used_vec = pFarSafe;
-                    r_used_vec = pCloseSafe;
-                }
+    //             // INFLATING
+    //             Eigen::Vector2f l_used_vec = pCloseSafe;
+    //             Eigen::Vector2f r_used_vec = pFarSafe;
+    //             if (left)
+    //             {
+    //                 l_used_vec = pCloseSafe;
+    //                 r_used_vec = pFarSafe;
+    //             } else
+    //             {
+    //                 l_used_vec = pFarSafe;
+    //                 r_used_vec = pCloseSafe;
+    //             }
 
-                Eigen::Vector2f l_normal_vec(-l_used_vec[1], l_used_vec[0]);
-                Eigen::Vector2f r_normal_vec(r_used_vec[1], -r_used_vec[0]);
+    //             Eigen::Vector2f l_normal_vec(-l_used_vec[1], l_used_vec[0]);
+    //             Eigen::Vector2f r_normal_vec(r_used_vec[1], -r_used_vec[0]);
 
-                Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
-                Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
+    //             Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
+    //             Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
 
-                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
+    //             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
 
-                if (!isLargerAngle(r_new, l_new))
-                {
-                    // Inflation failed
-                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 1]");
-                    success = false;
-                } else
-                {
-                    // Setting q2
-                    bool larger_than_l = isLargerAngle(pGoal, l_new);
-                    bool larger_than_r = isLargerAngle(pGoal, r_new);
+    //             if (!isLargerAngle(r_new, l_new))
+    //             {
+    //                 // Inflation failed
+    //                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 1]");
+    //                 success = false;
+    //             } else
+    //             {
+    //                 // Setting q2
+    //                 bool larger_than_l = isLargerAngle(pGoal, l_new);
+    //                 bool larger_than_r = isLargerAngle(pGoal, r_new);
 
-                    if (!larger_than_l)
-                    {
-                        q2 = pGoal.norm() * l_new / l_new.norm();
-                    } else if (larger_than_l && larger_than_r)
-                    {
-                        q2 = pGoal.norm() * r_new / r_new.norm();
-                    } else if (larger_than_l && !larger_than_r)
-                    {
-                        q2 = pGoal;
-                    } else
-                    {
-                        ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 1]");
-                        success = false;
-                    }
-                }
-            } else
-            {
-                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       Smaller than robot geo thresh dist");
+    //                 if (!larger_than_l)
+    //                 {
+    //                     q2 = pGoal.norm() * l_new / l_new.norm();
+    //                 } else if (larger_than_l && larger_than_r)
+    //                 {
+    //                     q2 = pGoal.norm() * r_new / r_new.norm();
+    //                 } else if (larger_than_l && !larger_than_r)
+    //                 {
+    //                     q2 = pGoal;
+    //                 } else
+    //                 {
+    //                     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 1]");
+    //                     success = false;
+    //                 }
+    //             }
+    //         } else
+    //         {
+    //             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "       Smaller than robot geo thresh dist");
 
-                float distPFarSafeOrient = abs(pFarSafe[1]);
-                if (distPFarSafeOrient >= scaledMinDim)
-                {
-                    // Find the intersect for max length / 2
-                    float length_devi = sqrt(robot_geo_diagonal_thresh * robot_geo_diagonal_thresh - distPFarSafeOrient * distPFarSafeOrient);
-                    Eigen::Vector2f max_cp(pCloseSafe[0] - length_devi, 0);
+    //             float distPFarSafeOrient = abs(pFarSafe[1]);
+    //             if (distPFarSafeOrient >= scaledMinDim)
+    //             {
+    //                 // Find the intersect for max length / 2
+    //                 float length_devi = sqrt(robot_geo_diagonal_thresh * robot_geo_diagonal_thresh - distPFarSafeOrient * distPFarSafeOrient);
+    //                 Eigen::Vector2f max_cp(pCloseSafe[0] - length_devi, 0);
                     
-                    bool cp_success = false;
+    //                 bool cp_success = false;
 
-                    if (max_cp[0] <= 0)
-                    {
-                        ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The chosen intersection point is too close to robot. (smaller than diagonal / 2)");
-                        success = false;
-                    } else
-                    {
-                        if (max_cp.norm() <= q1IdealNorm)
-                            q1 = max_cp.norm() * rbt_orient_vec;
-                        else
-                            q1 = q1IdealNorm * rbt_orient_vec;
+    //                 if (max_cp[0] <= 0)
+    //                 {
+    //                     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The chosen intersection point is too close to robot. (smaller than diagonal / 2)");
+    //                     success = false;
+    //                 } else
+    //                 {
+    //                     if (max_cp.norm() <= q1IdealNorm)
+    //                         q1 = max_cp.norm() * rbt_orient_vec;
+    //                     else
+    //                         q1 = q1IdealNorm * rbt_orient_vec;
 
-                        cp_success = true;
-                    }
+    //                     cp_success = true;
+    //                 }
 
-                    if (cp_success)
-                    {
-                        success = true;
-                        if (left)
-                        {
-                            // ROS_INFO_STREAM("Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //                 if (cp_success)
+    //                 {
+    //                     success = true;
+    //                     if (left)
+    //                     {
+    //                         // ROS_INFO_STREAM("Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
-                            // Eigen::Vector2f r_normal_vec(pFarSafe[1], -pFarSafe[0]);
-                            Eigen::Vector2f eFar = pFarSafe.normalized();
-                            Eigen::Vector2f rightAngularInflDir = Rpi2 * eFar; 
+    //                         // Eigen::Vector2f r_normal_vec(pFarSafe[1], -pFarSafe[0]);
+    //                         Eigen::Vector2f eFar = pFarSafe.normalized();
+    //                         Eigen::Vector2f rightAngularInflDir = Rpi2 * eFar; 
 
-                            Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * rightAngularInflDir;
+    //                         Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * rightAngularInflDir;
 
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 2 l side: ");
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafe: " << pFarSafe.transpose());
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafeInfl: " << pFarSafeInfl.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 2 l side: ");
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafe: " << pFarSafe.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafeInfl: " << pFarSafeInfl.transpose());
 
-                            if (!isLargerAngle(pFarSafeInfl, rbt_orient_vec))
-                            {
-                                success = false;
-                                ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 l side]");
-                            } else
-                            {
-                                bool larger_than_l = isLargerAngle(pGoal, rbt_orient_vec);
-                                bool larger_than_r = isLargerAngle(pGoal, pFarSafeInfl);
+    //                         if (!isLargerAngle(pFarSafeInfl, rbt_orient_vec))
+    //                         {
+    //                             success = false;
+    //                             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 l side]");
+    //                         } else
+    //                         {
+    //                             bool larger_than_l = isLargerAngle(pGoal, rbt_orient_vec);
+    //                             bool larger_than_r = isLargerAngle(pGoal, pFarSafeInfl);
 
-                                if (!larger_than_l)
-                                {
-                                    q2 = pGoal.norm() * rbt_orient_vec;
-                                } else if (larger_than_l && larger_than_r)
-                                {
-                                    q2 = pGoal.norm() * pFarSafeInfl / pFarSafeInfl.norm();
-                                } else if (larger_than_l && !larger_than_r)
-                                {
-                                    q2 = pGoal;
-                                } else
-                                {
-                                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 l side]");
-                                    success = false;
-                                }
-                            }
-                        } else
-                        {
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 2 r side: ");
-                            // Eigen::Vector2f l_normal_vec(-pFarSafe[1], pFarSafe[0]);
-                            Eigen::Vector2f eFar = pFarSafe.normalized();
-                            Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eFar; 
+    //                             if (!larger_than_l)
+    //                             {
+    //                                 q2 = pGoal.norm() * rbt_orient_vec;
+    //                             } else if (larger_than_l && larger_than_r)
+    //                             {
+    //                                 q2 = pGoal.norm() * pFarSafeInfl / pFarSafeInfl.norm();
+    //                             } else if (larger_than_l && !larger_than_r)
+    //                             {
+    //                                 q2 = pGoal;
+    //                             } else
+    //                             {
+    //                                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 l side]");
+    //                                 success = false;
+    //                             }
+    //                         }
+    //                     } else
+    //                     {
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 2 r side: ");
+    //                         // Eigen::Vector2f l_normal_vec(-pFarSafe[1], pFarSafe[0]);
+    //                         Eigen::Vector2f eFar = pFarSafe.normalized();
+    //                         Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eFar; 
 
-                            Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * leftAngularInflDir;
+    //                         Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * leftAngularInflDir;
 
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafe: " << pFarSafe.transpose());
-                            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafeInfl: " << pFarSafeInfl.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "q1: " << q1.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafe: " << pFarSafe.transpose());
+    //                         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pFarSafeInfl: " << pFarSafeInfl.transpose());
 
-                            // I THINK THIS IS WRONG OR UNNECESSARY
-                            // if (isLargerAngle(pFarSafeInfl, rbt_orient_vec))
-                            // {
-                            //     success = false;
-                            //     ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 r side]");
-                            //     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 r side]");
-                            // } else
-                            // {
-                            bool larger_than_l = isLargerAngle(pGoal, pFarSafeInfl);
-                            bool larger_than_r = isLargerAngle(pGoal, rbt_orient_vec);
+    //                         // I THINK THIS IS WRONG OR UNNECESSARY
+    //                         // if (isLargerAngle(pFarSafeInfl, rbt_orient_vec))
+    //                         // {
+    //                         //     success = false;
+    //                         //     ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 r side]");
+    //                         //     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap 2 r side]");
+    //                         // } else
+    //                         // {
+    //                         bool larger_than_l = isLargerAngle(pGoal, pFarSafeInfl);
+    //                         bool larger_than_r = isLargerAngle(pGoal, rbt_orient_vec);
 
-                            if (!larger_than_l)
-                            {
-                                q2 = pGoal.norm() * pFarSafeInfl / pFarSafeInfl.norm();
-                            } else if (larger_than_l && larger_than_r)
-                            {
-                                q2 = pGoal.norm() * rbt_orient_vec;
-                            } else if(larger_than_l && !larger_than_r)
-                            {
-                                q2 = pGoal;
-                            } else
-                            {
-                                ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
-                                ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
-                                success = false;
-                            }
-                            // }
-                        }
-                    }
-                } else // dist to other inter < thresh
-                {
-                    ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Distances to the both intersections are smaller than diagonal / 2.");
-                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Distances to the both intersections are smaller than diagonal / 2.");
-                    success = false;
-                }
-            }
-        } else // the closest inter point has angle larger than pi/2
-        {
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   (Potentially) non-convex gap");
+    //                         if (!larger_than_l)
+    //                         {
+    //                             q2 = pGoal.norm() * pFarSafeInfl / pFarSafeInfl.norm();
+    //                         } else if (larger_than_l && larger_than_r)
+    //                         {
+    //                             q2 = pGoal.norm() * rbt_orient_vec;
+    //                         } else if(larger_than_l && !larger_than_r)
+    //                         {
+    //                             q2 = pGoal;
+    //                         } else
+    //                         {
+    //                             ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
+    //                             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
+    //                             success = false;
+    //                         }
+    //                         // }
+    //                     }
+    //                 }
+    //             } else // dist to other inter < thresh
+    //             {
+    //                 ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Distances to the both intersections are smaller than diagonal / 2.");
+    //                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Distances to the both intersections are smaller than diagonal / 2.");
+    //                 success = false;
+    //             }
+    //         }
+    //     } else // the closest inter point has angle larger than pi/2
+    //     {
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   (Potentially) non-convex gap");
 
-            q1 = q1IdealNorm * rbt_orient_vec;
+    //         q1 = q1IdealNorm * rbt_orient_vec;
 
-            success = true;
+    //         success = true;
 
-            // ROS_INFO_STREAM("Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //         // ROS_INFO_STREAM("Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
-            Eigen::Vector2f l_used_vec;
-            Eigen::Vector2f r_used_vec;
-            if (left)
-            {
-                l_used_vec = pCloseSafe;
-                r_used_vec = pFarSafe;
-            } else
-            {
-                l_used_vec = pFarSafe;
-                r_used_vec = pCloseSafe;
-            }
+    //         Eigen::Vector2f l_used_vec;
+    //         Eigen::Vector2f r_used_vec;
+    //         if (left)
+    //         {
+    //             l_used_vec = pCloseSafe;
+    //             r_used_vec = pFarSafe;
+    //         } else
+    //         {
+    //             l_used_vec = pFarSafe;
+    //             r_used_vec = pCloseSafe;
+    //         }
 
-            Eigen::Vector2f l_normal_vec(-l_used_vec[1], l_used_vec[0]);
-            Eigen::Vector2f r_normal_vec(r_used_vec[1], -r_used_vec[0]);
+    //         Eigen::Vector2f l_normal_vec(-l_used_vec[1], l_used_vec[0]);
+    //         Eigen::Vector2f r_normal_vec(r_used_vec[1], -r_used_vec[0]);
 
-            Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
-            Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
+    //         Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
+    //         Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
 
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1 larger: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1 larger: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
 
-            if (!isLargerAngle(r_new, l_new))
-            {
-                success = false;
-                ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap larger pi/2]");
-            } else
-            {
-                bool larger_than_l = isLargerAngle(pGoal, l_new);
-                bool larger_than_r = isLargerAngle(pGoal, r_new);
+    //         if (!isLargerAngle(r_new, l_new))
+    //         {
+    //             success = false;
+    //             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "The union region does not exist. [Orientation is within gap larger pi/2]");
+    //         } else
+    //         {
+    //             bool larger_than_l = isLargerAngle(pGoal, l_new);
+    //             bool larger_than_r = isLargerAngle(pGoal, r_new);
 
-                if (!larger_than_l)
-                {
-                    q2 = pGoal.norm() * l_new / l_new.norm();
-                } else if(larger_than_l && larger_than_r)
-                {
-                    q2 = pGoal.norm() * r_new / r_new.norm();
-                } else if(larger_than_l && !larger_than_r)
-                {
-                    q2 = pGoal;
-                } else
-                {
-                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap larger pi/2");
-                    success = false;
-                }
-            }
-        }
-    }
+    //             if (!larger_than_l)
+    //             {
+    //                 q2 = pGoal.norm() * l_new / l_new.norm();
+    //             } else if(larger_than_l && larger_than_r)
+    //             {
+    //                 q2 = pGoal.norm() * r_new / r_new.norm();
+    //             } else if(larger_than_l && !larger_than_r)
+    //             {
+    //                 q2 = pGoal;
+    //             } else
+    //             {
+    //                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is within gap larger pi/2");
+    //                 success = false;
+    //             }
+    //         }
+    //     }
+    // }
 
-    void GapTrajGenerator::findBackFacingBezierControlPts(const bool & left,
-                                                            const Eigen::Vector2f pCloseSafe,
-                                                            const Eigen::Vector2f pFarSafe,
-                                                            const float & scaledMinDim,
-                                                            const float & robot_geo_diagonal_thresh,
-                                                            const float & q1IdealNorm,
-                                                            const float & q1MaxNorm,
-                                                            const Eigen::Vector2f & rbt_orient_vec,
-                                                            const Eigen::Vector2f & pGoal,
-                                                            Eigen::Vector2f & q1,
-                                                            Eigen::Vector2f & q2,
-                                                            bool & success)
-    {
-        ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Backward-facing gap");
+    // void GapTrajGenerator::findBackFacingBezierControlPts(const bool & left,
+    //                                                         const Eigen::Vector2f pCloseSafe,
+    //                                                         const Eigen::Vector2f pFarSafe,
+    //                                                         const float & scaledMinDim,
+    //                                                         const float & robot_geo_diagonal_thresh,
+    //                                                         const float & q1IdealNorm,
+    //                                                         const float & q1MaxNorm,
+    //                                                         const Eigen::Vector2f & rbt_orient_vec,
+    //                                                         const Eigen::Vector2f & pGoal,
+    //                                                         Eigen::Vector2f & q1,
+    //                                                         Eigen::Vector2f & q2,
+    //                                                         bool & success)
+    // {
+    //     ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Backward-facing gap");
             
-        if (q1IdealNorm > q1MaxNorm)
-            q1 = q1MaxNorm * rbt_orient_vec;
-        else
-            q1 = q1IdealNorm * rbt_orient_vec;
+    //     if (q1IdealNorm > q1MaxNorm)
+    //         q1 = q1MaxNorm * rbt_orient_vec;
+    //     else
+    //         q1 = q1IdealNorm * rbt_orient_vec;
 
-        // By default, we will calculate r side geo
-        Eigen::Vector2f cp_inter_vec = pCloseSafe - q1;
-        success = true;
+    //     // By default, we will calculate r side geo
+    //     Eigen::Vector2f cp_inter_vec = pCloseSafe - q1;
+    //     success = true;
 
-        if (!left)
-        {
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Right side gap");
+    //     if (!left)
+    //     {
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Right side gap");
 
-            Eigen::Vector2f cp_inter_normal_vec(cp_inter_vec[1], -cp_inter_vec[0]);
-            Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
-            Eigen::Vector2f new_inter_vec = cp_new_inter_vec + q1;
+    //         Eigen::Vector2f cp_inter_normal_vec(cp_inter_vec[1], -cp_inter_vec[0]);
+    //         Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
+    //         Eigen::Vector2f new_inter_vec = cp_new_inter_vec + q1;
 
-            Eigen::Vector2f l_used = pFarSafe;
-            Eigen::Vector2f pLeftSafe_normal_vec(-l_used[1], l_used[0]);
-            Eigen::Vector2f l_new_inter_vec = scaledMinDim * pLeftSafe_normal_vec / pLeftSafe_normal_vec.norm() + l_used;
+    //         Eigen::Vector2f l_used = pFarSafe;
+    //         Eigen::Vector2f pLeftSafe_normal_vec(-l_used[1], l_used[0]);
+    //         Eigen::Vector2f l_new_inter_vec = scaledMinDim * pLeftSafe_normal_vec / pLeftSafe_normal_vec.norm() + l_used;
 
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Not within r side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << l_used[0] << " " << l_used[1] << " " << l_new_inter_vec[0] << " " << l_new_inter_vec[1]);
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Not within r side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << l_used[0] << " " << l_used[1] << " " << l_new_inter_vec[0] << " " << l_new_inter_vec[1]);
             
-            // Get intersection point p1 = (0, 0), p2 = l_new_inter_vec, p3 = cp, p4 = new_inter_vec
-            float denominator = (0. - l_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - l_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
-            float nom_x = 0. - (0. - l_new_inter_vec[0]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
-            float nom_y = 0. - (0. - l_new_inter_vec[1]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
+    //         // Get intersection point p1 = (0, 0), p2 = l_new_inter_vec, p3 = cp, p4 = new_inter_vec
+    //         float denominator = (0. - l_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - l_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
+    //         float nom_x = 0. - (0. - l_new_inter_vec[0]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
+    //         float nom_y = 0. - (0. - l_new_inter_vec[1]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
 
-            bool has_inter = true;
-            float inter_x, inter_y;
-            if (denominator == 0)
-                has_inter = false;
-            else
-            {
-                inter_x = nom_x / denominator;
-                inter_y = nom_y / denominator;
-            }
+    //         bool has_inter = true;
+    //         float inter_x, inter_y;
+    //         if (denominator == 0)
+    //             has_inter = false;
+    //         else
+    //         {
+    //             inter_x = nom_x / denominator;
+    //             inter_y = nom_y / denominator;
+    //         }
 
-            bool inter_left_to_cp = isLeftofLine(Eigen::Vector2f(0, 0), q1, Eigen::Vector2f(inter_x, inter_y));
-            bool left_to_cp_line = isLeftofLine(Eigen::Vector2f(0, 0), q1, pGoal);
-            bool left_to_inter_line = isLeftofLine(Eigen::Vector2f(inter_x, inter_y), Eigen::Vector2f(inter_x, inter_y) + q1, pGoal);
-            bool left_to_cp_inter = isLeftofLine(q1, new_inter_vec, pGoal);
-            bool left_to_new_inter = isLeftofLine(Eigen::Vector2f(0, 0), l_new_inter_vec, pGoal);
+    //         bool inter_left_to_cp = isLeftofLine(Eigen::Vector2f(0, 0), q1, Eigen::Vector2f(inter_x, inter_y));
+    //         bool left_to_cp_line = isLeftofLine(Eigen::Vector2f(0, 0), q1, pGoal);
+    //         bool left_to_inter_line = isLeftofLine(Eigen::Vector2f(inter_x, inter_y), Eigen::Vector2f(inter_x, inter_y) + q1, pGoal);
+    //         bool left_to_cp_inter = isLeftofLine(q1, new_inter_vec, pGoal);
+    //         bool left_to_new_inter = isLeftofLine(Eigen::Vector2f(0, 0), l_new_inter_vec, pGoal);
 
-            if (!has_inter || (has_inter && inter_left_to_cp) || (has_inter && !inter_left_to_cp && left_to_inter_line))
-            {
-                if(left_to_cp_line || (!left_to_cp_line && left_to_cp_inter))
-                {
-                    Eigen::Vector2f goal_cp_vec = pGoal - q1;
-                    q2 = goal_cp_vec.norm() * cp_new_inter_vec / cp_new_inter_vec.norm() + q1;
-                } else if(!left_to_cp_line && !left_to_new_inter)
-                {
-                    q2 = pGoal.norm() * l_new_inter_vec / l_new_inter_vec.norm();
-                } else if(!left_to_cp_line && left_to_new_inter && !left_to_cp_inter)
-                {
-                    q2 = pGoal;
-                } else
-                {
-                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap r side, parallel]");
-                    success = false;
-                }
-            } else if((has_inter && !inter_left_to_cp && !left_to_inter_line))
-            {
-                q2 = Eigen::Vector2f(inter_x, inter_y);
-            } else
-            {
-                ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap r side, not desired]");
-                success = false;
-            }
+    //         if (!has_inter || (has_inter && inter_left_to_cp) || (has_inter && !inter_left_to_cp && left_to_inter_line))
+    //         {
+    //             if(left_to_cp_line || (!left_to_cp_line && left_to_cp_inter))
+    //             {
+    //                 Eigen::Vector2f goal_cp_vec = pGoal - q1;
+    //                 q2 = goal_cp_vec.norm() * cp_new_inter_vec / cp_new_inter_vec.norm() + q1;
+    //             } else if(!left_to_cp_line && !left_to_new_inter)
+    //             {
+    //                 q2 = pGoal.norm() * l_new_inter_vec / l_new_inter_vec.norm();
+    //             } else if(!left_to_cp_line && left_to_new_inter && !left_to_cp_inter)
+    //             {
+    //                 q2 = pGoal;
+    //             } else
+    //             {
+    //                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap r side, parallel]");
+    //                 success = false;
+    //             }
+    //         } else if((has_inter && !inter_left_to_cp && !left_to_inter_line))
+    //         {
+    //             q2 = Eigen::Vector2f(inter_x, inter_y);
+    //         } else
+    //         {
+    //             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap r side, not desired]");
+    //             success = false;
+    //         }
             
-        } else
-        {
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Left side gap");
+    //     } else
+    //     {
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Left side gap");
 
-            Eigen::Vector2f cp_inter_normal_vec(-cp_inter_vec[1], cp_inter_vec[0]);
-            Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
-            Eigen::Vector2f new_inter_vec = cp_new_inter_vec + q1;
+    //         Eigen::Vector2f cp_inter_normal_vec(-cp_inter_vec[1], cp_inter_vec[0]);
+    //         Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
+    //         Eigen::Vector2f new_inter_vec = cp_new_inter_vec + q1;
 
-            Eigen::Vector2f r_used = pFarSafe;
-            Eigen::Vector2f r_inter_normal_vec(r_used[1], -r_used[0]);
-            Eigen::Vector2f r_new_inter_vec = scaledMinDim * r_inter_normal_vec / r_inter_normal_vec.norm() + r_used;
+    //         Eigen::Vector2f r_used = pFarSafe;
+    //         Eigen::Vector2f r_inter_normal_vec(r_used[1], -r_used[0]);
+    //         Eigen::Vector2f r_new_inter_vec = scaledMinDim * r_inter_normal_vec / r_inter_normal_vec.norm() + r_used;
 
-            ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Not within l side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << r_used[0] << " " << r_used[1] << " " << r_new_inter_vec[0] << " " << r_new_inter_vec[1]);
+    //         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Not within l side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << r_used[0] << " " << r_used[1] << " " << r_new_inter_vec[0] << " " << r_new_inter_vec[1]);
 
-            // Get intersection point p1 = (0, 0), p2 = r_new_inter_vec, p3 = cp, p4 = new_inter_vec
-            float denominator = (0. - r_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - r_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
-            float nom_x = 0. - (0. - r_new_inter_vec[0]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
-            float nom_y = 0. - (0. - r_new_inter_vec[1]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
+    //         // Get intersection point p1 = (0, 0), p2 = r_new_inter_vec, p3 = cp, p4 = new_inter_vec
+    //         float denominator = (0. - r_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - r_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
+    //         float nom_x = 0. - (0. - r_new_inter_vec[0]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
+    //         float nom_y = 0. - (0. - r_new_inter_vec[1]) * (q1[0] * new_inter_vec[1] - q1[1] * new_inter_vec[0]);
 
-            bool has_inter = true;
-            float inter_x, inter_y;
-            if (denominator == 0)
-                has_inter = false;
-            else
-            {
-                inter_x = nom_x / denominator;
-                inter_y = nom_y / denominator;
-            }
+    //         bool has_inter = true;
+    //         float inter_x, inter_y;
+    //         if (denominator == 0)
+    //             has_inter = false;
+    //         else
+    //         {
+    //             inter_x = nom_x / denominator;
+    //             inter_y = nom_y / denominator;
+    //         }
 
-            bool inter_left_to_cp = isLeftofLine(Eigen::Vector2f(0, 0), q1, Eigen::Vector2f(inter_x, inter_y));
-            bool left_to_cp_line = isLeftofLine(Eigen::Vector2f(0, 0), q1, pGoal);
-            bool left_to_inter_line = isLeftofLine(Eigen::Vector2f(inter_x, inter_y), Eigen::Vector2f(inter_x, inter_y) + q1, pGoal);
-            bool left_to_cp_inter = isLeftofLine(q1, new_inter_vec, pGoal);
-            bool left_to_new_inter = isLeftofLine(Eigen::Vector2f(0, 0), r_new_inter_vec, pGoal);
+    //         bool inter_left_to_cp = isLeftofLine(Eigen::Vector2f(0, 0), q1, Eigen::Vector2f(inter_x, inter_y));
+    //         bool left_to_cp_line = isLeftofLine(Eigen::Vector2f(0, 0), q1, pGoal);
+    //         bool left_to_inter_line = isLeftofLine(Eigen::Vector2f(inter_x, inter_y), Eigen::Vector2f(inter_x, inter_y) + q1, pGoal);
+    //         bool left_to_cp_inter = isLeftofLine(q1, new_inter_vec, pGoal);
+    //         bool left_to_new_inter = isLeftofLine(Eigen::Vector2f(0, 0), r_new_inter_vec, pGoal);
 
-            if (!has_inter || (has_inter && !inter_left_to_cp) || (has_inter && inter_left_to_cp && !left_to_inter_line))
-            {
-                if (!left_to_cp_line || (left_to_cp_line && !left_to_cp_inter))
-                {
-                    Eigen::Vector2f goal_cp_vec = pGoal - q1;
-                    q2 = goal_cp_vec.norm() * cp_new_inter_vec / cp_new_inter_vec.norm() + q1;
-                } else if (left_to_cp_line && left_to_new_inter)
-                {
-                    q2 = pGoal.norm() * r_new_inter_vec / r_new_inter_vec.norm();
-                } else if (left_to_cp_line && !left_to_new_inter && left_to_cp_inter)
-                {
-                    q2 = pGoal;
-                } else
-                {
-                    ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap l side, parallel]");
-                    success = false;
-                }
-            } else if ((has_inter && inter_left_to_cp && left_to_inter_line))
-            {
-                q2 = Eigen::Vector2f(inter_x, inter_y);
-            } else
-            {
-                ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap l side, not desired]");
-                success = false;
-            }
-        }
-    }
+    //         if (!has_inter || (has_inter && !inter_left_to_cp) || (has_inter && inter_left_to_cp && !left_to_inter_line))
+    //         {
+    //             if (!left_to_cp_line || (left_to_cp_line && !left_to_cp_inter))
+    //             {
+    //                 Eigen::Vector2f goal_cp_vec = pGoal - q1;
+    //                 q2 = goal_cp_vec.norm() * cp_new_inter_vec / cp_new_inter_vec.norm() + q1;
+    //             } else if (left_to_cp_line && left_to_new_inter)
+    //             {
+    //                 q2 = pGoal.norm() * r_new_inter_vec / r_new_inter_vec.norm();
+    //             } else if (left_to_cp_line && !left_to_new_inter && left_to_cp_inter)
+    //             {
+    //                 q2 = pGoal;
+    //             } else
+    //             {
+    //                 ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap l side, parallel]");
+    //                 success = false;
+    //             }
+    //         } else if ((has_inter && inter_left_to_cp && left_to_inter_line))
+    //         {
+    //             q2 = Eigen::Vector2f(inter_x, inter_y);
+    //         } else
+    //         {
+    //             ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "Goal point is in the wrong region. [Orientation is not within gap l side, not desired]");
+    //             success = false;
+    //         }
+    //     }
+    // }
 
     Trajectory GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
                                                             const geometry_msgs::TwistStamped & rbtVelRbtFrame)
