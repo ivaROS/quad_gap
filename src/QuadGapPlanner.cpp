@@ -28,7 +28,7 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("Planner", "Initializing Planner with name: " << name);
         
         planner_name = name;
-        planner.initialize(name);
+        planner.initialize(planner_name);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 

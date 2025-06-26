@@ -317,10 +317,10 @@ namespace quad_gap
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
 
             ros::NodeHandle nh, pnh;
-            ros::Publisher trajectory_pub;
+            // ros::Publisher trajectory_pub;
 
             ros::Publisher transformed_laser_pub;
-            ros::Publisher virtual_orient_traj_pub;
+            // ros::Publisher virtual_orient_traj_pub;
 
             bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */
             bool hasLaserScan_ = false;
@@ -331,8 +331,8 @@ namespace quad_gap
             geometry_msgs::PoseStamped globalGoalRobotFrame_; /**< Global goal in robot frame */
             geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame_; /**< Global path local waypoint in odometry frame */
 
-            geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
-            geometry_msgs::PoseStamped final_goal_odom;
+            // geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
+            // geometry_msgs::PoseStamped final_goal_odom;
 
             // Gaps:
             std::vector<Gap *> currRawGaps_;
@@ -352,14 +352,13 @@ namespace quad_gap
             TrajectoryController * trajController_  = NULL;
             TimeKeeper * timeKeeper_ = NULL; /**< Time keeper */
 
-
             // Status
             bool hasGlobalGoal_ = false;
 
             bool colliding_ = false;
 
-            geometry_msgs::PoseArray pose_arr;
-            geometry_msgs::PoseArray pose_arr_odom;
+            // geometry_msgs::PoseArray pose_arr;
+            // geometry_msgs::PoseArray pose_arr_odom;
 
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
             // int ctrl_idx = 0;
@@ -368,14 +367,14 @@ namespace quad_gap
 
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
 
-            ros::WallTime last_time;
+            // ros::WallTime last_time;
             // TrajPlan ni_ref, orig_ref;
 
             // Dynamic Reconfigure
             // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
             // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
 
-            bool replan = true;
+            // bool replan = true;
             
             QuadGapConfig cfg_;
 

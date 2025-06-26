@@ -94,7 +94,7 @@ namespace quad_gap
             robot_geo_proc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
         
         // Visualization Setup
-        trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
+        // trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
 
         transformed_laser_pub = nh.advertise<sensor_msgs::LaserScan>("transformed_laserscan", 5);
         // virtual_orient_traj_pub = nh.advertise<geometry_msgs::PoseArray>("picked_virtual_traj", 10);
@@ -865,7 +865,7 @@ namespace quad_gap
 
             if (incomingTrajCost < reducedCurrTrajCost)  
             {
-                ROS_WARN_STREAM_NAMED("Planner", "Swap to new for better score: " << incomingTrajCost << " > " << reducedCurrTrajCost);
+                ROS_WARN_STREAM_NAMED("Planner", "Swap to new for better score: " << incomingTrajCost << " < " << reducedCurrTrajCost);
                 // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
                 incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
                 // trajectory_pub.publish(incomingTraj);

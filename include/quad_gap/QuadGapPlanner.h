@@ -124,7 +124,7 @@ namespace quad_gap
 
             Planner planner;
             std::string planner_name;
-            ros::NodeHandle nh, pnh;
+            // ros::NodeHandle nh, pnh;
 
             // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
             // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
