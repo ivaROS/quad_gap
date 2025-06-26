@@ -47,10 +47,19 @@ namespace quad_gap {
                 cfg_ = t.cfg_;
                 robot_geo_proc_ = t.robot_geo_proc_;
             }
-            
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
-            void updateGapContainer(const std::vector<Gap *> & observed_gaps);
 
+            /**
+            * \brief receive new laser scan and update member variable accordingly
+            * \param scan new laser scan
+            */            
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            
+            
+            /**
+            * \brief Helper function for transforming global path local waypoint into robot frame
+            * \param globalPathLocalWaypointOdomFrame Current local waypoint along global plan in robot frame
+            * \param odom2rbt transformation from odom frame to robot frame
+            */            
             void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
                                                             const geometry_msgs::TransformStamped & odom2rbt);
             
@@ -59,25 +68,49 @@ namespace quad_gap {
             
             // Full Scoring
             // std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
-            geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
+            // geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
             
             // std::vector<float> & posewiseCosts,
-            // float & terminalPoseCost            
-            void scoreTrajectory(Trajectory & traj);
+            // float & terminalPoseCost    
+            
+            /**
+            * \brief Function for evaluating pose-wise scores along candidate trajectory
+            * \param traj candidate trajectory to score
+            */            
+            void evaluateTrajectory(Trajectory & traj);
         
         private:
             
-            float costFn(Gap * g, int goal_idx);
-
+            /**
+            * \brief function for evaluating intermediate cost of pose for candidate trajectory (in static environment)
+            * \param pose pose within candidate trajectory to evaluate
+            * \param scan current laser scan
+            * \return intermediate cost of pose
+            */        
             float evaluatePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan);
+
             // int searchIdx(geometry_msgs::Pose pose);
-            float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
-            float chapterCost(const float & d, const float & rmax_offset_val);
+            
+            
+            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+
+            /**
+            * \brief function for calculating intermediate trajectory cost (in static environment)
+            * \param rbtToScanDist minimum distance from robot pose to current scan
+            * \return intermediate cost of pose
+            */            
+            float chapterCost(const float & d);
+
+            /**
+            * \brief function for evaluating terminal waypoint cost for candidate trajectory
+            * \param pose final pose in candidate trajectory to check against terminal waypoint
+            * \return terminal waypoint cost for candidate trajectory
+            */            
             float terminalGoalCost(const geometry_msgs::Pose & pose);
 
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
-            std::vector<Gap *> gaps;
+            // std::vector<Gap *> gaps;
             geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame_;
 
             boost::mutex globalPlanMutex_; /**< mutex locking thread for updating current global plan */

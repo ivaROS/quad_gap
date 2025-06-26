@@ -96,7 +96,7 @@ namespace quad_gap
         private:
             Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z);
             Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & theta);
-            float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
 
             /**
             * \brief Helper function for clipping velocities to maximum allowed velocities

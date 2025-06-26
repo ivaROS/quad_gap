@@ -57,17 +57,17 @@ namespace quad_gap
         return canRobotFit;
     }  
 
-    bool GapDetector::equivalentCheck(Gap * detected_gap)
+    bool GapDetector::equivalentPLDistcheck(Gap * rawGap)
     {
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
         // Find equivalent passing length
         // Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f m_pt_vec = detected_gap->get_middle_pt_vec();
+        Eigen::Vector2f m_pt_vec = rawGap->get_middle_pt_vec();
         // float epl = robot_geo_proc_->getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
         float epl = robot_geo_proc_->getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
 
-        return detected_gap->get_dist_side() > epl;
+        return rawGap->get_dist_side() > epl;
     }
 
     bool GapDetector::bridgeCondition(const std::vector<Gap *> & rawGaps)
@@ -131,16 +131,16 @@ namespace quad_gap
             // If both current and last values are not infinity, meaning this is not a swept gap
             if (radialGapSizeCheck(currRange, prevRange, scan_.angle_increment)) 
             {
-                Gap * detected_gap = new Gap(frame, currIdx - 1, prevRange, true);
-                detected_gap->addLeftInformation(currIdx, currRange);
-                detected_gap->setMinSafeDist(minScanDist_);
+                Gap * rawGap = new Gap(frame, currIdx - 1, prevRange, true);
+                rawGap->addLeftInformation(currIdx, currRange);
+                rawGap->setMinSafeDist(minScanDist_);
 
-                if (equivalentCheck(detected_gap))
+                if (equivalentPLDistcheck(rawGap))
                 {
-                    rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
+                    rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                 } else
                 {
-                    delete detected_gap; // If not equivalent, delete the gap
+                    delete rawGap; // If not equivalent, delete the gap
                 }
             }
                 
@@ -153,16 +153,16 @@ namespace quad_gap
                 if (withinSweptGap)
                 {
                     withinSweptGap = false;
-                    Gap * detected_gap = new Gap(frame, gapRIdx, gapRRange);
-                    detected_gap->addLeftInformation(currIdx, currRange);
-                    detected_gap->setMinSafeDist(minScanDist_);
+                    Gap * rawGap = new Gap(frame, gapRIdx, gapRRange);
+                    rawGap->addLeftInformation(currIdx, currRange);
+                    rawGap->setMinSafeDist(minScanDist_);
 
-                    if (equivalentCheck(detected_gap))
+                    if (equivalentPLDistcheck(rawGap))
                     {
-                        rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
+                        rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                     } else
                     {
-                        delete detected_gap; // If not equivalent, delete the gap
+                        delete rawGap; // If not equivalent, delete the gap
                     }
                 } else // previously not marked a gap, not marking the gap
                 {
@@ -177,16 +177,16 @@ namespace quad_gap
         // Catch the last gap
         if (withinSweptGap) 
         {
-            Gap * detected_gap = new Gap(frame, gapRIdx, gapRRange);
-            detected_gap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
-            detected_gap->setMinSafeDist(minScanDist_);
+            Gap * rawGap = new Gap(frame, gapRIdx, gapRRange);
+            rawGap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
+            rawGap->setMinSafeDist(minScanDist_);
 
-            if (equivalentCheck(detected_gap) || detected_gap->LIdx() - detected_gap->RIdx() > 500)
+            if (equivalentPLDistcheck(rawGap) || rawGap->LIdx() - rawGap->RIdx() > 500)
             {
-                rawGaps.push_back(detected_gap); //  || cfg_->planning.planning_inflated
+                rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
             } else
             {
-                delete detected_gap; // If not equivalent, delete the gap
+                delete rawGap; // If not equivalent, delete the gap
             } 
         }
         

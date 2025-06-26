@@ -587,7 +587,7 @@ namespace quad_gap
 
                 // std::vector<float> pathPoseCost;
                 // float pathTerminalCost;                
-                trajEvaluator_->scoreTrajectory(gapTraj); // orientedGapTraj, pathPoseCost, pathTerminalCost
+                trajEvaluator_->evaluateTrajectory(gapTraj); // orientedGapTraj, pathPoseCost, pathTerminalCost
 
                 // pathPoseCosts.at(i) = pathPoseCost;
                 // pathTerminalPoseCosts.at(i) = pathTerminalCost;
@@ -731,7 +731,7 @@ namespace quad_gap
             gapTrajGenerator_->getOrientDecayedPath(incomingTraj);
             // std::vector<float> incomingPathPoseCosts;
             // float incomingPathTerminalCost;
-            trajEvaluator_->scoreTrajectory(incomingTraj); // orientedIncomingPathRbtFrame, incomingPathPoseCosts, incomingPathTerminalCost);
+            trajEvaluator_->evaluateTrajectory(incomingTraj); // orientedIncomingPathRbtFrame, incomingPathPoseCosts, incomingPathTerminalCost);
             
             ROS_INFO_STREAM_NAMED("Planner", "    length of incoming path: " << incomingTraj.size());
 
@@ -827,8 +827,8 @@ namespace quad_gap
 
             // std::vector<float> reducedCurrentPathPoseCosts;
             // float reducedCurrentPathTerminalCost;                       
-            // trajEvaluator_->scoreTrajectory(virtual_curr_score_path, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
-            trajEvaluator_->scoreTrajectory(reducedCurrentTraj); // reducedCurrentPathRobotFrame, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
+            // trajEvaluator_->evaluateTrajectory(virtual_curr_score_path, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
+            trajEvaluator_->evaluateTrajectory(reducedCurrentTraj); // reducedCurrentPathRobotFrame, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
 
             // float currAveragedPoseCost = std::accumulate(reducedCurrentPathPoseCosts.begin(), 
             //                                                 reducedCurrentPathPoseCosts.end(), float(0)) / (reducedCurrentPathPoseCosts.size() + eps);

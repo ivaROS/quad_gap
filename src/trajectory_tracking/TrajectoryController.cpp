@@ -709,12 +709,12 @@ namespace quad_gap
         return std::min(targetPose, int(localTrajectory.poses.size() - 1));
     }
 
-    float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
-    {
-        float x = dist * std::cos(theta);
-        float y = dist * std::sin(theta);
-        return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
-    }
+    // float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    // {
+    //     float x = dist * std::cos(theta);
+    //     float y = dist * std::sin(theta);
+    //     return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
+    // }
 
     // Eigen::Vector2f TrajectoryController::car2pol(const Eigen::Vector2f & a) 
     // {

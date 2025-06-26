@@ -22,21 +22,32 @@ namespace quad_gap
     class GapDetector 
     {
         public: 
+            /** 
+            * \brief Constructor with planner config and robot geometry processor
+
+            * \param cfg config file for planner parameters
+            * \param robot_geo_proc robot geometry processor for robot geometry calculations
+            */        
             GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
 
-            GapDetector& operator=(GapDetector other) 
-            {
-                cfg_ = other.cfg_;
-                robot_geo_proc_ = other.robot_geo_proc_;
-
-                return *this;
-            };
+            /**
+            * /brief Copy constructor
+            * \param t GapDetector to copy from
+            */
 
             GapDetector(const GapDetector &t) 
             {
                 cfg_ = t.cfg_;
                 robot_geo_proc_ = t.robot_geo_proc_;
             };
+
+            // GapDetector& operator=(GapDetector other) 
+            // {
+            //     cfg_ = other.cfg_;
+            //     robot_geo_proc_ = other.robot_geo_proc_;
+
+            //     return *this;
+            // };
 
             /**
             * \brief Preprocess incoming laser scan to remove NaN/Inf values
@@ -74,8 +85,19 @@ namespace quad_gap
             bool mergeSweptGapCondition(Gap * rawGap, 
                                         const std::vector<Gap *> & simplifiedGaps);
 
-            bool equivalentCheck(Gap * detected_gap);
+            /**
+            * \brief Check if raw gap is far enough away using equivalent passing lenght
+            * \param rawGap queried raw gap
+            * \return boolean for if raw gap is far enough away
+            */
+            bool equivalentPLDistcheck(Gap * rawGap);
 
+            /**
+            * \brief Checking if first and last raw gaps should be merged together
+            * 
+            * \param rawGaps raw set of gaps
+            * \return boolean if first and last raw gaps should be merged together
+            */            
             bool bridgeCondition(const std::vector<Gap *> & rawGaps);
 
             /**
