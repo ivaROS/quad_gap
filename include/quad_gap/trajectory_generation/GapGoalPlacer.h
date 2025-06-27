@@ -67,8 +67,8 @@ namespace quad_gap
                                             
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             const QuadGapConfig* cfg_;        
-            int num_of_scan;
-            boost::mutex egolock;
+            // int num_of_scan;
+            boost::mutex scanMutex_;
 
             Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
 

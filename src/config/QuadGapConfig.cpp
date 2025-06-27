@@ -77,9 +77,9 @@ namespace quad_gap
             ros_throw_param_load(nh, "Kpx", control.Kpx);
             ros_throw_param_load(nh, "Kpy", control.Kpy);
             ros_throw_param_load(nh, "Kpz", control.Kpz);
-            ros_throw_param_load(nh, "v_ang_const", control.v_ang_const);
-            ros_throw_param_load(nh, "v_lin_x_const", control.v_lin_x_const);
-            ros_throw_param_load(nh, "v_lin_y_const", control.v_lin_y_const);
+            // ros_throw_param_load(nh, "v_ang_const", control.v_ang_const);
+            // ros_throw_param_load(nh, "v_lin_x_const", control.v_lin_x_const);
+            // ros_throw_param_load(nh, "v_lin_y_const", control.v_lin_y_const);
             ros_throw_param_load(nh, "ctrl_ahead_pose", control.ctrl_ahead_pose);
 
             ///////////////////////////

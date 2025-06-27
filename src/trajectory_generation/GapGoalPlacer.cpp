@@ -4,9 +4,9 @@ namespace quad_gap
 {
     void GapGoalPlacer::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
     {
-        boost::mutex::scoped_lock lock(egolock);
+        boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = msg;
-        num_of_scan = (int)(scan_.get()->ranges.size());
+        // num_of_scan = (int)(scan_.get()->ranges.size());
     }
 
     void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal)
@@ -86,7 +86,7 @@ namespace quad_gap
         //     pow(localgoal.pose.position.x, 2)
         // );
 
-        if (checkWaypointVisiblity(pLeft, pRight, pGoal)) 
+        if (checkWaypointVisibility(pLeft, pRight, pGoal)) 
         {
             ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal is visible, setting goal within gap");
             gap->setGoalPos(localgoal.pose.position.x, localgoal.pose.position.y);

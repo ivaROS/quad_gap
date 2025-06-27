@@ -129,7 +129,7 @@ namespace quad_gap
             * \return index within simplified gaps that should be merged
             */
             int checkSimplifiedGapsMergeability(Gap * rawGap, 
-                                                const std::vector<Gap *> & simpGaps);
+                                                const std::vector<Gap *> & simplifiedGaps);
 
             /**
             * \brief Checking if gap should be classified as radial 

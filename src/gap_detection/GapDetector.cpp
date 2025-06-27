@@ -221,7 +221,7 @@ namespace quad_gap
     ////////////////// GAP SIMPLIFICATION ///////////////////////
 
     int GapDetector::checkSimplifiedGapsMergeability(Gap * rawGap, 
-                                                     const std::vector<Gap *> & simpGaps)
+                                                     const std::vector<Gap *> & simplifiedGaps)
     {
         int lastMergeable = -1;
 
@@ -230,7 +230,7 @@ namespace quad_gap
 
         int startIdx = -1, endIdx = -1;
         // float coefs = cfg_->planning.planning_inflated ? 0 : 1;
-        for (int j = (int) (simpGaps.size() - 1); j >= 0; j--)
+        for (int j = (int) (simplifiedGaps.size() - 1); j >= 0; j--)
         {
             startIdx = std::min(simplifiedGaps.at(j)->LIdx(), rawGap->RIdx());
             endIdx = std::max(simplifiedGaps.at(j)->LIdx(), rawGap->RIdx());
@@ -247,14 +247,14 @@ namespace quad_gap
             
 
             float erlLRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
-            float erlRRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simpGaps[j]->RRange());
-            bool second_test = currLRange <= (minIntergapRange - erlLRange) && simpGaps[j]->RRange() <= (minIntergapRange - erlRRange);
+            float erlRRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simplifiedGaps[j]->RRange());
+            bool second_test = currLRange <= (minIntergapRange - erlLRange) && simplifiedGaps[j]->RRange() <= (minIntergapRange - erlRRange);
             
             
             // 2. Checking if current simplified gap is either right dist < left dist or swept 
             bool rightTypeOrSweptGap = simplifiedGaps.at(j)->isRightType() || !simplifiedGaps.at(j)->isRadial();
             
-            // bool idx_diff = rawGap->LIdx() - simpGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
+            // bool idx_diff = rawGap->LIdx() - simplifiedGaps[j]->RIdx() < cfg_->gap_manip.max_idx_diff;
 
             if (second_test && rightTypeOrSweptGap) //  && idx_diff 
             {
@@ -266,20 +266,20 @@ namespace quad_gap
     }
 
     bool GapDetector::mergeSweptGapCondition(Gap * rawGap, 
-                                             const std::vector<Gap *> & simpGaps)
+                                             const std::vector<Gap *> & simplifiedGaps)
     {
         // checking if difference between raw gap left dist and simplified gap right (widest distances, encompassing both gaps)
         // dist is sufficiently small (to fit robot)
-        bool adjacentGapPtDistDiffCheck = std::abs(rawGap->LRange() - simpGaps.back()->RRange()) < 3 * cfg_->rbt.r_inscr;
+        bool adjacentGapPtDistDiffCheck = std::abs(rawGap->LRange() - simplifiedGaps.back()->RRange()) < 3 * cfg_->rbt.r_inscr;
 
         // checking if difference is sufficiently small, and that current simplified gap is radial and right dist < left dist
-        return adjacentGapPtDistDiffCheck && simpGaps.back()->isRadial() && simpGaps.back()->isRightType();
+        return adjacentGapPtDistDiffCheck && simplifiedGaps.back()->isRadial() && simplifiedGaps.back()->isRightType();
     }
 
 
     std::vector<Gap *> GapDetector::gapSimplification(const std::vector<Gap *> & rawGaps)
     {
-        std::vector<Gap *> simpGaps;
+        std::vector<Gap *> simplifiedGaps;
 
         // int right_idx = -1;
         // int left_idx = -1;
@@ -309,52 +309,52 @@ namespace quad_gap
                     markToStart = false;
                 }
                 
-                simpGaps.push_back(rawGap);
+                simplifiedGaps.push_back(rawGap);
             } else 
             {
                 if (rawGap->isRadial())
                 {
                     if (rawGap->isRightType())
                     {
-                        simpGaps.push_back(rawGap);
+                        simplifiedGaps.push_back(rawGap);
                     } else
                     {
-                        lastMergeable = checkSimplifiedGapsMergeability(rawGap, simpGaps);
+                        lastMergeable = checkSimplifiedGapsMergeability(rawGap, simplifiedGaps);
 
                         if (lastMergeable != -1) 
                         {
-                            for (auto gapIter = simpGaps.begin() + lastMergeable + 1; gapIter != simpGaps.end(); gapIter++)
+                            for (auto gapIter = simplifiedGaps.begin() + lastMergeable + 1; gapIter != simplifiedGaps.end(); gapIter++)
                                 delete *gapIter;
 
-                            simpGaps.erase(simpGaps.begin() + lastMergeable + 1, simpGaps.end());
-                            simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
+                            simplifiedGaps.erase(simplifiedGaps.begin() + lastMergeable + 1, simplifiedGaps.end());
+                            simplifiedGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                         } else 
                         {
-                            simpGaps.push_back(rawGap);
+                            simplifiedGaps.push_back(rawGap);
                         }
                     }
                 } else
                 {
-                    if (mergeSweptGapCondition(rawGap, simpGaps))
+                    if (mergeSweptGapCondition(rawGap, simplifiedGaps))
                     {
-                        simpGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
+                        simplifiedGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                     } else {
-                        simpGaps.push_back(rawGap);
+                        simplifiedGaps.push_back(rawGap);
                     }
                 }
             }
                 // else
                 // {
                     // // A swept gap solely on its own
-                    // simpGaps.push_back(rawGap);
+                    // simplifiedGaps.push_back(rawGap);
                 // }
             // }
             // last_type_left = rawGap->isRightType();
         }
 
         // rawGaps.clear();
-        // rawGaps = simpGaps;
-        return simpGaps;
+        // rawGaps = simplifiedGaps;
+        return simplifiedGaps;
     }
 
 
