@@ -29,22 +29,22 @@ namespace quad_gap
             GlobalPlanManager(const QuadGapConfig& cfg) // , RobotGeometryProcessor& robot_geo_proc
             {
                 cfg_ = &cfg;
-                // robot_geo_proc_ = & robot_geo_proc;
+                // robotGeoProc_ = & robot_geo_proc;
             }
             
-            GlobalPlanManager& operator=(GlobalPlanManager other) 
-            {
-                cfg_ = other.cfg_;
-                // robot_geo_proc_ = other.robot_geo_proc_;
+            // GlobalPlanManager& operator=(GlobalPlanManager other) 
+            // {
+            //     cfg_ = other.cfg_;
+            //     // robotGeoProc_ = other.robotGeoProc_;
             
-                return *this;
-            };
+            //     return *this;
+            // };
             
-            GlobalPlanManager(const GlobalPlanManager &t) 
-            {
-                cfg_ = t.cfg_;
-                // robot_geo_proc_ = t.robot_geo_proc_;
-            };
+            // GlobalPlanManager(const GlobalPlanManager &t) 
+            // {
+            //     cfg_ = t.cfg_;
+            //     // robotGeoProc_ = t.robotGeoProc_;
+            // };
 
             /**
             * \brief parse global path to obtain local waypoint along global path
@@ -129,7 +129,7 @@ namespace quad_gap
 
             const QuadGapConfig* cfg_ = NULL; /**< Planner hyperparameter config list */
 
-            // RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */       
+            // RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */       
 
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_; /**< Current laser scan */
 

@@ -15,7 +15,7 @@ namespace quad_gap
 
     void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan)
     {
-        boost::mutex::scoped_lock lock(egocircle_l);
+        boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = scan;
     }
 
@@ -135,7 +135,7 @@ namespace quad_gap
                                                                     const geometry_msgs::Pose & desiredPoseOdomFrame) 
     {
         // Setup Vars
-        boost::mutex::scoped_lock lock(egocircle_l);
+        boost::mutex::scoped_lock lock(scanMutex_);
         // bool holonomic = cfg_->planning.holonomic;
         // bool projection_operator = cfg_->planning.projection_operator;
         // float Kpz_ = cfg_->control.Kpz;

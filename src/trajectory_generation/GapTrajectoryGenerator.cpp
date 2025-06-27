@@ -143,7 +143,7 @@ namespace quad_gap
         }
 
         float boxGeomScale = cfg_->traj.robot_geo_scale;
-        float scaledMinDim = robot_geo_proc_->getRobotMinRadius() * boxGeomScale; // width / 2
+        float scaledMinDim = robotGeoProc_->getRobotMinRadius() * boxGeomScale; // width / 2
 
         // max norm for second control point
         float q1MaxNorm = minSafeDist - scaledMinDim;
@@ -204,7 +204,7 @@ namespace quad_gap
             return true;
         }
 
-        float robot_geo_diagonal_thresh = robot_geo_proc_->getRobotMaxRadius() * boxGeomScale;
+        float robot_geo_diagonal_thresh = robotGeoProc_->getRobotMaxRadius() * boxGeomScale;
         // float q1MaxNorm = minSafeDist - robot_geo_diagonal_thresh;
 
         bool success = findBezierControlPtsNew(pLeftSafe, pRightSafe, pGoal,
@@ -800,7 +800,7 @@ namespace quad_gap
             }
             else
             {
-                // float des_dist = robot_geo_proc_->getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
+                // float des_dist = robotGeoProc_->getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
                 float entire_dist = getBezierDist(quadraBezier, 0, 1, 30);
                 // int num_sampled_pts = int(round(entire_dist / des_dist));
                 // num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
@@ -809,28 +809,29 @@ namespace quad_gap
 
                 float des_dist = entire_dist / num_sampled_pts;
 
+                int steps = 5;
                 float dist_thresh = des_dist / 10;
                 float t_step = 1. / (num_sampled_pts - 1);
-                float t_min = 0;
+                float t_kmin1 = 0;
                 for (size_t i = 0; i < num_sampled_pts; i++)
                 {
-                    float cur_t = i * t_step;
-                    float cur_dist = getBezierDist(quadraBezier, t_min, cur_t, 5);
+                    float t_k = i * t_step;
+                    float cur_dist = getBezierDist(quadraBezier, t_kmin1, t_k, steps);
                     if(abs(cur_dist - des_dist) < dist_thresh)
                     {
                         geometry_msgs::Pose pose;
-                        pose.position.x = quadraBezier.valueAt(cur_t, 0);
-                        pose.position.y = quadraBezier.valueAt(cur_t, 1);
+                        pose.position.x = quadraBezier.valueAt(t_k, 0);
+                        pose.position.y = quadraBezier.valueAt(t_k, 1);
                         pathRbtFrame.poses.push_back(pose);
-                        t_min = cur_t;
+                        t_kmin1 = t_k;
                     }
                     else if(cur_dist > des_dist)
                     {
                         float t_prev = (i - 1) * t_step;
-                        float t_interp = (cur_t + t_prev) / 2;
-                        float interp_dist = getBezierDist(quadraBezier, t_min, t_interp, 5);
+                        float t_interp = (t_k + t_prev) / 2;
+                        float interp_dist = getBezierDist(quadraBezier, t_kmin1, t_interp, steps);
 
-                        float t_high = cur_t;
+                        float t_high = t_k;
                         float t_low = t_prev;
                         while(abs(interp_dist - des_dist) > dist_thresh)
                         {
@@ -844,8 +845,8 @@ namespace quad_gap
                                 t_high = t_interp;
                                 t_interp = (t_interp + t_low) / 2;
                             }
-                            interp_dist = getBezierDist(quadraBezier, t_min, t_interp, 5);
-                            if(abs(t_interp - t_low) <= 1e-3 && abs(t_interp - t_high) <= 1e-3)
+                            interp_dist = getBezierDist(quadraBezier, t_kmin1, t_interp, steps);
+                            if (abs(t_interp - t_low) <= 1e-3 && abs(t_interp - t_high) <= 1e-3)
                                 break;
                             // ROS_INFO_STREAM(t_interp << " " << t_low << " " << t_high << " " << interp_dist << " " << abs(interp_dist - des_dist) << " " << dist_thresh);
                         }
@@ -854,7 +855,7 @@ namespace quad_gap
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
                         pathRbtFrame.poses.push_back(pose);
-                        t_min = t_interp;
+                        t_kmin1 = t_interp;
                     }
                 }
 
@@ -954,10 +955,10 @@ namespace quad_gap
             return;
         }
         
-        if (robot_geo_proc_->robot_.shape == RobotShape::circle || !cfg_->planning.virtual_path_decay_enable)
+        if (robotGeoProc_->robot_.shape == RobotShape::circle || !cfg_->planning.virtual_path_decay_enable)
         {
             orientedPath = rawPath;
-        } else if (robot_geo_proc_->robot_.shape == RobotShape::box)
+        } else if (robotGeoProc_->robot_.shape == RobotShape::box)
         {
             orientedPath.header = rawPath.header;
             geometry_msgs::Pose first_pose = rawPath.poses[0];
@@ -1045,20 +1046,20 @@ namespace quad_gap
         return poseArrayOut;
     }
 
-    Eigen::Vector2f GapTrajGenerator::getRotatedVec(const Eigen::Vector2f & orig_vec, const float & chord_length, const bool & ccw)
-    {
-        float r = orig_vec.norm();
-        float rotate_angle = acos((2 * r * r - chord_length * chord_length) / (2 * r * r));
+    // Eigen::Vector2f GapTrajGenerator::getRotatedVec(const Eigen::Vector2f & orig_vec, const float & chord_length, const bool & ccw)
+    // {
+    //     float r = orig_vec.norm();
+    //     float rotate_angle = acos((2 * r * r - chord_length * chord_length) / (2 * r * r));
 
-        Eigen::Matrix2f rotate_mat;
-        if(ccw)
-            rotate_mat << cos(rotate_angle), -sin(rotate_angle), sin(rotate_angle), cos(rotate_angle);
-        else
-            rotate_mat << cos(rotate_angle), sin(rotate_angle), -sin(rotate_angle), cos(rotate_angle);
+    //     Eigen::Matrix2f rotate_mat;
+    //     if(ccw)
+    //         rotate_mat << cos(rotate_angle), -sin(rotate_angle), sin(rotate_angle), cos(rotate_angle);
+    //     else
+    //         rotate_mat << cos(rotate_angle), sin(rotate_angle), -sin(rotate_angle), cos(rotate_angle);
 
-        Eigen::Vector2f rotated_vec = rotate_mat * orig_vec;
+    //     Eigen::Vector2f rotated_vec = rotate_mat * orig_vec;
 
-        return rotated_vec;
-    }
+    //     return rotated_vec;
+    // }
 
 }

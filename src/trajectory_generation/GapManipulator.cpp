@@ -160,8 +160,8 @@ namespace quad_gap
 
         Eigen::Vector2f mid = (rightPt + leftPt) / 2;
         // Eigen::Vector2f robot_orient(1,0);
-        float equivPassingLength = float(robot_geo_proc_->getLinearDecayEquivalentPL(robotOrientationVector, mid, mid.norm()));
-        float equivRadialLength = float(robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, mid, mid.norm()));
+        float equivPassingLength = float(robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, mid, mid.norm()));
+        float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, mid, mid.norm()));
         
         float nomPivotAngle = (float) std::atan2(equivPassingLength / 2 * cfg_->gap_manip.rot_ratio, equivRadialLength / 2);
         
@@ -500,20 +500,163 @@ namespace quad_gap
         return;
     }
 
-    Eigen::Vector2f GapManipulator::car2pol(const Eigen::Vector2f & a) 
+    void GapManipulator::inflateGapSides(Gap * gap) 
     {
-        return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
+        // get points
+
+        float inf_ratio = cfg_->traj.inf_ratio;
+
+        int leftIdx = gap->manipLeftIdx();
+        int rightIdx = gap->manipRightIdx();
+        float leftRange = gap->manipLeftRange();
+        float rightRange = gap->manipRightRange();
+
+        float leftTheta = idx2theta(leftIdx);
+        float rightTheta = idx2theta(rightIdx);
+        float xLeft = (leftRange) * cos(leftTheta);
+        float yLeft = (leftRange) * sin(leftTheta);
+        float xRight = (rightRange) * cos(rightTheta);
+        float yRight = (rightRange) * sin(rightTheta);
+        
+        Eigen::Vector2f leftPt(xLeft, yLeft);
+        Eigen::Vector2f rightPt(xRight, yRight);
+
+        Eigen::Vector2f midPt = (leftPt + rightPt) / 2;
+        // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, midPt, midPt.norm());
+                
+        ROS_INFO_STREAM_NAMED("GapManipulator", "    [inflateGapSides()]");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+
+        Eigen::Vector2f leftUnitNorm = leftPt.normalized();
+        Eigen::Vector2f rightUnitNorm = rightPt.normalized();
+        float leftToRightAngle = getSweptLeftToRightAngle(leftUnitNorm, rightUnitNorm);
+
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        leftToRightAngle: " << leftToRightAngle);;
+
+        float epl_radius = epl / 2.0;
+        float newLeftToRightAngle = leftToRightAngle;
+        float inflatedLeftTheta = leftTheta;
+        float inflatedRightTheta = rightTheta;
+        int inflatedLeftIdx = leftIdx;
+        int inflatedRightIdx = rightIdx;
+        float inflatedLeftRange = leftRange;
+        float inflatedRightRange = rightRange;
+        bool successful_inflation = false;
+        while (!successful_inflation && inf_ratio >= 1.0) // try current inflation ratio, scale it down if that fails
+        {
+            ///////////////////////
+            // ANGULAR INFLATION //
+            ///////////////////////
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflating gap sides with ratio: " << inf_ratio);
+    
+            if ( epl_radius * inf_ratio > leftRange)
+            {
+                ROS_WARN_STREAM_NAMED("GapManipulator", "        inflation ratio is too large, aborting");
+
+                gap->setManipPoints(leftIdx, leftRange, rightIdx, rightRange);
+
+                return;
+                // return false;
+            }
+
+            float alpha_left = std::asin(epl_radius * inf_ratio / leftPt.norm() );
+            float alpha_right = std::asin(epl_radius * inf_ratio / rightPt.norm() );
+    
+            float beta_left = (M_PI_OVER_TWO) - alpha_left;
+            float beta_right = (M_PI_OVER_TWO) - alpha_right;
+    
+            float r_infl_left = epl_radius * inf_ratio / sin(beta_left);
+            float r_infl_right = epl_radius * inf_ratio / sin(beta_right);
+    
+            Eigen::Vector2f leftAngularInflDir = Rnegpi2 * leftUnitNorm;
+            Eigen::Vector2f rightAngularInflDir = Rpi2 * rightUnitNorm;
+    
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        leftAngularInflDir: (" << leftAngularInflDir.transpose() << ")");
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        rightAngularInflDir: (" << rightAngularInflDir.transpose() << ")");
+    
+            // perform inflation
+            Eigen::Vector2f inflatedLeftPt = leftPt + leftAngularInflDir * r_infl_left;
+            Eigen::Vector2f inflatedRightPt = rightPt + rightAngularInflDir * r_infl_right;
+    
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflatedLeftPt: (" << inflatedLeftPt.transpose() << ")");
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflatedRightPt: (" << inflatedRightPt.transpose() << ")");
+    
+            inflatedLeftTheta = std::atan2(inflatedLeftPt[1], inflatedLeftPt[0]);
+            inflatedRightTheta = std::atan2(inflatedRightPt[1], inflatedRightPt[0]);
+    
+            // Check if inflation worked properly
+            Eigen::Vector2f inflatedLeftUnitNorm(std::cos(inflatedLeftTheta), std::sin(inflatedLeftTheta));
+            Eigen::Vector2f inflatedRightUnitNorm(std::cos(inflatedRightTheta), std::sin(inflatedRightTheta));
+            float newLeftToRightAngle = getSweptLeftToRightAngle(inflatedLeftUnitNorm, inflatedRightUnitNorm);
+    
+            // update gap points
+            inflatedLeftIdx = theta2idx(inflatedLeftTheta);
+            inflatedRightIdx = theta2idx(inflatedRightTheta);
+            
+            // float leftToInflatedLeftAngle = getSweptLeftToRightAngle(leftUnitNorm, inflatedLeftUnitNorm);
+            // float leftToInflatedRightAngle = getSweptLeftToRightAngle(leftUnitNorm, inflatedRightUnitNorm);
+            inflatedLeftRange = inflatedLeftPt.norm(); // leftRange + (rightRange - leftRange) * epsilonDivide(leftToInflatedLeftAngle, leftToRightAngle);
+            inflatedRightRange = inflatedRightPt.norm(); // leftRange + (rightRange - leftRange) * epsilonDivide(leftToInflatedRightAngle, leftToRightAngle);
+    
+            // if gap is too small, mark it to be discarded
+            if (newLeftToRightAngle > leftToRightAngle)
+            {
+                ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation has failed, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+    
+                inf_ratio -= 0.1; // = std::max(1.0, inf_ratio - 0.1);
+
+            } else
+            {
+                successful_inflation = true;
+                ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation succeeded, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+            }
+        }
+
+        if (! successful_inflation)
+        {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation has failed for good.");
+         
+            gap->setManipPoints(leftIdx, leftRange, rightIdx, rightRange);
+
+            return;
+            // return false;
+        }
+
+        if (inflatedRightIdx == inflatedLeftIdx) // // ROS_INFO_STREAM("manipulated indices are same");
+            inflatedLeftIdx++;
+
+        gap->setManipPoints(inflatedLeftIdx, inflatedLeftRange, inflatedRightIdx, inflatedRightRange);
+
+        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+
+        xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
+        yLeft = pLeft[1];         // (gap->convex.leftRange_) * sin(idx2theta(gap->convex.leftIdx_));
+        xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
+        yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
+        
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-inflate gap in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+
+        return;
+        // return true;
     }
 
-    Eigen::Vector2f GapManipulator::pol2car(const Eigen::Vector2f & a) 
-    {
-        return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
-    }
+    // Eigen::Vector2f GapManipulator::car2pol(const Eigen::Vector2f & a) 
+    // {
+    //     return Eigen::Vector2f(a.norm(), float(std::atan2(a(1), a(0))));
+    // }
 
-    Eigen::Vector2f GapManipulator::pTheta(const float & th, const float & phiB, 
-                                            const Eigen::Vector2f & pRp, const Eigen::Vector2f & pLp) 
-    {
-        return pLp * (th - pRp(1)) / phiB + pRp * (pLp(1) - th) / phiB;
-    }
+    // Eigen::Vector2f GapManipulator::pol2car(const Eigen::Vector2f & a) 
+    // {
+    //     return Eigen::Vector2f(cos(a(1)) * a(0), sin(a(1)) * a(0));
+    // }
 
+    // Eigen::Vector2f GapManipulator::pTheta(const float & th, const float & phiB, 
+    //                                         const Eigen::Vector2f & pRp, const Eigen::Vector2f & pLp) 
+    // {
+    //     return pLp * (th - pRp(1)) / phiB + pRp * (pLp(1) - th) / phiB;
+    // }
 }

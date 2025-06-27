@@ -48,11 +48,11 @@ namespace quad_gap
         if (gapGoalPlacer_)
             delete gapGoalPlacer_;
 
-        // if (robot_geo_proc_)
-        //     delete robot_geo_proc_;
+        // if (robotGeoProc_)
+        //     delete robotGeoProc_;
 
-        // if (robot_geo_storage_)
-        //     delete robot_geo_storage_;
+        // if (robotGeoStorage_)
+        //     delete robotGeoStorage_;
 
         if (timeKeeper_)
             delete timeKeeper_;
@@ -89,9 +89,9 @@ namespace quad_gap
         Robot robot(robot_shape, cfg_.rbt.length, cfg_.rbt.width, cfg_.rbt.avg_lin_speed, cfg_.rbt.avg_rot_speed);
 
         if (cfg_.rbt.use_geo_storage)
-            robot_geo_storage_ = RobotGeometryStorage(file_name);
+            robotGeoStorage_ = RobotGeometryStorage(file_name);
         else
-            robot_geo_proc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
+            robotGeoProc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
         
         // Visualization Setup
         // trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
@@ -108,15 +108,15 @@ namespace quad_gap
         laserSub_ = nh.subscribe(cfg_.scan_topic, 100, &Planner::laserScanCB, this);
         poseSub_ = nh.subscribe(cfg_.odom_topic, 10, &Planner::poseCB, this);        
 
-        gapDetector_ = new GapDetector(cfg_, robot_geo_proc_);
-        globalPlanManager_ = new GlobalPlanManager(cfg_); // , robot_geo_proc_
-        trajEvaluator_ = new TrajectoryEvaluator(cfg_, robot_geo_proc_);
-        gapTrajGenerator_ = new GapTrajGenerator(cfg_, robot_geo_proc_);
-        gapGoalPlacer_ = new GapGoalPlacer(cfg_, robot_geo_proc_);
+        gapDetector_ = new GapDetector(cfg_, robotGeoProc_);
+        globalPlanManager_ = new GlobalPlanManager(cfg_); // , robotGeoProc_
+        trajEvaluator_ = new TrajectoryEvaluator(cfg_, robotGeoProc_);
+        gapTrajGenerator_ = new GapTrajGenerator(cfg_, robotGeoProc_);
+        gapGoalPlacer_ = new GapGoalPlacer(cfg_, robotGeoProc_);
         gapVisualizer_ = new GapVisualizer(nh, cfg_);
         trajVisualizer_ = new TrajectoryVisualizer(nh, cfg_);
         goalVisualizer_ = new GoalVisualizer(nh, cfg_);
-        gapManipulator_ = new GapManipulator(cfg_, robot_geo_proc_);
+        gapManipulator_ = new GapManipulator(cfg_, robotGeoProc_);
         trajController_ = new TrajectoryController(nh, cfg_);
         timeKeeper_ = new TimeKeeper();
 
@@ -499,6 +499,7 @@ namespace quad_gap
             {
                 gapManipulator_->reduceGap(manipGaps.at(i), local_goal_rbt_frame);
                 gapManipulator_->convertRadialGap(manipGaps.at(i));
+                gapManipulator_->inflateGapSides(manipGaps.at(i));
                 gapManipulator_->radialExtendGap(manipGaps.at(i));
             }
         } catch(...) 

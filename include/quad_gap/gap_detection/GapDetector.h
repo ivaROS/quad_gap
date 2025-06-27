@@ -30,21 +30,21 @@ namespace quad_gap
             */        
             GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
 
-            /**
-            * /brief Copy constructor
-            * \param t GapDetector to copy from
-            */
+            // /**
+            // * /brief Copy constructor
+            // * \param t GapDetector to copy from
+            // */
 
-            GapDetector(const GapDetector &t) 
-            {
-                cfg_ = t.cfg_;
-                robot_geo_proc_ = t.robot_geo_proc_;
-            };
+            // GapDetector(const GapDetector &t) 
+            // {
+            //     cfg_ = t.cfg_;
+            //     robotGeoProc_ = t.robotGeoProc_;
+            // };
 
             // GapDetector& operator=(GapDetector other) 
             // {
             //     cfg_ = other.cfg_;
-            //     robot_geo_proc_ = other.robot_geo_proc_;
+            //     robotGeoProc_ = other.robotGeoProc_;
 
             //     return *this;
             // };
@@ -147,7 +147,7 @@ namespace quad_gap
 
             sensor_msgs::LaserScan scan_; /**< Current laser scan */
             const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */
-            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */
+            RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */
             float minScanDist_ = 0.0; /**< Minimum distance within current laser scan */
             float maxScanDist_ = 0.0; /**< Maximum distance within current laser scan */
             float halfScanRayCount_ = 0.0; /**< Half of number of rays within scan (float) */

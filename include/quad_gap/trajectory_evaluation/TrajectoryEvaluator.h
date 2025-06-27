@@ -26,7 +26,8 @@
 #include <quad_gap/utils/RobotGeometryStorage.h>
 #include <quad_gap/utils/RobotGeometryProcessor.h>
 
-namespace quad_gap {
+namespace quad_gap 
+{
     
     class TrajectoryEvaluator
     {
@@ -34,19 +35,19 @@ namespace quad_gap {
             TrajectoryEvaluator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc);
             // TrajectoryEvaluator(ros::NodeHandle& nh, const QuadGapConfig& cfg, RobotGeometryStorage& robot_geo_storage);
             
-            TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
-            {
-                cfg_ = other.cfg_;
-                robot_geo_proc_ = other.robot_geo_proc_;
+            // TrajectoryEvaluator& operator=(TrajectoryEvaluator other) 
+            // {
+            //     cfg_ = other.cfg_;
+            //     robotGeoProc_ = other.robotGeoProc_;
             
-                return *this;
-            }
+            //     return *this;
+            // }
             
-            TrajectoryEvaluator(const TrajectoryEvaluator &t) 
-            {
-                cfg_ = t.cfg_;
-                robot_geo_proc_ = t.robot_geo_proc_;
-            }
+            // TrajectoryEvaluator(const TrajectoryEvaluator &t) 
+            // {
+            //     cfg_ = t.cfg_;
+            //     robotGeoProc_ = t.robotGeoProc_;
+            // }
 
             /**
             * \brief receive new laser scan and update member variable accordingly
@@ -117,6 +118,6 @@ namespace quad_gap {
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */
             boost::mutex gap_mutex;
 
-            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor */
+            RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */
     };
 }

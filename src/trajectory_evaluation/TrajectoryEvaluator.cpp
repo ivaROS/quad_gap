@@ -5,7 +5,7 @@ namespace quad_gap
     TrajectoryEvaluator::TrajectoryEvaluator(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc)
     {
         cfg_ = & cfg;
-        robot_geo_proc_ = & robot_geo_proc;
+        robotGeoProc_ = & robot_geo_proc;
     }
 
     void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
@@ -182,9 +182,9 @@ namespace quad_gap
             
             rel_pt_vec = scanPt - poseRbtFrameVec;
             // nearest_dist = 
-            scan2RbtDists.at(i) = robot_geo_proc_->getNearestDistance(orient_vec, rel_pt_vec);
+            scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(orient_vec, rel_pt_vec);
             // ROS_INFO_STREAM(dist.at(i));
-            // rmax_offset.at(i) = rmax - robot_geo_proc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
+            // rmax_offset.at(i) = rmax - robotGeoProc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
             
             // Get the robot equivalent radius
             
@@ -192,7 +192,7 @@ namespace quad_gap
             // Eigen::Vector2f scan_pt_vec(range_i * cos(i * scan.angle_increment - M_PI), range_i * sin(i * scan.angle_increment - M_PI));
             // Eigen::Vector2f relative_vec = scan_pt_vec - pose_position_vec;
             // relative_vec = relative_vec / relative_vec.norm();
-            // float robot_er = robot_geo_proc_.getEquivalentR(orient_vec, relative_vec);
+            // float robot_er = robotGeoProc_.getEquivalentR(orient_vec, relative_vec);
             // dist.at(i) = dist2Pose(i * scan.angle_increment - M_PI,
             //     range_i, pose);
             // dist.at(i) -= robot_er * cfg_->traj.inf_ratio;
@@ -212,7 +212,7 @@ namespace quad_gap
         if (rbtToScanDist <= 0) 
             return std::numeric_limits<float>::infinity();
 
-        float rmax_offset_val = cfg_->traj.rmax - robot_geo_proc_->getRobotMaxRadius() * cfg_->traj.inf_ratio;            
+        float rmax_offset_val = cfg_->traj.rmax - robotGeoProc_->getRobotMaxRadius() * cfg_->traj.inf_ratio;            
         if (rbtToScanDist > rmax_offset_val) 
             return 0;
         

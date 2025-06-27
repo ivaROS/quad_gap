@@ -162,7 +162,7 @@ namespace quad_gap
             // float thres;
             const QuadGapConfig* cfg_;
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
-            boost::mutex egocircle_l;
+            boost::mutex scanMutex_;
             ros::Publisher projOpPublisher_;
             // ros::Time last_time;
     };

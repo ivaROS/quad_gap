@@ -387,14 +387,14 @@ namespace quad_gap
             ros::Subscriber tfSub_; /**< Subscriber to TF tree */
             ros::Subscriber laserSub_; /**< Subscriber to robot laser */
             ros::Subscriber poseSub_; /**< Subscriber to robot pose */
-            ros::Subscriber accSub_; /**< Subscriber to robot acceleration */
+            // ros::Subscriber accSub_; /**< Subscriber to robot acceleration */
 
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */
 
             // Box modification
             // bool use_geo_storage_;
-            RobotGeometryStorage robot_geo_storage_;
-            RobotGeometryProcessor robot_geo_proc_;
+            RobotGeometryStorage robotGeoStorage_;
+            RobotGeometryProcessor robotGeoProc_;
             // bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
             // float speed_factor_;
 

@@ -24,21 +24,21 @@ namespace quad_gap
             GapGoalPlacer(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
             {
                 cfg_ = &cfg;
-                robot_geo_proc_ = &robot_geo_proc;
+                robotGeoProc_ = &robot_geo_proc;
             };
 
-            GapGoalPlacer& operator=(GapGoalPlacer & other) 
-            {
-                cfg_ = other.cfg_;
-                robot_geo_proc_ = other.robot_geo_proc_;
-                return *this;
-            };
+            // GapGoalPlacer& operator=(GapGoalPlacer & other) 
+            // {
+            //     cfg_ = other.cfg_;
+            //     robotGeoProc_ = other.robotGeoProc_;
+            //     return *this;
+            // };
 
-            GapGoalPlacer(const GapGoalPlacer &t) 
-            {
-                cfg_ = t.cfg_;
-                robot_geo_proc_ = t.robot_geo_proc_;
-            };
+            // GapGoalPlacer(const GapGoalPlacer &t) 
+            // {
+            //     cfg_ = t.cfg_;
+            //     robotGeoProc_ = t.robotGeoProc_;
+            // };
 
             /**
             * \brief update current scan
@@ -51,7 +51,7 @@ namespace quad_gap
             * \param gap the gap to place goal in
             * \param localgoal the local goal to place in the gap
             */
-            void setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & localgoal);
+            void setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypoint);
 
         private:
             /**
@@ -72,7 +72,7 @@ namespace quad_gap
 
             Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
 
-            RobotGeometryProcessor * robot_geo_proc_ = NULL; /**< Robot geometry processor, used to get robot radius and inscribed radius */
+            RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor, used to get robot radius and inscribed radius */
 
     };
 }

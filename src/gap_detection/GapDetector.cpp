@@ -5,7 +5,7 @@ namespace quad_gap
     GapDetector::GapDetector(const QuadGapConfig& cfg, RobotGeometryProcessor& robot_geo_proc) 
     {
         cfg_ = & cfg;
-        robot_geo_proc_ = & robot_geo_proc;
+        robotGeoProc_ = & robot_geo_proc;
     }
 
     ///////////// SCAN PRE-PROCESSING ///////////////////////
@@ -64,8 +64,8 @@ namespace quad_gap
         // Find equivalent passing length
         // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f m_pt_vec = rawGap->get_middle_pt_vec();
-        // float epl = robot_geo_proc_->getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        float epl = robot_geo_proc_->getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
+        // float epl = robotGeoProc_->getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
 
         return rawGap->get_dist_side() > epl;
     }
@@ -243,11 +243,11 @@ namespace quad_gap
             Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
 
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
-            // float max_r_er = robot_geo_proc_->getRobotMaxRadius();
+            // float max_r_er = robotGeoProc_->getRobotMaxRadius();
             
 
-            float erlLRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
-            float erlRRange = robot_geo_proc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simplifiedGaps[j]->RRange());
+            float erlLRange = robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
+            float erlRRange = robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simplifiedGaps[j]->RRange());
             bool second_test = currLRange <= (minIntergapRange - erlLRange) && simplifiedGaps[j]->RRange() <= (minIntergapRange - erlRRange);
             
             
