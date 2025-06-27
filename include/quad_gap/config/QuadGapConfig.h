@@ -113,9 +113,9 @@ namespace quad_gap
                 float integrate_stept = 1e-2;
                 float rmax = 0.5;
                 float sigma = 1.0; /**< Sigma used in exp term for circular potential field based trajectory synthesis */
+                float inf_ratio = 1.2;
                 float Q = 1.0;
                 float pen_exp_weight = 3;
-                float inf_ratio = 1.2;
                 float Q_f = 1.0; /**< Terminal weight for trajectory evaluation */
                 float robot_geo_scale = 1;
                 bool bezier_interp = true;

@@ -35,7 +35,7 @@ namespace quad_gap
             ///////////
             // Robot //
             ///////////
-            ros_throw_param_load(nh, "robot_radius", rbt.r_inscr);
+            ros_throw_param_load(nh, "r_inscr", rbt.r_inscr);
             ros_throw_param_load(nh, "length", rbt.length);
             ros_throw_param_load(nh, "width", rbt.width);
             ros_throw_param_load(nh, "avg_lin_speed", rbt.avg_lin_speed);
@@ -115,6 +115,8 @@ namespace quad_gap
             ros_throw_param_load(nh, "integrate_stept", traj.integrate_stept);
             ros_throw_param_load(nh, "rmax", traj.rmax);
             ros_throw_param_load(nh, "inf_ratio", traj.inf_ratio);
+            ros_throw_param_load(nh, "Q", traj.Q);
+            ros_throw_param_load(nh, "pen_exp_weight", traj.pen_exp_weight);
             ros_throw_param_load(nh, "Q_f", traj.Q_f);
             ros_throw_param_load(nh, "robot_geo_scale", traj.robot_geo_scale);
             ros_throw_param_load(nh, "bezier_interp", traj.bezier_interp);

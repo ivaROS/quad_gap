@@ -48,7 +48,7 @@ namespace quad_gap
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
-        float leftToRightAngle = getSweptLeftToRightAngle(leftPt, rightPt);
+        float leftToRightAngle = getSweptLeftToRightAngle(pLeft, pRight);
 
         bool smallGap = (leftToRightAngle < M_PI && sqrt(pow(xLeft - xRight, 2) + pow(yLeft - yRight, 2)) < 4 * cfg_->rbt.r_inscr);
         // float dist = 0;
@@ -66,13 +66,13 @@ namespace quad_gap
 
         if (smallGap) 
         {
-            float leftToRightAngle = getSweptLeftToRightAngle(leftPt, rightPt);
+            float leftToRightAngle = getSweptLeftToRightAngle(pLeft, pRight);
                 
-            float thetaLeft = std::atan2(leftPt[1], leftPt[0]);
+            float thetaLeft = std::atan2(pLeft[1], pLeft[0]);
 
             // ROS_INFO_STREAM_NAMED("GapManipulator", "leftToRightAngle: " << leftToRightAngle);
             float thetaCenter = (thetaLeft - 0.5 * leftToRightAngle); 
-            float rangeCenter = (leftPt.norm() + rightPt.norm()) / 2.0;
+            float rangeCenter = (pLeft.norm() + pRight.norm()) / 2.0;
             Eigen::Vector2f centerGoal(rangeCenter * std::cos(thetaCenter), rangeCenter * std::sin(thetaCenter));
             // ROS_INFO_STREAM_NAMED("GapManipulator", "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
 
@@ -126,41 +126,41 @@ namespace quad_gap
         Eigen::Vector2f goal_pt;
         float waypoint_dist_thresh = (epl * 1.5) * cfg_->traj.inf_ratio; // 0.1 // TODO: change this 1.5 to param
         
-        if ((goal_orientation - thetaRight) > 0 && (goal_orientation - thetaLeft) < 0 && (anchor - lr).norm() >= waypoint_dist_thresh && (anchor - rl).norm() >= waypoint_dist_thresh)
+        if ((goal_orientation - thetaRight) > 0 && (goal_orientation - thetaLeft) < 0 && (anchor - pRight).norm() >= waypoint_dist_thresh && (anchor - pLeft).norm() >= waypoint_dist_thresh)
         {
             goal_pt = anchor;
         }
         else
         {
-            Eigen::Vector2f mid_pt = (lr + rl) / 2;
-            float mid_pt_angle = atan2(mid_pt[1], mid_pt[0]);
-            float mid_pt_side_length = (mid_pt - lr).norm();
+            // Eigen::Vector2f mid_pt = (pRight + pLeft) / 2;
+            float thetaMid = atan2(pMid[1], pMid[0]);
+            float rangeMid = (pMid - pRight).norm();
 
-            float ang_anchor_lr = abs(goal_orientation - thetaRight);
-            float ang_anchor_rl = abs(goal_orientation - thetaLeft);
+            float ang_anchor_pRight = abs(goal_orientation - thetaRight);
+            float ang_anchor_pLeft = abs(goal_orientation - thetaLeft);
 
-            if (ang_anchor_lr <= ang_anchor_rl)
+            if (ang_anchor_pRight <= ang_anchor_pLeft)
             {
-                Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (rl - lr) / (rl - lr).norm() + anchor;
+                Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (pLeft - pRight) / (pLeft - pRight).norm() + anchor;
                 float offset_anchor_angle = atan2(offset_anchor[1], offset_anchor[0]);
-                if (offset_anchor_angle < mid_pt_angle)
+                if (offset_anchor_angle < thetaMid)
                 {
                     goal_pt = offset_anchor;
                 } else
                 {
-                    goal_pt = mid_pt;
+                    goal_pt = pMid;
                 }
             }
             else
             {
-                Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (lr - rl) / (lr - rl).norm() + anchor;
+                Eigen::Vector2f offset_anchor = waypoint_dist_thresh * (pRight - pLeft) / (pRight - pLeft).norm() + anchor;
                 float offset_anchor_angle = atan2(offset_anchor[1], offset_anchor[0]);
-                if (offset_anchor_angle > mid_pt_angle)
+                if (offset_anchor_angle > thetaMid)
                 {
                     goal_pt = offset_anchor;
                 } else
                 {
-                    goal_pt = mid_pt;
+                    goal_pt = pMid;
                 }
             }
         }
@@ -178,8 +178,8 @@ namespace quad_gap
         return;
     }
 
-    bool GapGoalPlacer::checkWaypointVisibility(const Eigen::Vector2f & leftPt, 
-                                                const Eigen::Vector2f & rightPt,
+    bool GapGoalPlacer::checkWaypointVisibility(const Eigen::Vector2f & pLeft, 
+                                                const Eigen::Vector2f & pRight,
                                                 const Eigen::Vector2f & globalGoal) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
@@ -205,9 +205,9 @@ namespace quad_gap
 
         // get gap's range at globalGoal idx
 
-        // float leftToRightAngle = getSweptLeftToRightAngle(leftPt, rightPt);
-        // float leftToWaypointAngle = getSweptLeftToRightAngle(leftPt, globalGoal);
-        // float gapGoalRange = (rightPt.norm() - leftPt.norm()) * epsilonDivide(leftToWaypointAngle, leftToRightAngle) + leftPt.norm();
+        // float leftToRightAngle = getSweptLeftToRightAngle(pLeft, pRight);
+        // float leftToWaypointAngle = getSweptLeftToRightAngle(pLeft, globalGoal);
+        // float gapGoapRightange = (pRight.norm() - pLeft.norm()) * epsilonDivide(leftToWaypointAngle, leftToRightAngle) + pLeft.norm();
 
         float rangeAtGoalIdx = scan.ranges.at(globalGoalIdx);
 
