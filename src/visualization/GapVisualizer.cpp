@@ -14,51 +14,58 @@ namespace quad_gap
         simpGapsPublisher = nh.advertise<visualization_msgs::Marker>("simp_gaps", 10);
         manipGapsPublisher = nh.advertise<visualization_msgs::Marker>("manip_gaps", 10);
 
-        std_msgs::ColorRGBA std_color;
+        // std_msgs::ColorRGBA std_color;
         std_msgs::ColorRGBA raw_radial;
         std_msgs::ColorRGBA raw_swept;
         std_msgs::ColorRGBA simp_radial;
         std_msgs::ColorRGBA simp_swept;
-        std_msgs::ColorRGBA extent;
-        std_msgs::ColorRGBA agc;
+        // std_msgs::ColorRGBA extent;
+        // std_msgs::ColorRGBA agc;
+        std_msgs::ColorRGBA manip;
 
         // Raw Therefore Alpha halved
-        raw_radial.a = 0.5;
-        raw_radial.r = 0.7;
-        raw_radial.g = 0.1;
-        raw_radial.b = 0.5;
+        raw_radial.a = 1.0;
+        raw_radial.r = 1.0;
+        raw_radial.g = 0.3;
+        raw_radial.b = 0.3;
         
-        raw_swept.a = 0.5;
+        raw_swept.a = 1.0;
         raw_swept.r = 0.6;
-        raw_swept.g = 0.2;
-        raw_swept.b = 0.1;
+        raw_swept.g = 0.0;
+        raw_swept.b = 0.0;
 
-        simp_radial.a = 1;
-        simp_radial.r = 1;
-        simp_radial.g = 0.9;
-        simp_radial.b = 0.3;
+        simp_radial.a = 1.0;
+        simp_radial.r = 0.3;
+        simp_radial.g = 0.6;
+        simp_radial.b = 1.0;
 
-        simp_swept.a = 1;
-        simp_swept.r = 0.4;
-        simp_swept.g = 0;
-        simp_swept.b = 0.9;
+        simp_swept.a = 1.0;
+        simp_swept.r = 0.0;
+        simp_swept.g = 0.3;
+        simp_swept.b = 0.6;
 
-        extent.a = 1;
-        extent.r = 0;
-        extent.g = 1;
-        extent.b = 0;
+        // extent.a = 1;
+        // extent.r = 0;
+        // extent.g = 1;
+        // extent.b = 0;
 
-        agc.a = 1;
-        agc.r = 1;
-        agc.g = 0;
-        agc.b = 0;
+        // agc.a = 1;
+        // agc.r = 1;
+        // agc.g = 0;
+        // agc.b = 0;
+
+        manip.a = 1.0;
+        manip.r = 0.0;
+        manip.g = 1.0;
+        manip.b = 0.0;
 
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_radial", raw_radial));
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_swept", raw_swept));
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_radial", simp_radial));
         colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_swept", simp_swept));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_extent", extent));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_agc", agc));
+        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("manip", manip));
+        // colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_extent", extent));
+        // colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_agc", agc));
 
     }
 
@@ -234,6 +241,15 @@ namespace quad_gap
         float thickness = 0.05;
         marker.scale.x = thickness;     
 
+        std::string ns = "manip";
+
+        auto colorIter = colorMap.find(ns);
+        if (colorIter == colorMap.end()) 
+        {
+            ROS_FATAL_STREAM("Visualization Color not found, return without drawing");
+            return;
+        }
+
         for (Gap * gap : gaps) 
         {
             if (gap->getFrame().empty())
@@ -242,27 +258,21 @@ namespace quad_gap
                 return;
             }
 
-            std::string ns;
-            if (gap->isReduced()) 
-            {
-                ns = "simp_swept";
-            }
+            // if (gap->isReduced()) 
+            // {
+            //     ns = "simp_swept";
+            // }
             
-            if (gap->isExtended()) 
-            {
-                ns = "simp_extent";
-            }
+            // if (gap->isExtended()) 
+            // {
+            //     ns = "simp_extent";
+            // }
     
-            if (gap->isAGC()) 
-            {
-                ns = "simp_agc";
-            }
-            auto colorIter = colorMap.find(ns);
-            if (colorIter == colorMap.end()) 
-            {
-                ROS_FATAL_STREAM("Visualization Color not found, return without drawing");
-                return;
-            }
+            // if (gap->isAGC()) 
+            // {
+            //     ns = "simp_agc";
+            // }
+
 
             marker.header.frame_id = gap->getFrame();
 
@@ -322,7 +332,7 @@ namespace quad_gap
                     ROS_WARN_STREAM("Gap min safe dist not recorded");
                 }
     
-                std_msgs::ColorRGBA convex_color = colorMap["simp_extent"];
+                // std_msgs::ColorRGBA convex_color = colorMap["simp_extent"];
     
                 // this_marker.ns = "simp_extent";
     
@@ -348,8 +358,8 @@ namespace quad_gap
                         marker.points.push_back(linel);
                         marker.points.push_back(liner);
                         // this_marker.points = lines;
-                        marker.colors.push_back(convex_color);
-                        marker.colors.push_back(convex_color);
+                        marker.colors.push_back(colorIter->second);
+                        marker.colors.push_back(colorIter->second);
                         // this_marker.colors = convex_color;
                         // this_marker.id = id++;
                         // this_marker.lifetime = ros::Duration();
@@ -368,7 +378,7 @@ namespace quad_gap
                             // linel, 
                             // liner, 
                             marker, 
-                            convex_color);
+                            colorIter->second);
                     
                     getline(gap->manipLeftIdx(),
                             gap->manipLeftRange(), 
@@ -377,7 +387,7 @@ namespace quad_gap
                             // linel, 
                             // liner, 
                             marker, 
-                            convex_color);
+                            colorIter->second);
                     Eigen::Vector2f origin(0, 0);
 
 
@@ -389,7 +399,7 @@ namespace quad_gap
                             // linel, 
                             // liner, 
                             marker, 
-                            colorMap["simp_agc"]);
+                            colorIter->second);
 
                     getline(gap->LIdx(), 
                             gap->LRange(), 
@@ -398,11 +408,10 @@ namespace quad_gap
                             // linel, 
                             // liner, 
                             marker, 
-                            colorMap["simp_agc"]);
+                            colorIter->second);
                 }
             }            
         }
-
     }    
 
     void GapVisualizer::drawManipGaps(const std::vector<Gap *> & gaps) 

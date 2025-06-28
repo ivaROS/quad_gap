@@ -16,6 +16,9 @@ namespace quad_gap
         // TODO: assume there is no idx that will pass 0
         float xLeft, xRight, yLeft, yRight;
 
+        int idxLeft = gap->manipLeftIdx();
+        int idxRight = gap->manipRightIdx();
+
         Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
         Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
         Eigen::Vector2f pGoal(globalPathLocalWaypoint.pose.position.x, globalPathLocalWaypoint.pose.position.y);
@@ -43,8 +46,10 @@ namespace quad_gap
         // if (pLeft[1] <= 0 && rl[1] > 0 && pLeft[0] <= 0 && rl[0] < 0)
         //     thetaLeft = thetaLeft - 2 * M_PI;
         
-        float thetaLeft = idx2theta(gap->manipLeftIdx());
-        float thetaRight = idx2theta(gap->manipRightIdx()); 
+        float thetaLeft = idx2theta(idxLeft);
+        float thetaRight = idx2theta(idxRight); 
+        float thetaGoal = std::atan2(pGoal[1], pGoal[0]);
+        int idxGoal = theta2idx(thetaGoal);
 
         // Second condition: if angle smaller than M_PI / 3
         // Check if arc length < 3 robot width
@@ -78,8 +83,8 @@ namespace quad_gap
 
             gap->setGoalPos(centerGoal[0], centerGoal[1]);
 
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        Option 1: small gap");
-            ROS_INFO_STREAM_NAMED("GapManipulator", "            goal: " << centerGoal[0] << ", " << centerGoal[1]);
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "        Option 1: small gap");
+            ROS_INFO_STREAM_NAMED("GapGoalPlacer", "            goal: " << centerGoal[0] << ", " << centerGoal[1]);
 
             return;
         }
@@ -96,7 +101,8 @@ namespace quad_gap
         //     pow(localgoal.pose.position.x, 2)
         // );
 
-        if (checkWaypointVisibility(pLeft, pRight, pGoal)) 
+        if (checkWaypointVisibility(pLeft, pRight, pGoal)
+            && isGlobalPathLocalWaypointWithinGapAngle(idxGoal, idxRight, idxLeft)) 
         {
             ROS_INFO_STREAM_NAMED("GapGoalPlacer", "Goal is visible, setting goal within gap");
             gap->setGoalPos(pGoal[0], pGoal[1]);
@@ -105,7 +111,7 @@ namespace quad_gap
             // gap->goal.y = localgoal.pose.position.y;
             // gap->goal.set = true;
             // gap->goal.goalwithin = true;
-            gap->setGoalWithin();
+            gap->setGoalWithin(); // will use later during trajectory generation
             return;
         }
 

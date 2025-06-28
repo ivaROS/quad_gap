@@ -30,7 +30,7 @@ namespace quad_gap
             ros::Publisher globalGoalPublisher; /**< Publisher for global goal */
             ros::Publisher gapGoalPublisher;
 
-            std_msgs::ColorRGBA gapGoalColor;
+            std_msgs::ColorRGBA gapGoalsColor;
             std_msgs::ColorRGBA globalPathLocalWaypointColor; /**< Color to visualize global path local waypoint with */
             std_msgs::ColorRGBA globalGoalColor; /**< Color to visualize global goal with */
     };

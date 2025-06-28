@@ -499,7 +499,7 @@ namespace quad_gap
             {
                 gapManipulator_->reduceGap(manipGaps.at(i), local_goal_rbt_frame);
                 gapManipulator_->convertRadialGap(manipGaps.at(i));
-                gapManipulator_->inflateGapSides(manipGaps.at(i));
+                // gapManipulator_->inflateGapSides(manipGaps.at(i));
                 gapManipulator_->radialExtendGap(manipGaps.at(i));
             }
         } catch(...) 
@@ -989,7 +989,15 @@ namespace quad_gap
             if (pathOdomFrame.poses.size() < 1)
             {
                 ROS_WARN_STREAM_NAMED("Planner", "Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
-                return cmdVel;
+                if (cfg_.planning.holonomic)
+                {
+                    rawCmdVel = trajController_->obstacleAvoidanceControlLaw();
+                } else
+                {
+                    rawCmdVel = trajController_->obstacleAvoidanceControlLawNonHolonomic();
+                }
+
+                return rawCmdVel;
             }
     
             // Current Pose (Robot frame)

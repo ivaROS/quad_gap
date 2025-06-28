@@ -11,8 +11,8 @@ Panels:
         - /Dynamic Gap1/Gaps1/Marker1
         - /Dynamic Gap1/Gaps1/Marker2
         - /Dynamic Gap1/Gaps1/Marker3
-        - /Dynamic Gap1/Gaps1/MarkerArray1
         - /Dynamic Gap1/Gaps1/Marker4
+        - /Dynamic Gap1/Gaps1/Marker5
         - /Dynamic Gap1/Gaps1/Marker6
         - /Dynamic Gap1/Trajectories1
         - /Dynamic Gap1/Trajectories1/MarkerArray2
@@ -314,14 +314,6 @@ Visualization Manager:
                 manip_gaps: true
               Queue Size: 100
               Value: true
-            - Class: rviz/MarkerArray
-              Enabled: true
-              Marker Topic: /rto/qg_markers
-              Name: MarkerArray
-              Namespaces:
-                {}
-              Queue Size: 100
-              Value: true
             - Class: rviz/Marker
               Enabled: true
               Marker Topic: /rto/global_goal
@@ -469,10 +461,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 59.743839263916016
+      Scale: 87.05952453613281
       Target Frame: rto/base_link
-      X: 1.51908540725708
-      Y: 0.6340535879135132
+      X: -1.2917016744613647
+      Y: 0.5164316296577454
     Saved: ~
 Window Geometry:
   Displays:

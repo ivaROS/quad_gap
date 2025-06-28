@@ -85,6 +85,18 @@ namespace quad_gap
                                                             const geometry_msgs::PoseStamped & rbtPoseInSensorFrame);
 
             /**
+            * \brief Control law for pure obstacle avoidance
+            * \return command velocity for robot
+            */
+            geometry_msgs::Twist obstacleAvoidanceControlLaw();
+
+            /**
+            * \brief Control law for pure obstacle avoidance
+            * \return command velocity for robot
+            */
+            geometry_msgs::Twist obstacleAvoidanceControlLawNonHolonomic();
+
+            /**
             * \brief Extract pose within target trajectory that we should track
             * \param currPose current robot pose
             * \param localTrajectory selected local trajectory to track

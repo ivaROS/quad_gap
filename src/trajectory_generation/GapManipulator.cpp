@@ -149,6 +149,12 @@ namespace quad_gap
             return;
         }
 
+        if (!gap->isReduced()) 
+        {
+            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap has been reduced, no conversion needed");
+            return;
+        }
+
         if (!cfg_->gap_manip.radial_convert)
         {
             ROS_INFO_STREAM_NAMED("GapManipulator", "        gap radial conversion disabled, no conversion needed");
