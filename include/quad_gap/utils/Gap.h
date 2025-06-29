@@ -18,15 +18,18 @@ namespace quad_gap
         public:
             Gap() {};
 
-            Gap(const std::string & frame, 
+            Gap(const std::string & frame,
+                const ros::Time & timeStamp, 
                 const int & rightIdx, 
                 const float & rightRange, 
-                const bool & radial = false) : frame_(frame), rightIdx_(rightIdx), rightRange_(rightRange), radial_(radial)
+                const bool & radial = false) : frame_(frame), timeStamp_(timeStamp), rightIdx_(rightIdx), rightRange_(rightRange), radial_(radial)
             {};
 
             Gap(const Gap & otherGap)
             {
                 frame_ = otherGap.frame_;
+                timeStamp_ = otherGap.timeStamp_;
+
                 leftIdx_ = otherGap.leftIdx_;
                 rightIdx_ = otherGap.rightIdx_;
                 leftRange_ = otherGap.leftRange_;
@@ -265,6 +268,11 @@ namespace quad_gap
                 return frame_;
             }
 
+            ros::Time getTimeStamp() const
+            {
+                return timeStamp_;
+            }
+
             float get_dist_side() const
             {
                 return sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (cos(float(leftIdx_ - rightIdx_) / float(half_num_scan) * M_PI)));
@@ -340,6 +348,7 @@ namespace quad_gap
             Eigen::Vector2f qB_;
 
             std::string frame_ = "";
+            ros::Time timeStamp_ = ros::Time(0);
 
             bool radial_ = false;
             bool rightType_ = false;

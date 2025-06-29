@@ -76,7 +76,7 @@ namespace quad_gap
         // ROS_INFO_STREAM("[drawGap] start");
 
         // visualization_msgs::Marker marker;
-        marker.header.stamp = ros::Time();
+        // marker.header.stamp = ros::Time();
         marker.ns = ns;
         marker.type = visualization_msgs::Marker::LINE_LIST;
         marker.action = visualization_msgs::Marker::ADD;
@@ -120,6 +120,7 @@ namespace quad_gap
             }
     
             marker.header.frame_id = gap->getFrame();
+            marker.header.stamp = gap->getTimeStamp();
 
             int leftIdx = gap->LIdx(); // initial ?  : gap->termLIdx(); // initial ? gap->RIdx() : gap->termRIdx(); //
             int rightIdx = gap->RIdx(); // initial ?  : gap->termRIdx(); // initial ? gap->LIdx() : gap->termLIdx(); //
@@ -163,8 +164,6 @@ namespace quad_gap
     void GapVisualizer::drawGaps(const std::vector<Gap *> & gaps, const std::string & ns) 
     {
         // First, clearing topic.
-        clearMarkerPublisher(rawGapsPublisher);
-        clearMarkerPublisher(simpGapsPublisher);
 
         visualization_msgs::Marker marker;
         drawGap(marker, gaps, ns); // , true);
@@ -176,11 +175,16 @@ namespace quad_gap
         
         if (ns.find("raw") != std::string::npos) 
         {
+            clearMarkerPublisher(rawGapsPublisher);
             rawGapsPublisher.publish(marker);
         } else if (ns.find("simp") != std::string::npos) 
         {
+            clearMarkerPublisher(simpGapsPublisher);
             simpGapsPublisher.publish(marker);
-        }    
+        } else
+        {
+            ROS_WARN_STREAM_NAMED("GapVisualizer", "Unknown gap namespace: " << ns);
+        }
     }
 
     void GapVisualizer::getline(const int & idx, 
@@ -225,7 +229,7 @@ namespace quad_gap
                                         const bool & circle,
                                         const bool & sides)
     {
-        marker.header.stamp = ros::Time();
+        // marker.header.stamp = ros::Time();
         marker.ns = "manip_gaps";
         marker.type = visualization_msgs::Marker::LINE_LIST;
         marker.action = visualization_msgs::Marker::ADD;
@@ -275,6 +279,7 @@ namespace quad_gap
 
 
             marker.header.frame_id = gap->getFrame();
+            marker.header.stamp = gap->getTimeStamp();
 
             int leftIdx = gap->manipLeftIdx();
             int rightIdx = gap->manipRightIdx();

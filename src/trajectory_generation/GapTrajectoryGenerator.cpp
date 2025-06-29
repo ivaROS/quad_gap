@@ -7,7 +7,7 @@ namespace quad_gap
     {
         // return geometry_msgs::PoseArray();
         geometry_msgs::PoseArray pathRbtFrame;
-        pathRbtFrame.header.stamp = ros::Time::now();
+        pathRbtFrame.header.stamp = gap->getTimeStamp();
         
         write_trajectory corder(pathRbtFrame, cfg_->robot_frame_id);
         pathRbtFrame.header.frame_id = cfg_->robot_frame_id;
@@ -760,9 +760,8 @@ namespace quad_gap
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[generateBezierTrajectory()]");
         geometry_msgs::PoseArray pathRbtFrame;
-        pathRbtFrame.header.stamp = ros::Time::now();
-        
-        pathRbtFrame.header.frame_id = cfg_->robot_frame_id;
+        pathRbtFrame.header.stamp = gap->getTimeStamp();
+        pathRbtFrame.header.frame_id = gap->getFrame();
 
         // if (gap->goal.discard) 
         // {

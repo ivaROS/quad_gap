@@ -127,7 +127,7 @@ namespace quad_gap
         visualization_msgs::Marker marker;
 
         marker.header.frame_id = gaps.at(0)->getFrame();
-        marker.header.stamp = ros::Time::now();
+        marker.header.stamp = gaps.at(0)->getTimeStamp();
         marker.ns = "gap_goal";
         marker.id = 0;
         marker.type = visualization_msgs::Marker::SPHERE_LIST;

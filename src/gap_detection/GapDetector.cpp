@@ -101,6 +101,7 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapDetector", "gapDetection min_dist: " << minScanDist_);
 
         std::string frame = scan_.header.frame_id;
+        ros::Time timeStamp = scan_.header.stamp;
 
         // bool prev = true;
         // auto max_dist_iter = std::max_element(scan_.ranges.begin(), scan_.ranges.end());
@@ -131,7 +132,7 @@ namespace quad_gap
             // If both current and last values are not infinity, meaning this is not a swept gap
             if (radialGapSizeCheck(currRange, prevRange, scan_.angle_increment)) 
             {
-                Gap * rawGap = new Gap(frame, currIdx - 1, prevRange, true);
+                Gap * rawGap = new Gap(frame, timeStamp, currIdx - 1, prevRange, true);
                 rawGap->addLeftInformation(currIdx, currRange);
                 rawGap->setMinSafeDist(minScanDist_);
 
@@ -153,7 +154,7 @@ namespace quad_gap
                 if (withinSweptGap)
                 {
                     withinSweptGap = false;
-                    Gap * rawGap = new Gap(frame, gapRIdx, gapRRange);
+                    Gap * rawGap = new Gap(frame, timeStamp, gapRIdx, gapRRange);
                     rawGap->addLeftInformation(currIdx, currRange);
                     rawGap->setMinSafeDist(minScanDist_);
 
@@ -177,7 +178,7 @@ namespace quad_gap
         // Catch the last gap
         if (withinSweptGap) 
         {
-            Gap * rawGap = new Gap(frame, gapRIdx, gapRRange);
+            Gap * rawGap = new Gap(frame, timeStamp, gapRIdx, gapRRange);
             rawGap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
             rawGap->setMinSafeDist(minScanDist_);
 

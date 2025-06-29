@@ -217,7 +217,7 @@ namespace quad_gap
                 Eigen::Vector2f i_bound;                
                 for (size_t i = 0; i < sample_size; i++)
                 {
-                    ang = idx2theta(ang); // i * res - M_PI;
+                    ang = idx2theta(i); // i * res - M_PI;
                     // ang = (ang <= M_PI) ? ang : M_PI;
                     // ang = (ang >= -M_PI) ? ang : -M_PI;
 
@@ -371,7 +371,7 @@ namespace quad_gap
                 Eigen::Vector2f i_bound;
                 for (size_t i = 0; i < sample_size; i++)
                 {
-                    ang = idx2theta(ang); // i * res - M_PI;
+                    ang = idx2theta(i); // i * res - M_PI;
                     // ang = (ang <= M_PI) ? ang : M_PI;
                     // ang = (ang >= -M_PI) ? ang : -M_PI;
 
@@ -482,7 +482,7 @@ namespace quad_gap
             // Eigen::Vector2f p1, p2, p3, p4, p5, p6, p7, p8;
             std::vector<Eigen::Vector2f> pt_list;
 
-            int sample_size = 5; // 20; // TOO SLOW
+            int sample_size = 0; // 20; // TOO SLOW
             // float res = M_PI * 2 / sample_size;
 
             std::vector<float> distsForNearestDist_;
