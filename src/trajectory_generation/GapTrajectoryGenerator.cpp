@@ -42,8 +42,8 @@ namespace quad_gap
         // yRight = gap->convex.rightRange_ * sin(theta_right);
         // xLeft = gap->convex.leftRange_ * cos(theta_left);
         // yLeft = gap->convex.leftRange_ * sin(theta_left);
-        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
-        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+        Eigen::Vector2f pLeft = gap->getManipLPosition(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRPosition(); // (xRight, yRight);
 
         float xLeft, xRight, yLeft, yRight;
         xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));
@@ -109,8 +109,8 @@ namespace quad_gap
         Eigen::Vector2f q0(0.0, 0.0); // Start point
 
         // Find the intersections of triangle and circle
-        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
-        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+        Eigen::Vector2f pLeft = gap->getManipLPosition(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRPosition(); // (xRight, yRight);
 
         // float xLeft, xRight, yLeft, yRight;
         // xLeft = pLeft[0];

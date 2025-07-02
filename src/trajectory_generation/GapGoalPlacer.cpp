@@ -19,8 +19,8 @@ namespace quad_gap
         int idxLeft = gap->manipLeftIdx();
         int idxRight = gap->manipRightIdx();
 
-        Eigen::Vector2f pLeft = gap->getManipLCartesian(); // (xLeft, yLeft);
-        Eigen::Vector2f pRight = gap->getManipRCartesian(); // (xRight, yRight);
+        Eigen::Vector2f pLeft = gap->getManipLPosition(); // (xLeft, yLeft);
+        Eigen::Vector2f pRight = gap->getManipRPosition(); // (xRight, yRight);
         Eigen::Vector2f pGoal(globalPathLocalWaypoint.pose.position.x, globalPathLocalWaypoint.pose.position.y);
 
         xLeft = pLeft[0];     // (gap->convex.leftRange_) * cos(idx2theta(gap->convex.leftIdx_));

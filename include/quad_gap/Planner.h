@@ -337,6 +337,9 @@ namespace quad_gap
             // Gaps:
             std::vector<Gap *> currRawGaps_;
             std::vector<Gap *> currSimpGaps_;
+            std::vector<Gap *> prevRawGaps_; /**< Previous set of raw gaps */
+            std::vector<Gap *> prevSimpGaps_; /**< Previous set of simplified gaps */
+
             // std::vector<Gap *> currSimpGaps__ptr;
 
             // Helper modules

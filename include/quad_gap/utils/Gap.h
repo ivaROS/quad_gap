@@ -31,6 +31,7 @@ namespace quad_gap
             {
                 frame_ = frame;
                 radial_ = radial;
+                timeStamp_ = timeStamp;
 
                 if (! checkPtIdx(rightIdx))
                 {
@@ -46,186 +47,273 @@ namespace quad_gap
                     // rightRange = 0.0;
                 }                
 
-                timeStamp_ = timeStamp;
-                leftIdx_ = leftIdx;
-                leftRange_ = leftRange;
-                rightIdx_ = rightIdx;
-                rightRange_ = rightRange;
+                leftGapPt_ = new GapPoint(leftIdx, leftRange); // temp values
+                rightGapPt_ = new GapPoint(rightIdx, rightRange);
+
                 minSafeDist_ = minSafeDist;
+
+                // initializing convex polar gap coordinates to raw ones
+                leftGapPt_->initManipPoint();
+                rightGapPt_->initManipPoint();
+                
+                setRadial();
+                setRightType();
+
+                if (frame.empty())
+                {
+                    ROS_WARN_STREAM_NAMED("Gap", "Gap frame is empty");
+                }
             };
 
             Gap(const Gap & otherGap)
             {
                 frame_ = otherGap.frame_;
-                timeStamp_ = otherGap.timeStamp_;
-
-                leftIdx_ = otherGap.leftIdx_;
-                rightIdx_ = otherGap.rightIdx_;
-                leftRange_ = otherGap.leftRange_;
-                rightRange_ = otherGap.rightRange_;
-
                 radial_ = otherGap.radial_;
                 rightType_ = otherGap.rightType_;
+                timeStamp_ = otherGap.timeStamp_;
+
+                // deep copy for new points
+                leftGapPt_ = new GapPoint(*otherGap.leftGapPt_);
+                rightGapPt_ = new GapPoint(*otherGap.rightGapPt_);
                 
                 minSafeDist_ = otherGap.minSafeDist_;
                 qB_ = otherGap.qB_;
 
-                convex = otherGap.convex;
+                // convex = otherGap.convex;
                 goal = otherGap.goal;
                 mode = otherGap.mode;
             }
 
-            ~Gap() {};
-
-            void setLIdx(const int & leftIdx)
+            ~Gap() 
             {
-                leftIdx_ = leftIdx;
+                if (leftGapPt_ != nullptr)
+                {
+                    delete leftGapPt_;
+                    leftGapPt_ = nullptr;
+                }
+                if (rightGapPt_ != nullptr)
+                {
+                    delete rightGapPt_;
+                    rightGapPt_ = nullptr;
+                }
+            };
+
+            /**
+            * \brief Getter for initial left gap point index
+            * \return initial left gap point index
+            */
+            int LIdx() const { return leftGapPt_->getOrigIdx(); }
+
+            /**
+            * \brief Setter for initial left gap point index
+            * \param lidx initial left gap point index
+            */
+            void setLIdx(const int & lidx) { leftGapPt_->setOrigIdx(lidx); }
+
+            /**
+            * \brief Getter for initial right gap point index
+            * \return initial right gap point index
+            */
+            int RIdx() const { return rightGapPt_->getOrigIdx(); }
+
+            /**
+            * \brief Setter for initial right gap point index
+            * \param ridx initial right gap point index
+            */            
+            void setRIdx(const int & ridx) { rightGapPt_->setOrigIdx(ridx); }
+
+            /**
+            * \brief Getter for initial left gap point range
+            * \return initial left gap point range
+            */
+            float LRange() const { return leftGapPt_->getOrigRange(); }
+
+            /**
+            * \brief Setter for initial left gap point range
+            * \param lrange initial left gap point range
+            */
+            void setLRange(const float & lrange) { leftGapPt_->setOrigRange(lrange); }
+
+            /**
+            * \brief Getter for initial right gap point range
+            * \param initial right gap point range
+            */
+            float RRange() const { return rightGapPt_->getOrigRange(); }
+
+            /**
+            * \brief Setter for initial right gap point range
+            * \param rrange initial right gap point range
+            */            
+            void setRRange(const float & rrange) { rightGapPt_->setOrigRange(rrange); }
+
+            void setManipPoints(const int & newLeftIdx, const float & newLeftRange, 
+                                const int & newRightIdx, const float & newRightRange)
+            {
+                leftGapPt_->setManipIdx(newLeftIdx);
+                leftGapPt_->setManipRange(newLeftRange);
+                rightGapPt_->setManipIdx(newRightIdx);
+                rightGapPt_->setManipRange(newRightRange);
             }
 
-            void setRIdx(const int & rightIdx)
+            bool checkPoints()
             {
-                rightIdx_ = rightIdx;
+                return (leftGapPt_->checkOrigPoint() && rightGapPt_->checkOrigPoint() && 
+                        leftGapPt_->checkManipPoint() && rightGapPt_->checkManipPoint());
             }
 
-            // Setter and Getter for LR Distance and Index
-            void setLRange(const float & leftRange)
-            {
-                leftRange_ = leftRange;
-            }
+            /**
+            * \brief Getter for initial manipulated left gap point index
+            * \return initial manipulated left gap point index
+            */
+            int manipLeftIdx() const { return leftGapPt_->getManipIdx(); }
 
-            void setRRange(const float & rightRange) 
-            {
-                rightRange_ = rightRange;
-            }
+            /**
+            * \brief Getter for initial manipulated right gap point index
+            * \return initial manipulated right gap point index
+            */
+            int manipRightIdx() const { return rightGapPt_->getManipIdx(); }
 
-            int LIdx() const
-            {
-                return leftIdx_;
-            }
+            /**
+            * \brief Getter for initial manipulated left gap point distance
+            * \return manipulated left gap point distance
+            */
+            float manipLeftRange() const { return leftGapPt_->getManipRange(); }
 
-            int RIdx() const
-            {
-                return rightIdx_;
-            }            
+            /**
+            * \brief Getter for initial manipulated right gap point distance
+            * \return manipulated right gap point distance
+            */
+            float manipRightRange() const { return rightGapPt_->getManipRange(); }
 
-            float LRange() const
-            {
-                return leftRange_;
-            }
-
-            float RRange() const
-            {
-                return rightRange_;
-            }
-
-            // Concluding the Gap after constructing with left information
+            /**
+            * \brief Conclude gap construction by populating gap's initial left side information 
+            * and remaining characteristics
+            * \param leftIdx initial left gap point index
+            * \param leftRange initial left gap point range
+            */
             void addLeftInformation(const int & leftIdx, const float & leftRange) 
             {
-                leftIdx_ = leftIdx;
-                leftRange_ = leftRange;
-                rightType_ = rightRange_ < leftRange_;
+                leftGapPt_->setOrigIdx(leftIdx); // leftIdx_ = leftIdx;
+                leftGapPt_->setOrigRange(leftRange); // leftRange_ = leftRange;
+
+                // initializing convex polar gap coordinates to raw ones
+                leftGapPt_->initManipPoint();
+                rightGapPt_->initManipPoint();
 
                 setRadial();
-
-                // convex.leftIdx_ = leftIdx_;
-                // convex.leftRange_ = leftRange_;
-
-                // convex.rightIdx_ = rightIdx_;
-                // convex.rightRange_ = rightRange_;
-                setManipPoints(leftIdx_, leftRange_, rightIdx_, rightRange_);
+                setRightType();
             }
 
-            // Get Right Cartesian Distance
-            void getLCartesian(float &x, float &y) const
+            /**
+            * \brief Getter for initial left gap point in Cartesian frame
+            * \param x x-position for left gap point
+            * \param y y-position for left gap point
+            */
+            void getLCartesian(float &x, float &y) const { leftGapPt_->getOrigCartesian(x, y); }
+
+            /**
+            * \brief Getter for right gap point in Cartesian frame
+            * \param x x-position for right gap point
+            * \param y y-position for right gap point
+            */
+            void getRCartesian(float &x, float &y) const { rightGapPt_->getOrigCartesian(x, y); }
+
+            /**
+            * \brief Getter for initial manipulated left gap point in Cartesian frame
+            * \param x x-position for left gap point
+            * \param y y-position for left gap point
+            */
+            void getManipLCartesian(float &x, float &y) const { leftGapPt_->getManipCartesian(x, y); }
+
+            /**
+            * \brief Getter for initial manipulated right gap point in Cartesian frame
+            * \param x x-position for right gap point
+            * \param y y-position for right gap point
+            */
+            void getManipRCartesian(float &x, float &y) const { rightGapPt_->getManipCartesian(x, y); }
+
+            Eigen::Vector2f getLPosition() const { return leftGapPt_->getOrigCartesian(); }
+
+            Eigen::Vector2f getRPosition() const { return rightGapPt_->getOrigCartesian(); }
+
+            /**
+            * \brief Getter for initial manipulated left gap point in Cartesian frame
+            * \return Initial manipulated left gap point in Cartesian frame
+            */
+            Eigen::Vector2f getManipLPosition() const { return leftGapPt_->getManipCartesian(); }
+
+            /**
+            * \brief Getter for initial manipulated right gap point in Cartesian frame
+            * \return Initial manipulated right gap point in Cartesian frame
+            */
+            Eigen::Vector2f getManipRPosition() const { return rightGapPt_->getManipCartesian(); }
+
+            void setRightType() { rightType_ = rightGapPt_->getOrigRange() < leftGapPt_->getOrigRange(); }
+
+            /**
+            * \brief Determine if gap is radial
+            *
+            *   far pt _____
+            *          \ A  `___          
+            *           \       `___      
+            *            \          `___  
+            *             \           B ` near pt
+            *              \            / 
+            *               \          /     A - far side angle 
+            *                \        /      B - near side angle
+            *                 \      /       C - gap angle
+            *                  \    /
+            *                   \ C/
+            *                    \/
+            *                 gap origin
+            */
+            void setRadial()
             {
-                float leftTheta = idx2theta(leftIdx_);
-                x = leftRange_ * cos(leftTheta);
-                y = leftRange_ * sin(leftTheta);
+                // ROS_INFO_STREAM_NAMED("Gap", "setRadial:");
+                int checkLeftIdx = leftGapPt_->getOrigIdx(); // leftIdx_;
+                int checkRightIdx = rightGapPt_->getOrigIdx(); // rightIdx_;
+
+                float checkLeftRange = leftGapPt_->getOrigRange(); // leftRange_;
+                float checkRightRange = rightGapPt_->getOrigRange(); // rightRange_;
+
+                // ROS_INFO_STREAM_NAMED("Gap", "   checkLeftIdx: " << checkLeftIdx);
+                // ROS_INFO_STREAM_NAMED("Gap", "   checkLeftRange: " << checkLeftRange);
+                // ROS_INFO_STREAM_NAMED("Gap", "   checkRightIdx: " << checkRightIdx);
+                // ROS_INFO_STREAM_NAMED("Gap", "   checkRightRange: " << checkRightRange);
+
+                float gapAngle = (checkLeftIdx - checkRightIdx) * angle_increment;
+                if (gapAngle < 0)
+                    gapAngle += TWO_M_PI;
+
+                // ROS_INFO_STREAM_NAMED("Gap", "   gapAngle: " << gapAngle);
+                float nearRange = rightType_ ? checkRightRange : checkLeftRange;
+
+                // law of cosines
+                float pt1 = pow(checkRightRange, 2) + pow(checkLeftRange, 2);
+                float pt2 = 2 * checkRightRange * checkLeftRange * cos(gapAngle);
+                float leftPtToRightPtDist = sqrt(pt1 - pt2);
+                // ROS_INFO_STREAM_NAMED("Gap", "   pt1: " << pt1);
+                // ROS_INFO_STREAM_NAMED("Gap", "   pt2: " << pt2);
+                // ROS_INFO_STREAM_NAMED("Gap", "   cos(gapAngle): " << cos(gapAngle));
+                // ROS_INFO_STREAM_NAMED("Gap", "   leftPtToRightPtDist: " << leftPtToRightPtDist);
+                
+                // law of sines
+                float farSideAngle = asin(epsilonDivide(nearRange, leftPtToRightPtDist) * sin(gapAngle));
+                
+                // ROS_INFO_STREAM_NAMED("Gap", "nearRange: " << nearRange);
+                // ROS_INFO_STREAM_NAMED("Gap", "leftPtToRightPtDist: " << leftPtToRightPtDist);
+                // ROS_INFO_STREAM_NAMED("Gap", "small angle: " << farSideAngle);
+
+                // ROS_INFO_STREAM_NAMED("Gap", "   farSideAngle: " << farSideAngle);
+                // ROS_INFO_STREAM_NAMED("Gap", "   gapAngle: " << gapAngle);
+                float nearSideAngle = (M_PI - farSideAngle - gapAngle);
+                // ROS_INFO_STREAM_NAMED("Gap", "   nearSideAngle: " << nearSideAngle);
+
+                radial_ = nearSideAngle > (0.6667 * M_PI);
             }
 
-            Eigen::Vector2f getLCartesian() const
-            {
-                float left_x, left_y;
-                getLCartesian(left_x, left_y);
-                return Eigen::Vector2f(left_x, left_y);
-            }
-
-            // Get Left Cartesian Distance
-            void getRCartesian(float &x, float &y) const
-            {
-                float right_theta = idx2theta(rightIdx_);
-                x = rightRange_ * cos(right_theta);
-                y = rightRange_ * sin(right_theta);
-            }
-
-            Eigen::Vector2f getRCartesian() const
-            {
-                float right_x, right_y;
-                getRCartesian(right_x, right_y);
-                return Eigen::Vector2f(right_x, right_y);
-            }
-
-            int manipLeftIdx() const
-            {
-                return convex.leftIdx_;
-            }
-
-            int manipRightIdx() const
-            {
-                return convex.rightIdx_;
-            }
-
-            float manipLeftRange() const
-            {
-                return convex.leftRange_;
-            }
-
-            float manipRightRange() const
-            {
-                return convex.rightRange_;
-            }
-
-            void setManipPoints(const int & leftIdx, const float & leftRange, const int & rightIdx, const float & rightRange)
-            {
-                convex.leftIdx_ = leftIdx;
-                convex.leftRange_ = leftRange;
-                convex.rightIdx_ = rightIdx;
-                convex.rightRange_ = rightRange;
-            }
-
-            // bool checkPoints()
-            // {
-            //     return (leftGapPt_->checkOrigPoint() && rightGapPt_->checkOrigPoint() && 
-            //             leftGapPt_->checkManipPoint() && rightGapPt_->checkManipPoint());
-            // }            
-
-            void getManipLCartesian(float &x, float &y) const
-            {
-                float leftTheta = idx2theta(convex.leftIdx_);
-                x = convex.leftRange_ * cos(leftTheta);
-                y = convex.leftRange_ * sin(leftTheta);
-            }
-
-            Eigen::Vector2f getManipLCartesian() const
-            {
-                float left_x, left_y;
-                getManipLCartesian(left_x, left_y);
-                return Eigen::Vector2f(left_x, left_y);
-            }
-
-            void getManipRCartesian(float &x, float &y) const
-            {
-                float rightTheta = idx2theta(convex.rightIdx_);
-                x = convex.rightRange_ * cos(rightTheta);
-                y = convex.rightRange_ * sin(rightTheta);
-            }
-
-            Eigen::Vector2f getManipRCartesian() const
-            {
-                float right_x, right_y;
-                getManipRCartesian(right_x, right_y);
-                return Eigen::Vector2f(right_x, right_y);
-            }
+            GapPoint * getLeftGapPt() const { return leftGapPt_; }
+            GapPoint * getRightGapPt() const { return rightGapPt_; }
 
             void setAGC()
             {
@@ -255,25 +343,6 @@ namespace quad_gap
             bool isExtended() const
             {
                 return mode.extended;
-            }
-
-            void setRadial()
-            {
-                // float resoln = M_PI / half_num_scan;
-                float angle1 = (leftIdx_ - rightIdx_) * angle_increment;
-
-                if (angle1 < 0.0)
-                {
-                    angle1 += 2 * M_PI; // Ensure angle is positive
-                }
-
-
-                float short_side = rightType_ ? rightRange_ : leftRange_;
-                float opp_side = (float) sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (float)cos(angle1));
-                float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
-                // radial_ = (M_PI - small_angle - angle1 > 0.75 * M_PI); 
-                radial_ = (M_PI - small_angle - angle1 > (2.0 / 3.0 * M_PI)); 
-                // return radial_;
             }
 
             /**
@@ -370,6 +439,9 @@ namespace quad_gap
             std::string frame_ = "";
             ros::Time timeStamp_ = ros::Time(0);
 
+            GapPoint * leftGapPt_ = NULL; /**< Left gap point */
+            GapPoint * rightGapPt_ = NULL; /**< Right gap point */
+
             bool radial_ = false;
             bool rightType_ = false;
 
@@ -389,20 +461,20 @@ namespace quad_gap
                 bool goalwithin = false;
             } goal;        
 
-            struct Convex 
-            {
-                int leftIdx_ = 511;
-                int rightIdx_ = 0;
+            // struct Convex 
+            // {
+            //     int leftIdx_ = 511;
+            //     int rightIdx_ = 0;
 
-                float leftRange_ = 3;
-                float rightRange_ = 3;
-            } convex;
+            //     float leftRange_ = 3;
+            //     float rightRange_ = 3;
+            // } convex;
 
 
-            int leftIdx_ = 511;
-            float leftRange_ = 3;
+            // int leftIdx_ = 511;
+            // float leftRange_ = 3;
             
-            int rightIdx_ = 0;
-            float rightRange_ = 3;        
+            // int rightIdx_ = 0;
+            // float rightRange_ = 3;        
     };
 }

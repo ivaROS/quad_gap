@@ -303,14 +303,17 @@ namespace quad_gap
             trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame, odom2rbt_);
         }  
 
-        // delete old gaps, should be fine with mutex
-        for (Gap * rawGap : currRawGaps_)
+        for (Gap * rawGap : prevRawGaps_)
             delete rawGap;
-        currRawGaps_.clear();
+        prevRawGaps_.clear();
 
-        for (Gap * simplifiedGap : currSimpGaps_)
+        for (Gap * simplifiedGap : prevSimpGaps_)
             delete simplifiedGap;
-        currSimpGaps_.clear();
+        prevSimpGaps_.clear();
+
+        // store current gaps as previous gaps
+        prevRawGaps_ = currRawGaps_;
+        prevSimpGaps_ = currSimpGaps_;
 
         timeKeeper_->stopTimer(SCAN);
     }
@@ -504,20 +507,20 @@ namespace quad_gap
         geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
         try 
         {
-            for (size_t i = 0; i < manipGaps.size(); i++)
+            for (size_t i = 0; i < planningGaps.size(); i++)
             {
-                gapManipulator_->reduceGap(manipGaps.at(i), local_goal_rbt_frame);
-                gapManipulator_->convertRadialGap(manipGaps.at(i));
-                // gapManipulator_->inflateGapSides(manipGaps.at(i));
-                gapManipulator_->radialExtendGap(manipGaps.at(i));
+                gapManipulator_->reduceGap(planningGaps.at(i), local_goal_rbt_frame);
+                gapManipulator_->convertRadialGap(planningGaps.at(i));
+                // gapManipulator_->inflateGapSides(planningGaps.at(i));
+                gapManipulator_->radialExtendGap(planningGaps.at(i));
 
-                // bool valid = planningGaps.at(i)->checkPoints();
+                bool valid = planningGaps.at(i)->checkPoints();
 
-                // if (!valid)
-                // {
-                //     ROS_WARN_STREAM_NAMED("GapManipulator", "    invalid gap after manipulation " << i);
-                //     continue;
-                // }
+                if (!valid)
+                {
+                    ROS_WARN_STREAM_NAMED("GapManipulator", "    invalid gap after manipulation " << i);
+                    continue;
+                }
                 manipGaps.push_back(planningGaps.at(i)); // shallow copy
             }
         } catch(...) 
@@ -1000,7 +1003,7 @@ namespace quad_gap
         try
         {        
             if (!haveTFs_)
-            return cmdVel;
+                return cmdVel;
 
             geometry_msgs::PoseArray pathOdomFrame = traj.getPathOdomFrame();
 
@@ -1161,6 +1164,20 @@ namespace quad_gap
         timeKeeper_->startTimer(GAP_MANIP);
         std::vector<Gap *> manipGaps = gapManipulate(planningGaps);
         timeKeeper_->stopTimer(GAP_MANIP);
+
+
+        ROS_INFO_STREAM_NAMED("Planner", "Manipulated gaps:");
+        for (int i = 0; i < manipGaps.size(); i++)
+        {
+            Gap * gap = manipGaps.at(i);
+            float leftX, leftY, rightX, rightY;
+            gap->getManipLCartesian(leftX, leftY);
+            gap->getManipRCartesian(rightX, rightY);
+            ROS_INFO_STREAM_NAMED("Planner", "Gap " << i);
+            ROS_INFO_STREAM_NAMED("Planner", "      Left polar: (" << gap->manipLeftIdx() << ", " << gap->manipLeftRange() << "), Right polar: (" << gap->manipRightIdx() << ", " << gap->manipRightRange() << ")");
+            ROS_INFO_STREAM_NAMED("Planner", "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
+        }
+
 
         //////////////////////////////////////////////////////////////////////////////////////
         //                             GAP GOAL PLACEMENT                                   //
