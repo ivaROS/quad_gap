@@ -303,6 +303,15 @@ namespace quad_gap
             trajEvaluator_->transformGlobalPathLocalWaypointToRbtFrame(globalPathLocalWaypointOdomFrame, odom2rbt_);
         }  
 
+        // delete old gaps, should be fine with mutex
+        for (Gap * rawGap : currRawGaps_)
+            delete rawGap;
+        currRawGaps_.clear();
+
+        for (Gap * simplifiedGap : currSimpGaps_)
+            delete simplifiedGap;
+        currSimpGaps_.clear();
+
         timeKeeper_->stopTimer(SCAN);
     }
 
@@ -488,7 +497,7 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("GapManipulator", "[manipulateGaps()]");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
-        std::vector<Gap *> manipGaps = planningGaps;
+        std::vector<Gap *> manipGaps;
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
@@ -501,6 +510,15 @@ namespace quad_gap
                 gapManipulator_->convertRadialGap(manipGaps.at(i));
                 // gapManipulator_->inflateGapSides(manipGaps.at(i));
                 gapManipulator_->radialExtendGap(manipGaps.at(i));
+
+                // bool valid = planningGaps.at(i)->checkPoints();
+
+                // if (!valid)
+                // {
+                //     ROS_WARN_STREAM_NAMED("GapManipulator", "    invalid gap after manipulation " << i);
+                //     continue;
+                // }
+                manipGaps.push_back(planningGaps.at(i)); // shallow copy
             }
         } catch(...) 
         {

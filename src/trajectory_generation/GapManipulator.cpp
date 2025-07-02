@@ -149,7 +149,7 @@ namespace quad_gap
             return;
         }
 
-        if (!gap->isReduced()) 
+        if (gap->isReduced()) 
         {
             ROS_INFO_STREAM_NAMED("GapManipulator", "        gap has been reduced, no conversion needed");
             return;

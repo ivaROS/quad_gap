@@ -90,7 +90,10 @@ namespace quad_gap
             * \param rawGap queried raw gap
             * \return boolean for if raw gap is far enough away
             */
-            bool equivalentPLDistcheck(Gap * rawGap);
+            bool equivalentPLDistcheck(const int & currIdx,
+                                        const float & currRange,
+                                        const int & prevIdx,
+                                        const float & prevRange);
 
             /**
             * \brief Checking if first and last raw gaps should be merged together
@@ -144,6 +147,17 @@ namespace quad_gap
             bool radialGapSizeCheck(const float & currRange, 
                                     const float & prevRange, 
                                     const float & gapAngle);
+
+            /**
+            * \brief Checking if gap is either very large, 
+            * \param leftIdx left index of gap
+            * \param rightIdx right index of gap
+            * \return boolean if gap is large enough
+            */
+            bool sweptGapSizeCheck(const int & currIdx,
+                                    const float & currRange,
+                                    const int & prevIdx,
+                                    const float & prevRange);
 
             sensor_msgs::LaserScan scan_; /**< Current laser scan */
             const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */

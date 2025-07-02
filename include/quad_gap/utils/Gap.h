@@ -10,6 +10,7 @@
 #include <Eigen/Geometry>
 
 #include <quad_gap/utils/Utils.h>
+#include <quad_gap/utils/GapPoint.h>
 
 namespace quad_gap
 {
@@ -18,12 +19,40 @@ namespace quad_gap
         public:
             Gap() {};
 
+            // Only called during gap detection
             Gap(const std::string & frame,
                 const ros::Time & timeStamp, 
+                const int & leftIdx,
+                const float & leftRange,
                 const int & rightIdx, 
-                const float & rightRange, 
-                const bool & radial = false) : frame_(frame), timeStamp_(timeStamp), rightIdx_(rightIdx), rightRange_(rightRange), radial_(radial)
-            {};
+                const float & rightRange,
+                const float & minSafeDist, 
+                const bool & radial) 
+            {
+                frame_ = frame;
+                radial_ = radial;
+
+                if (! checkPtIdx(rightIdx))
+                {
+                    ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
+                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
+                    // rightIdx = 0;
+                }
+
+                if (! checkPtRange(rightRange))
+                {
+                    ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
+                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
+                    // rightRange = 0.0;
+                }                
+
+                timeStamp_ = timeStamp;
+                leftIdx_ = leftIdx;
+                leftRange_ = leftRange;
+                rightIdx_ = rightIdx;
+                rightRange_ = rightRange;
+                minSafeDist_ = minSafeDist;
+            };
 
             Gap(const Gap & otherGap)
             {
@@ -164,6 +193,12 @@ namespace quad_gap
                 convex.rightRange_ = rightRange;
             }
 
+            // bool checkPoints()
+            // {
+            //     return (leftGapPt_->checkOrigPoint() && rightGapPt_->checkOrigPoint() && 
+            //             leftGapPt_->checkManipPoint() && rightGapPt_->checkManipPoint());
+            // }            
+
             void getManipLCartesian(float &x, float &y) const
             {
                 float leftTheta = idx2theta(convex.leftIdx_);
@@ -224,8 +259,15 @@ namespace quad_gap
 
             void setRadial()
             {
-                float resoln = M_PI / half_num_scan;
-                float angle1 = (leftIdx_ - rightIdx_) * resoln;
+                // float resoln = M_PI / half_num_scan;
+                float angle1 = (leftIdx_ - rightIdx_) * angle_increment;
+
+                if (angle1 < 0.0)
+                {
+                    angle1 += 2 * M_PI; // Ensure angle is positive
+                }
+
+
                 float short_side = rightType_ ? rightRange_ : leftRange_;
                 float opp_side = (float) sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (float)cos(angle1));
                 float small_angle = (float) asin(short_side / opp_side * (float) sin(angle1));
@@ -271,28 +313,6 @@ namespace quad_gap
             ros::Time getTimeStamp() const
             {
                 return timeStamp_;
-            }
-
-            float get_dist_side() const
-            {
-                return sqrt(pow(rightRange_, 2) + pow(leftRange_, 2) - 2 * rightRange_ * leftRange_ * (cos(float(leftIdx_ - rightIdx_) / float(half_num_scan) * M_PI)));
-            }
-
-            Eigen::Vector2f get_middle_pt_vec() const
-            {
-                Eigen::Vector2f left_vec = getLCartesian();
-                // float right_x, right_y;
-                // getRCartesian(right_x, right_y);
-                // Eigen::Vector2f right_vec(right_x, right_y);
-                
-                Eigen::Vector2f right_vec = getRCartesian();
-                // float left_x, left_y;
-                // getLCartesian(left_x, left_y);
-                // Eigen::Vector2f left_vec(left_x, left_y);
-                // Eigen::Vector2f m_vec = (right_vec + left_vec) / 2;
-
-                Eigen::Vector2f m_vec = (right_vec + left_vec) / 2.0;
-                return m_vec;
             }
 
             void setGoalPos(const float & x, const float & y) 

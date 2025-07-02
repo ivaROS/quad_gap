@@ -47,7 +47,7 @@ namespace quad_gap
                                             const float & gapAngle)
     {
         if (!(prevRange < maxScanDist_ && currRange < maxScanDist_))
-        return false;
+            return false;
 
         // Euclidean distance between current and previous points
         float consecScanPointDist = sqrt(pow(prevRange, 2) + pow(currRange, 2) - 2 * prevRange * currRange * cos(gapAngle));
@@ -57,17 +57,47 @@ namespace quad_gap
         return canRobotFit;
     }  
 
-    bool GapDetector::equivalentPLDistcheck(Gap * rawGap)
+    bool GapDetector::equivalentPLDistcheck(const int & currIdx,
+                                            const float & currRange,
+                                            const int & prevIdx,
+                                            const float & prevRange)
     {
         // Inscribed radius gets enforced here, or unless using inflated egocircle,
         // then no need for range diff
         // Find equivalent passing length
         // Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f m_pt_vec = rawGap->get_middle_pt_vec();
+        // Eigen::Vector2f m_pt_vec = rawGap->get_middle_pt_vec();
         // float epl = robotGeoProc_->getDecayEquivalentPL(orient_vec, m_pt_vec, m_pt_vec.norm());
-        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, m_pt_vec, m_pt_vec.norm());
 
-        return rawGap->get_dist_side() > epl;
+        float currTheta = idx2theta(currIdx);
+        Eigen::Vector2f currPt = currRange * Eigen::Vector2f(cos(currTheta), sin(currTheta));
+        float prevTheta = idx2theta(currIdx - 1);
+        Eigen::Vector2f prevPt = prevRange * Eigen::Vector2f(cos(prevTheta), sin(prevTheta));
+
+        Eigen::Vector2f midPt = 0.5 * (currPt + prevPt);
+
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, midPt, midPt.norm());
+
+        // Fine for gap detection since angle goes from -pi to pi
+        float gapAngle = std::abs(currTheta - prevTheta);
+
+        // Euclidean distance between current and previous points
+        float ptToPtDist = sqrt(pow(prevRange, 2) + pow(currRange, 2) - 2 * prevRange * currRange * cos(gapAngle));
+
+        return ptToPtDist > epl;
+    }
+
+    bool GapDetector::sweptGapSizeCheck(const int & currIdx,
+                                            const float & currRange,
+                                            const int & prevIdx,
+                                            const float & prevRange)
+    {
+        // somewhat arbitrary threshold for a gap to be considered large
+        bool largeGap = (currIdx - prevIdx) > (1.5 * halfScanRayCount_);
+
+        bool canRobotFit = equivalentPLDistcheck(currIdx, currRange, prevIdx, prevRange);
+
+        return largeGap || canRobotFit;
     }
 
     bool GapDetector::bridgeCondition(const std::vector<Gap *> & rawGaps)
@@ -116,32 +146,27 @@ namespace quad_gap
 
         float currRange = scan_.ranges[0];
         float prevRange = currRange; // First range is always valid, so no need to check
+
+        int prevIdx = 0; // Previous index
         
-        float scan_diff;
         // int wrap = 0;
 
         for (int currIdx = 1; currIdx < scan_.ranges.size(); currIdx++)
         {
             currRange = scan_.ranges[currIdx];
-            scan_diff = currRange - prevRange;
-            
+
             // Arbitrary small threshold for a range difference to be considered
-            // if (std::abs(scan_diff) > 0.2) 
-            // {
 
             // If both current and last values are not infinity, meaning this is not a swept gap
             if (radialGapSizeCheck(currRange, prevRange, scan_.angle_increment)) 
             {
-                Gap * rawGap = new Gap(frame, timeStamp, currIdx - 1, prevRange, true);
-                rawGap->addLeftInformation(currIdx, currRange);
-                rawGap->setMinSafeDist(minScanDist_);
+                // rawGap->addLeftInformation(currIdx, currRange);
+                // rawGap->setMinSafeDist(minScanDist_);
 
-                if (equivalentPLDistcheck(rawGap))
+                if (equivalentPLDistcheck(currIdx, currRange, prevIdx, prevRange))
                 {
+                    Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, prevIdx, prevRange, minScanDist_, true);
                     rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
-                } else
-                {
-                    delete rawGap; // If not equivalent, delete the gap
                 }
             }
                 
@@ -154,44 +179,43 @@ namespace quad_gap
                 if (withinSweptGap)
                 {
                     withinSweptGap = false;
-                    Gap * rawGap = new Gap(frame, timeStamp, gapRIdx, gapRRange);
-                    rawGap->addLeftInformation(currIdx, currRange);
-                    rawGap->setMinSafeDist(minScanDist_);
+                    // rawGap->addLeftInformation(currIdx, currRange);
+                    // rawGap->setMinSafeDist(minScanDist_);
 
-                    if (equivalentPLDistcheck(rawGap))
+                    if (sweptGapSizeCheck(currIdx, currRange, gapRIdx, gapRRange))
                     {
+                        Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, gapRIdx, gapRRange, minScanDist_, false);
                         rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
-                    } else
-                    {
-                        delete rawGap; // If not equivalent, delete the gap
                     }
                 } else // previously not marked a gap, not marking the gap
                 {
-                    gapRIdx = currIdx - 1;
+                    gapRIdx = prevIdx;
                     gapRRange = prevRange;
                     withinSweptGap = true;
                 }
             }
+
+            prevIdx = currIdx;
             prevRange = currRange;
         }
 
         // Catch the last gap
         if (withinSweptGap) 
         {
-            Gap * rawGap = new Gap(frame, timeStamp, gapRIdx, gapRRange);
-            rawGap->addLeftInformation(int(scan_.ranges.size() - 1), *(scan_.ranges.end() - 1));
-            rawGap->setMinSafeDist(minScanDist_);
+            int lastIdx = scan_.ranges.size() - 1;
+            int lastRange = scan_.ranges[lastIdx];
 
-            if (equivalentPLDistcheck(rawGap) || rawGap->LIdx() - rawGap->RIdx() > 500)
+            // rawGap->addLeftInformation(lastIdx, lastRange);
+            // rawGap->setMinSafeDist(minScanDist_);
+
+            if (sweptGapSizeCheck(lastIdx, lastRange, gapRIdx, gapRRange))
             {
+                Gap * rawGap = new Gap(frame, timeStamp, lastIdx, lastRange, gapRIdx, gapRRange, minScanDist_, false);
+
                 rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
-            } else
-            {
-                delete rawGap; // If not equivalent, delete the gap
-            } 
+            }
         }
         
-        // Bridge the last gap around
         // Bridge the last gap around
         if (bridgeCondition(rawGaps))
         {
@@ -310,14 +334,14 @@ namespace quad_gap
                     markToStart = false;
                 }
                 
-                simplifiedGaps.push_back(rawGap);
+                simplifiedGaps.push_back(new Gap(*rawGap)); // Copy constructor
             } else 
             {
                 if (rawGap->isRadial())
                 {
                     if (rawGap->isRightType())
                     {
-                        simplifiedGaps.push_back(rawGap);
+                        simplifiedGaps.push_back(new Gap(*rawGap)); // Copy constructor
                     } else
                     {
                         lastMergeable = checkSimplifiedGapsMergeability(rawGap, simplifiedGaps);
@@ -331,7 +355,7 @@ namespace quad_gap
                             simplifiedGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
                         } else 
                         {
-                            simplifiedGaps.push_back(rawGap);
+                            simplifiedGaps.push_back(new Gap(*rawGap)); // Copy constructor
                         }
                     }
                 } else
@@ -339,8 +363,9 @@ namespace quad_gap
                     if (mergeSweptGapCondition(rawGap, simplifiedGaps))
                     {
                         simplifiedGaps.back()->addLeftInformation(rawGap->LIdx(), rawGap->LRange());
-                    } else {
-                        simplifiedGaps.push_back(rawGap);
+                    } else 
+                    {
+                        simplifiedGaps.push_back(new Gap(*rawGap)); // Copy constructor
                     }
                 }
             }
