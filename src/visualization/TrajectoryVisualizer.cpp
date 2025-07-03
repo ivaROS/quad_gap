@@ -230,13 +230,13 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
 
         if (globalPlanSnippet.empty())             // Should be safe with this check
         {
-            ROS_WARN_STREAM("Goal Selector Returned Trajectory Size " << globalPlanSnippet.size() << " < 1");
+            ROS_WARN_STREAM_NAMED("TrajectoryVisualizer", "Goal Selector Returned Trajectory Size " << globalPlanSnippet.size() << " < 1");
             return;
         }    
         
         if (globalPlanSnippet.at(0).header.frame_id.empty())
         {
-            ROS_WARN_STREAM("[drawRelevantGlobalPlanSnippet] Trajectory frame_id is empty");
+            ROS_WARN_STREAM_NAMED("TrajectoryVisualizer", "[drawRelevantGlobalPlanSnippet] Trajectory frame_id is empty");
             return;
         }
 

@@ -317,7 +317,7 @@ namespace quad_gap
         // wrapping to 0 < angle < 2pi
         if (leftToRightAngle < 0) 
         {
-            // ROS_INFO_STREAM("wrapping " << leftToRightAngle);
+            // ROS_INFO_STREAM_NAMED("Utils", "wrapping " << leftToRightAngle);
             leftToRightAngle += TWO_M_PI; 
         }
 
@@ -333,11 +333,11 @@ namespace quad_gap
     {
         if (lowerIdx < upperIdx) 
         {
-            // ROS_INFO_STREAM("no wrapping, is goal idx between " << lowerIdx << " and " << upperIdx);
+            // ROS_INFO_STREAM_NAMED("Utils", "no wrapping, is goal idx between " << lowerIdx << " and " << upperIdx);
             return (goalIdx > lowerIdx && goalIdx < upperIdx); //if no wrapping occurs
         } else 
         {
-            // ROS_INFO_STREAM("wrapping, is goal idx between " << lowerIdx << " and " << full_scan << ", or between " << 0 << " and " << upperIdx);
+            // ROS_INFO_STREAM_NAMED("Utils", "wrapping, is goal idx between " << lowerIdx << " and " << full_scan << ", or between " << 0 << " and " << upperIdx);
             return (goalIdx > lowerIdx && goalIdx < (2*half_num_scan)) || (goalIdx > 0 && goalIdx < upperIdx); // if wrapping occurs
         }
     }    

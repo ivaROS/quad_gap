@@ -40,7 +40,7 @@ namespace quad_gap
 
     bool QuadGapPlanner::computeVelocityCommands(geometry_msgs::Twist & cmdVel)
     {
-        ROS_INFO_STREAM("[QuadGapPlanner::computeVelocityCommands(twist)]");
+        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::computeVelocityCommands(twist)]");
 
         std::string dummy_message;
         geometry_msgs::PoseStamped dummy_pose;
@@ -70,7 +70,7 @@ namespace quad_gap
         if (!planner.initialized())
         {
             planner.initialize(planner_name);
-            ROS_WARN_STREAM("computerVelocity called before initializing planner");
+            ROS_WARN_STREAM_NAMED("QuadGapPlanner", "computerVelocity called before initializing planner");
         }
 
         // if (planner.ccEnabled() && !planner.getCCWrapper()->isReady())
@@ -127,14 +127,14 @@ namespace quad_gap
 
     bool QuadGapPlanner::isGoalReached()
     {
-        // ROS_INFO_STREAM("[QuadGapPlanner::isGoalReached()]");
+        // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::isGoalReached()]");
 
         return planner.isGoalReached();
     }
 
     bool QuadGapPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame)
     {
-        // ROS_INFO_STREAM("[QuadGapPlanner::setPlan()]");
+        // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::setPlan()]");
 
         if (!planner.initialized())
         {

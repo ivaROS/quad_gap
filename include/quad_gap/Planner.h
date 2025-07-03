@@ -368,7 +368,7 @@ namespace quad_gap
 
             geometry_msgs::TwistStamped rbtVelRbtFrame_;
 
-            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            boost::shared_ptr<sensor_msgs::LaserScan const> scanRbtFrame_;
 
             // ros::WallTime last_time;
             // TrajPlan ni_ref, orig_ref;

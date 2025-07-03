@@ -73,7 +73,7 @@ namespace quad_gap
                                 const std::vector<Gap *> & gaps, 
                                 const std::string & ns) // , const bool & initial)     
     {
-        // ROS_INFO_STREAM("[drawGap] start");
+        // ROS_INFO_STREAM_NAMED("GapVisualizer", "[drawGap] start");
 
         // visualization_msgs::Marker marker;
         // marker.header.stamp = ros::Time();
@@ -96,7 +96,7 @@ namespace quad_gap
         {
             if (gap->getFrame().empty())
             {
-                ROS_WARN_STREAM("[drawGap] Gap frame is empty");
+                ROS_WARN_STREAM_NAMED("GapVisualizer", "[drawGap] Gap frame is empty");
                 return;
             }
 
@@ -111,11 +111,11 @@ namespace quad_gap
             }
     
             // std::cout << "gap category: " << g.getCategory() << std::endl;
-            //ROS_INFO_STREAM("ultimate local ns: " << fullNamespace);
+            //ROS_INFO_STREAM_NAMED("GapVisualizer", "ultimate local ns: " << fullNamespace);
             auto colorIter = colorMap.find(fullNamespace);
             if (colorIter == colorMap.end()) 
             {
-                ROS_FATAL_STREAM("Visualization Color not found, return without drawing");
+                ROS_FATAL_STREAM_NAMED("GapVisualizer", "Visualization Color not found, return without drawing");
                 return;
             }
     
@@ -127,7 +127,7 @@ namespace quad_gap
             float leftRange = gap->LRange(); // initial ?  : gap->termLRange(); // initial ? gap->RRange() : gap->termRRange();
             float rightRange = gap->RRange(); // initial ?  : gap->termRRange(); // initial ? gap->LRange() : gap->termLRange();
 
-            //ROS_INFO_STREAM("leftIdx: " << leftIdx << ", ldist: " << ldist << ", rightIdx: " << rightIdx << ", rightRange: " << rightRange);
+            //ROS_INFO_STREAM_NAMED("GapVisualizer", "leftIdx: " << leftIdx << ", ldist: " << ldist << ", rightIdx: " << rightIdx << ", rightRange: " << rightRange);
             int gapIdxSpan = (leftIdx - rightIdx);
             if (gapIdxSpan < 0)
                 gapIdxSpan += cfg_->scan.full_scan; // 2*gap->half_scan; // taking off int casting here
@@ -158,7 +158,7 @@ namespace quad_gap
                 marker.colors.push_back(colorIter->second);
             }
         }
-        // ROS_INFO_STREAM("[drawGap] end");
+        // ROS_INFO_STREAM_NAMED("GapVisualizer", "[drawGap] end");
     }
     
     void GapVisualizer::drawGaps(const std::vector<Gap *> & gaps, const std::string & ns) 
@@ -250,7 +250,7 @@ namespace quad_gap
         auto colorIter = colorMap.find(ns);
         if (colorIter == colorMap.end()) 
         {
-            ROS_FATAL_STREAM("Visualization Color not found, return without drawing");
+            ROS_FATAL_STREAM_NAMED("GapVisualizer", "Visualization Color not found, return without drawing");
             return;
         }
 
@@ -258,7 +258,7 @@ namespace quad_gap
         {
             if (gap->getFrame().empty())
             {
-                ROS_WARN_STREAM("[drawManipGap] Gap frame is empty");
+                ROS_WARN_STREAM_NAMED("GapVisualizer", "[drawManipGap] Gap frame is empty");
                 return;
             }
 
@@ -286,24 +286,24 @@ namespace quad_gap
             float leftRange = gap->manipLeftRange();
             float rightRange = gap->manipRightRange();
 
-            // ROS_INFO_STREAM("leftIdx: " << leftIdx << ", leftRange: " << leftRange);
-            // ROS_INFO_STREAM("rightIdx: " << rightIdx << ", rightRange: " << rightRange);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "leftIdx: " << leftIdx << ", leftRange: " << leftRange);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "rightIdx: " << rightIdx << ", rightRange: " << rightRange);
 
             int gapIdxSpan = (leftIdx - rightIdx);
             if (gapIdxSpan < 0)
                 gapIdxSpan += cfg_->scan.full_scan; // 2*gap->half_scan; // taking off int casting here
 
-            // ROS_INFO_STREAM("gapIdxSpan: " << gapIdxSpan);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "gapIdxSpan: " << gapIdxSpan);
 
             int num_segments = int(invGapSpanResoln * gapIdxSpan) + 1;
             float distIncrement = (leftRange - rightRange) / num_segments;
             int midGapIdx = rightIdx; //  + viz_offset;
             float midGapDist = rightRange;
 
-            // ROS_INFO_STREAM("num_segments: " << num_segments);
-            // ROS_INFO_STREAM("distIncrement: " << distIncrement);
-            // ROS_INFO_STREAM("midGapIdx: " << midGapIdx);
-            // ROS_INFO_STREAM("midGapDist: " << midGapDist);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "num_segments: " << num_segments);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "distIncrement: " << distIncrement);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapIdx: " << midGapIdx);
+            // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapDist: " << midGapDist);
 
             float midGapTheta = 0.0;
             for (int i = 0; i < num_segments; i++)
@@ -318,8 +318,8 @@ namespace quad_gap
                 midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap->half_scan);
                 midGapDist += distIncrement;
 
-                // ROS_INFO_STREAM("midGapIdx: " << midGapIdx);
-                // ROS_INFO_STREAM("midGapDist: " << midGapDist);
+                // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapIdx: " << midGapIdx);
+                // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapDist: " << midGapDist);
 
                 geometry_msgs::Point p2;
                 midGapTheta = idx2theta(midGapIdx);
@@ -334,7 +334,7 @@ namespace quad_gap
             {
                 float r = gap->getMinSafeDist();
                 if (r < 0) {
-                    ROS_WARN_STREAM("Gap min safe dist not recorded");
+                    ROS_WARN_STREAM_NAMED("GapVisualizer", "Gap min safe dist not recorded");
                 }
     
                 // std_msgs::ColorRGBA convex_color = colorMap["simp_extent"];

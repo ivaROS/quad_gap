@@ -21,7 +21,7 @@ namespace quad_gap
 
         if (gap->isGoalWithin()) // (gap->goal.goalwithin) 
         {
-            // ROS_INFO_STREAM("Goal to Goal");
+            // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Goal to Goal");
             g2g inte_g2g(gap->getGoalX(),
                          gap->getGoalY());
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
@@ -383,7 +383,7 @@ namespace quad_gap
     //             // Goal point region
     //             success = true;
 
-    //             // ROS_INFO_STREAM("Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //             // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
                 
     //             // INFLATING
     //             Eigen::Vector2f l_used_vec = pCloseSafe;
@@ -464,7 +464,7 @@ namespace quad_gap
     //                     success = true;
     //                     if (left)
     //                     {
-    //                         // ROS_INFO_STREAM("Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
     //                         // Eigen::Vector2f r_normal_vec(pFarSafe[1], -pFarSafe[0]);
     //                         Eigen::Vector2f eFar = pFarSafe.normalized();
@@ -558,7 +558,7 @@ namespace quad_gap
 
     //         success = true;
 
-    //         // ROS_INFO_STREAM("Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
     //         Eigen::Vector2f l_used_vec;
     //         Eigen::Vector2f r_used_vec;
@@ -763,6 +763,8 @@ namespace quad_gap
         pathRbtFrame.header.stamp = gap->getTimeStamp();
         pathRbtFrame.header.frame_id = gap->getFrame();
 
+        assert(pathRbtFrame.header.frame_id == cfg_->robot_frame_id);
+
         // if (gap->goal.discard) 
         // {
         //     ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "This waypoint is discard.");
@@ -847,9 +849,9 @@ namespace quad_gap
                             interp_dist = getBezierDist(quadraBezier, t_kmin1, t_interp, steps);
                             if (abs(t_interp - t_low) <= 1e-3 && abs(t_interp - t_high) <= 1e-3)
                                 break;
-                            // ROS_INFO_STREAM(t_interp << " " << t_low << " " << t_high << " " << interp_dist << " " << abs(interp_dist - des_dist) << " " << dist_thresh);
+                            // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", t_interp << " " << t_low << " " << t_high << " " << interp_dist << " " << abs(interp_dist - des_dist) << " " << dist_thresh);
                         }
-                        // ROS_INFO_STREAM("exit");
+                        // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "exit");
                         geometry_msgs::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
@@ -948,7 +950,7 @@ namespace quad_gap
 
         if (rawPath.poses.size() <= 1)
         {
-            ROS_WARN_STREAM("[getOrientDecayedPath] Original path is too short with size [ " << rawPath.poses.size() << " ].");
+            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "[getOrientDecayedPath] Original path is too short with size [ " << rawPath.poses.size() << " ].");
             orientedPath = rawPath;
             traj.setOrientedPathRbtFrame(orientedPath);
             return;

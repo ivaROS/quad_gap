@@ -133,12 +133,6 @@ namespace quad_gap
         std::string frame = scan_.header.frame_id;
         ros::Time timeStamp = scan_.header.stamp;
 
-        // bool prev = true;
-        // auto max_dist_iter = std::max_element(scan_.ranges.begin(), scan_.ranges.end());
-        // float max_scan_dist = *max_dist_iter;
-        // auto min_dist = *std::min_element(scan_.ranges.begin(), scan_.ranges.end());
-
-        // int gap_size = 0;
         int gapRIdx = 0;
         float gapRRange = scan_.ranges[0];
 
@@ -149,7 +143,6 @@ namespace quad_gap
 
         int prevIdx = 0; // Previous index
         
-        // int wrap = 0;
 
         for (int currIdx = 1; currIdx < scan_.ranges.size(); currIdx++)
         {
@@ -165,6 +158,7 @@ namespace quad_gap
 
                 if (equivalentPLDistcheck(currIdx, currRange, prevIdx, prevRange))
                 {
+                    ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 1");
                     Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, prevIdx, prevRange, minScanDist_, true);
                     rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                 }
@@ -184,6 +178,7 @@ namespace quad_gap
 
                     if (sweptGapSizeCheck(currIdx, currRange, gapRIdx, gapRRange))
                     {
+                        ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 2");
                         Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, gapRIdx, gapRRange, minScanDist_, false);
                         rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                     }
@@ -210,6 +205,7 @@ namespace quad_gap
 
             if (sweptGapSizeCheck(lastIdx, lastRange, gapRIdx, gapRRange))
             {
+                ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 3");
                 Gap * rawGap = new Gap(frame, timeStamp, lastIdx, lastRange, gapRIdx, gapRRange, minScanDist_, false);
 
                 rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated

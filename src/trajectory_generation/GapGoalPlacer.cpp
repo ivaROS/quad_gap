@@ -65,7 +65,7 @@ namespace quad_gap
         //     small_gap = dist < 2 * epl;
         // }
 
-        // ROS_INFO_STREAM(gap->mode.reduced << " " << gap->convex.rightIdx_ << " " << gap->convex.leftIdx_ << " " << pRight[0] << " " << pRight[1] << " " << pLeft[0] << " " << pLeft[1] << " " << thetaLeft << " " << thetaRight);
+        // ROS_INFO_STREAM_NAMED("GapGoalPlacer", gap->mode.reduced << " " << gap->convex.rightIdx_ << " " << gap->convex.leftIdx_ << " " << pRight[0] << " " << pRight[1] << " " << pLeft[0] << " " << pLeft[1] << " " << thetaLeft << " " << thetaRight);
 
         // thetaLeft < thetaRight || 
 
@@ -75,11 +75,11 @@ namespace quad_gap
                 
             float thetaLeft = std::atan2(pLeft[1], pLeft[0]);
 
-            // ROS_INFO_STREAM_NAMED("GapManipulator", "leftToRightAngle: " << leftToRightAngle);
+            // ROS_INFO_STREAM_NAMED("GapGoalPlacer", "leftToRightAngle: " << leftToRightAngle);
             float thetaCenter = (thetaLeft - 0.5 * leftToRightAngle); 
             float rangeCenter = (pLeft.norm() + pRight.norm()) / 2.0;
             Eigen::Vector2f centerGoal(rangeCenter * std::cos(thetaCenter), rangeCenter * std::sin(thetaCenter));
-            // ROS_INFO_STREAM_NAMED("GapManipulator", "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
+            // ROS_INFO_STREAM_NAMED("GapGoalPlacer", "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
 
             gap->setGoalPos(centerGoal[0], centerGoal[1]);
 
@@ -89,7 +89,7 @@ namespace quad_gap
             return;
         }
 
-        // ROS_INFO_STREAM("l gap [" << pRight[0] << " , " << pRight[1] << "], r gap [" << pLeft[0] << " , " << pLeft[1] << "], thetaRight: " << thetaRight << " thetaLeft: " << thetaLeft << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
+        // ROS_INFO_STREAM_NAMED("GapGoalPlacer", "l gap [" << pRight[0] << " , " << pRight[1] << "], r gap [" << pLeft[0] << " , " << pLeft[1] << "], thetaRight: " << thetaRight << " thetaLeft: " << thetaLeft << " goal orient: " << goal_orientation << " Anchor [" << anchor[0] << " , " << anchor[1] << "], Waypoint [" << goal_pt[0] << " , " << goal_pt[1] << "]");
         // float half_max_r = robotGeoProc_.getRobotMaxRadius() / 2;
         // auto goal_pt = offset * half_max_r * cfg_->traj.inf_ratio + anchor;
 

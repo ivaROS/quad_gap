@@ -25,22 +25,22 @@ namespace quad_gap
 
                 if (pathRbtFrame.poses.empty())
                 {
-                    ROS_WARN_STREAM("Trajectory path in robot frame is empty");
+                    ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path in robot frame is empty");
                 }
 
                 // if (pathTiming.empty())
                 // {
-                //     ROS_WARN_STREAM("Trajectory path timing is empty");
+                //     ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path timing is empty");
                 // }
 
                 // if (pathRbtFrame.poses.size() != pathTiming.size())
                 // {
-                //     ROS_WARN_STREAM("Trajectory path and timing size mismatch");
+                //     ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path and timing size mismatch");
                 // }
 
                 if (pathRbtFrame_.header.frame_id.empty())
                 {
-                    ROS_WARN_STREAM("Trajectory path frame id is empty");
+                    ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path frame id is empty");
                 }
             }
 

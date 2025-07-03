@@ -30,7 +30,7 @@ namespace quad_gap
     //     }
         
     //     if (egocircle.ranges.size() < 500) {
-    //         ROS_FATAL_STREAM("Scan range incorrect findLocalLine");
+    //         ROS_FATAL_STREAM_NAMED("TrajectoryController", "Scan range incorrect findLocalLine");
     //     }
 
 
@@ -91,7 +91,7 @@ namespace quad_gap
     //     Eigen::Vector2f pr;
 
     //     if (dist_cent < dist_fwd && dist_cent < dist_rev) {
-    //         // ROS_INFO_STREAM("Non line");
+    //         // ROS_INFO_STREAM_NAMED("TrajectoryController", "Non line");
     //         Eigen::Vector2f a = cent_car - fwd_car;
     //         Eigen::Vector2f b = rev_car - fwd_car;
     //         Eigen::Vector2f a1 = (a.dot(b / b.norm())) * (b / b.norm());
@@ -187,7 +187,7 @@ namespace quad_gap
         cmdVel.linear.y = v_lin_y_fb;
         cmdVel.angular.z = v_ang_fb;
 
-        // // ROS_INFO_STREAM(init_pose.pose);
+        // // ROS_INFO_STREAM_NAMED("TrajectoryController", init_pose.pose);
         
         // Eigen::Vector3f comp;
         // float prod_mul;
@@ -197,7 +197,7 @@ namespace quad_gap
 
         // if (inflated_egocircle.ranges.size() < 500) 
         // {
-        //     ROS_FATAL_STREAM("Scan range incorrect controlLaw");
+        //     ROS_FATAL_STREAM_NAMED("TrajectoryController", "Scan range incorrect controlLaw");
         // }
 
         // if (holonomic)

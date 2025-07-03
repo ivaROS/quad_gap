@@ -272,7 +272,7 @@ namespace quad_gap
 
         // if (stored_scan_msgs.ranges.size() < 500) 
         // {
-        //     ROS_FATAL_STREAM("Scan range incorrect gap manip");
+        //     ROS_FATAL_STREAM_NAMED("GapManipulator", "Scan range incorrect gap manip");
         // }
 
         int gapIdxSpan = (leftIdx - rightIdx);
@@ -290,7 +290,7 @@ namespace quad_gap
             checkIdxSpan = gapIdxSpan + (scanSearchSize - i);
             nearPtToScanDists.at(i) = sqrt(pow(nearRange, 2) + pow(checkRange, 2) -
                                         2.0 * nearRange * checkRange * cos(checkIdxSpan * cfg_->scan.angle_increment));
-            // // ROS_INFO_STREAM("checking idx: " << checkIdx << ", range of: " << range << ", diff in idx: " << checkIdxSpan << ", dist of " << dist.at(i));
+            // ROS_INFO_STREAM_NAMED("GapManipulator", "checking idx: " << checkIdx << ", range of: " << range << ", diff in idx: " << checkIdxSpan << ", dist of " << dist.at(i));
         }
 
         auto minDistIter = std::min_element(nearPtToScanDists.begin(), nearPtToScanDists.end());
@@ -329,7 +329,7 @@ namespace quad_gap
         //     }
         // } catch(...) 
         // {
-        //     ROS_FATAL_STREAM("convertRadialGap outofBound");
+        //     ROS_FATAL_STREAM_NAMED("GapManipulator", "convertRadialGap outofBound");
         // }
 
         // // auto farside_iter = ;
@@ -337,7 +337,7 @@ namespace quad_gap
 
         // Eigen::Matrix3f far_near = near_rbt.inverse() * far_rbt;
         // float coefs = far_near.block<2, 1>(0, 2).norm();
-        // // ROS_INFO_STREAM()
+        // // ROS_INFO_STREAM_NAMED("GapManipulator", )
         // far_near(0, 2) *= farside / coefs;
         // far_near(1, 2) *= farside / coefs;
         // Eigen::Matrix3f short_pt = near_rbt * (rot_mat * far_near);
@@ -630,7 +630,7 @@ namespace quad_gap
             // return false;
         }
 
-        if (inflatedRightIdx == inflatedLeftIdx) // // ROS_INFO_STREAM("manipulated indices are same");
+        if (inflatedRightIdx == inflatedLeftIdx) // // ROS_INFO_STREAM_NAMED("GapManipulator", "manipulated indices are same");
             inflatedLeftIdx++;
 
         gap->setManipPoints(inflatedLeftIdx, inflatedLeftRange, inflatedRightIdx, inflatedRightRange);

@@ -17,7 +17,7 @@ namespace quad_gap
     class Gap
     {
         public:
-            Gap() {};
+            // Gap() {};
 
             // Only called during gap detection
             Gap(const std::string & frame,
@@ -35,15 +35,15 @@ namespace quad_gap
 
                 if (! checkPtIdx(rightIdx))
                 {
+                    ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
                     ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
-                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
                     // rightIdx = 0;
                 }
 
                 if (! checkPtRange(rightRange))
                 {
+                    ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
                     ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
-                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
                     // rightRange = 0.0;
                 }                
 
@@ -59,9 +59,12 @@ namespace quad_gap
                 setRadial();
                 setRightType();
 
-                if (frame.empty())
+                if (frame_.empty())
                 {
                     ROS_WARN_STREAM_NAMED("Gap", "Gap frame is empty");
+                } else
+                {
+                    ROS_INFO_STREAM_NAMED("Gap", "Gap frame is: " << frame_);
                 }
             };
 
@@ -433,24 +436,16 @@ namespace quad_gap
 
         private:
 
-            float minSafeDist_ = -1;
-            Eigen::Vector2f qB_;
-
             std::string frame_ = "";
+            bool radial_ = false;
+            bool rightType_ = false;
             ros::Time timeStamp_ = ros::Time(0);
 
             GapPoint * leftGapPt_ = NULL; /**< Left gap point */
             GapPoint * rightGapPt_ = NULL; /**< Right gap point */
 
-            bool radial_ = false;
-            bool rightType_ = false;
-
-            struct GapMode 
-            {
-                bool reduced = false;
-                bool extended = false;
-                bool agc = false;
-            } mode;
+            float minSafeDist_ = -1;
+            Eigen::Vector2f qB_;
 
             struct Goal 
             {
@@ -460,6 +455,13 @@ namespace quad_gap
                 bool discard = false;
                 bool goalwithin = false;
             } goal;        
+
+            struct GapMode 
+            {
+                bool reduced = false;
+                bool extended = false;
+                bool agc = false;
+            } mode;
 
             // struct Convex 
             // {

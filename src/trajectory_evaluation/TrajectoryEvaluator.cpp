@@ -28,7 +28,7 @@ namespace quad_gap
     //     boost::mutex::scoped_lock egolock(scanMutex_);
     //     if (gaps.size() < 1) 
     //     {
-    //         ROS_WARN_STREAM("Observed num of gap: 0");
+    //         ROS_WARN_STREAM_NAMED("TrajectoryEvaluator", "Observed num of gap: 0");
     //         return std::vector<float>(0);
     //     }
 
@@ -36,8 +36,8 @@ namespace quad_gap
     //     int num_of_scan = scan_.get()->ranges.size();
     //     float goal_orientation = std::atan2(globalPathLocalWaypointRobotFrame_.pose.position.y, globalPathLocalWaypointRobotFrame_.pose.position.x);
     //     int idx = goal_orientation / (M_PI / (num_of_scan / 2)) + (num_of_scan / 2);
-    //     ROS_DEBUG_STREAM("Goal Orientation: " << goal_orientation << ", idx: " << idx);
-    //     ROS_DEBUG_STREAM(globalPathLocalWaypointRobotFrame_.pose.position);
+    //     ROS_DEBUG_STREAM_NAMED("TrajectoryEvaluator", "Goal Orientation: " << goal_orientation << ", idx: " << idx);
+    //     ROS_DEBUG_STREAM_NAMED("TrajectoryEvaluator", globalPathLocalWaypointRobotFrame_.pose.position);
 
     //     std::vector<float> cost(gaps.size());
     //     for (int i = 0; i < cost.size(); i++) 
@@ -89,7 +89,7 @@ namespace quad_gap
         } else
         {
             terminalPoseCost = std::numeric_limits<float>::infinity();
-            // ROS_WARN_STREAM("Empty trajectory, terminal cost set to -inf");
+            // ROS_WARN_STREAM_NAMED("TrajectoryEvaluator", "Empty trajectory, terminal cost set to -inf");
             // return std::vector<float>(traj.poses.size(), -std::numeric_limits<float>::infinity());
         }
         traj.setTerminalPoseCost(terminalPoseCost);
@@ -100,7 +100,7 @@ namespace quad_gap
     float TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::Pose & pose) 
     {
         boost::mutex::scoped_lock planlock(globalPlanMutex_);
-        // ROS_INFO_STREAM(pose);
+        // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", pose);
         float dx = pose.position.x - globalPathLocalWaypointRobotFrame_.pose.position.x;
         float dy = pose.position.y - globalPathLocalWaypointRobotFrame_.pose.position.y;
         return sqrt(pow(dx, 2) + pow(dy, 2));
@@ -128,7 +128,7 @@ namespace quad_gap
         // This size **should** be ensured
         // if (scan.ranges.size() < 500) 
         // {
-        //     ROS_FATAL_STREAM("Scan range incorrect evaluatePose");
+        //     ROS_FATAL_STREAM_NAMED("TrajectoryEvaluator", "Scan range incorrect evaluatePose");
         // }
 
         // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
@@ -183,7 +183,7 @@ namespace quad_gap
             rel_pt_vec = scanPt - poseRbtFrameVec;
             // nearest_dist = 
             scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(orient_vec, rel_pt_vec);
-            // ROS_INFO_STREAM(dist.at(i));
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", dist.at(i));
             // rmax_offset.at(i) = rmax - robotGeoProc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
             
             // Get the robot equivalent radius
@@ -225,7 +225,7 @@ namespace quad_gap
     //     std::vector<float> cost = scoreGaps();
     //     auto decision_iter = std::min_element(cost.begin(), cost.end());
     //     int gap_idx = std::distance(cost.begin(), decision_iter);
-    //     // ROS_INFO_STREAM("Selected Gap Index " << gap_idx);
+    //     // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "Selected Gap Index " << gap_idx);
     //     Gap * selected_gap = gaps.at(gap_idx);
     //     return selected_gap;
     // }

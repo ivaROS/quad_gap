@@ -26,7 +26,7 @@ namespace quad_gap
         if (globalPlanMapFrame_.size() < 2) // No Global Path
             return;
 
-        // ROS_INFO_STREAM("running generateGlobalPathLocalWaypoint");
+        // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "running generateGlobalPathLocalWaypoint");
         // getting snippet of global trajectory in robot frame (snippet is whatever part of global trajectory is within laser scan)
         std::vector<geometry_msgs::PoseStamped> globalPlanSnippetRobotFrame = getVisibleGlobalPlanSnippetRobotFrame(map2rbt);
         
@@ -38,21 +38,21 @@ namespace quad_gap
 
     std::vector<geometry_msgs::PoseStamped> GlobalPlanManager::getVisibleGlobalPlanSnippetRobotFrame(const geometry_msgs::TransformStamped & map2rbt) 
     {
-        // ROS_INFO_STREAM("getVisibleGlobalPlanSnippetRobotFrame");
+        // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "getVisibleGlobalPlanSnippetRobotFrame");
         boost::mutex::scoped_lock gplock(globalPlanMutex_);
         std::vector<geometry_msgs::PoseStamped> globalPlan = globalPlanMapFrame_;
         // where is globalPlanMapFrame_ coming from?
         // globalPlan = globalPlanMapFrame_;
 
         // if (globalPlan.size() == 0) {
-        //     ROS_FATAL_STREAM("Global Plan Length = 0");
+        //     ROS_FATAL_STREAM_NAMED("GlobalPlanManager", "Global Plan Length = 0");
         // }
 
         // transforming plan into robot frame
         for (int i = 0; i < globalPlan.size(); i++)
             tf2::doTransform(globalPlan.at(i), globalPlan.at(i), map2rbt);
 
-        // ROS_INFO_STREAM("mod plan size: " << globalPlan.size());
+        // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "mod plan size: " << globalPlan.size());
         std::vector<float> planPoseNorms(globalPlan.size());
         std::vector<float> scanDistsAtPlanIndices(globalPlan.size());
         std::vector<float> scanMinusPlanPoseNormDiffs(globalPlan.size());
@@ -67,7 +67,7 @@ namespace quad_gap
         // Find closest pose to robot to start the global plan snippet
         auto closestPlanPose = std::min_element(planPoseNorms.begin(), planPoseNorms.end());
         int closestPlanPoseIdx = std::distance(planPoseNorms.begin(), closestPlanPose);
-        // ROS_INFO_STREAM("closestPlanPoseIdx: " << closestPlanPoseIdx);
+        // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "closestPlanPoseIdx: " << closestPlanPoseIdx);
 
         // find_if returns iterator for which the predicate (second input) is true within range.
 
@@ -78,7 +78,7 @@ namespace quad_gap
 
         if (closestPlanPose == scanMinusPlanPoseNormDiffs.end()) 
         {
-            ROS_ERROR_STREAM("No Global Plan pose within Robot scan");
+            ROS_ERROR_STREAM_NAMED("GlobalPlanManager", "No Global Plan pose within Robot scan");
             return std::vector<geometry_msgs::PoseStamped>(0);
         }
 

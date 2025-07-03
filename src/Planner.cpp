@@ -189,20 +189,18 @@ namespace quad_gap
 
     boost::shared_ptr<sensor_msgs::LaserScan const> Planner::transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg)
     {
-        sensor_msgs::LaserScan transformed_laser = *msg;
-        // transformed_laser.header = msg->header;
-        // transformed_laser.header.frame_id = cfg_.robot_frame_id;
-        // transformed_laser.angle_min = msg->angle_min;
-        // transformed_laser.angle_max = msg->angle_max;
-        // transformed_laser.angle_increment = msg->angle_increment;
-        // transformed_laser.time_increment = msg->time_increment;
-        // transformed_laser.scan_time = msg->scan_time;
-        // transformed_laser.range_min = msg->range_min;
-        // transformed_laser.range_max = msg->range_max;
-        // transformed_laser.intensities = msg->intensities;
-
-        std::vector<float> ranges(msg->ranges.size(), msg->range_max);
-        transformed_laser.ranges = ranges;
+        sensor_msgs::LaserScan transformed_laser;
+        transformed_laser.header = msg->header;
+        transformed_laser.header.frame_id = cfg_.robot_frame_id;
+        transformed_laser.angle_min = msg->angle_min;
+        transformed_laser.angle_max = msg->angle_max;
+        transformed_laser.angle_increment = msg->angle_increment;
+        transformed_laser.time_increment = msg->time_increment;
+        transformed_laser.scan_time = msg->scan_time;
+        transformed_laser.range_min = msg->range_min;
+        transformed_laser.range_max = msg->range_max;
+        transformed_laser.intensities = msg->intensities;        
+        transformed_laser.ranges = std::vector<float>(msg->ranges.size(), msg->range_max);
 
         float origRange = 0.0;
         float origAng = 0.0;
@@ -222,7 +220,7 @@ namespace quad_gap
             
             trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
             tf2::doTransform(orig_pt, transformed_pt, trans);
-            // ROS_INFO_STREAM(cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
+            // ROS_INFO_STREAM_NAMED("Scan", cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
 
             transRange = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
             transTheta = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
@@ -235,7 +233,7 @@ namespace quad_gap
         return boost::make_shared<sensor_msgs::LaserScan const>(transformed_laser);
     }
 
-    void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan> scan)
+    void Planner::laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan> scanSensorFrame)
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -247,12 +245,15 @@ namespace quad_gap
         //////// SCAN PRE-PROCESSING ////////
         /////////////////////////////////////
 
-        gapDetector_->preprocessScan(scan);
+        gapDetector_->preprocessScan(scanSensorFrame);
 
-        scan_ = transformLaserToRbt(scan);
-        transformed_laser_pub.publish(scan_);
+        scanRbtFrame_ = transformLaserToRbt(scanSensorFrame);
 
-        float minScanDist = *std::min_element(scan_->ranges.begin(), scan_->ranges.end());
+        assert(scanRbtFrame_->header.frame_id == cfg_.robot_frame_id);
+
+        transformed_laser_pub.publish(scanRbtFrame_);
+
+        float minScanDist = *std::min_element(scanRbtFrame_->ranges.begin(), scanRbtFrame_->ranges.end());
 
         if (minScanDist < cfg_.rbt.r_inscr)
         {
@@ -264,15 +265,21 @@ namespace quad_gap
             colliding_ = false;
         }
 
-        cfg_.updateParamFromScan(scan_);
+        cfg_.updateParamFromScan(scanRbtFrame_);
 
         ///////////////////////////////
         //////// GAP DETECTION ////////
         ///////////////////////////////
 
         timeKeeper_->startTimer(GAP_DET);
-        currRawGaps_ = gapDetector_->gapDetection(scan);
+        currRawGaps_ = gapDetector_->gapDetection(scanRbtFrame_);
         timeKeeper_->stopTimer(GAP_DET);
+
+        for (Gap * rawGap : currRawGaps_)
+        {
+            assert(rawGap->getFrame() == cfg_.robot_frame_id);
+            // ROS_INFO_STREAM_NAMED("Planner", "raw gap: " << rawGap->getLeftX() << ", " << rawGap->getLeftY() << " | " << rawGap->getRightX() << ", " << rawGap->getRightY());
+        }
 
         gapVisualizer_->drawGaps(currRawGaps_, std::string("raw"));
 
@@ -284,9 +291,15 @@ namespace quad_gap
         currSimpGaps_ = gapDetector_->gapSimplification(currRawGaps_);
         timeKeeper_->stopTimer(GAP_SIMP);
 
+        for (Gap * simplifiedGap : currSimpGaps_)
+        {
+            assert(simplifiedGap->getFrame() == cfg_.robot_frame_id);
+            // ROS_INFO_STREAM_NAMED("Planner", "simp gap: " << simplifiedGap->getLeftX() << ", " << simplifiedGap->getLeftY() << " | " << simplifiedGap->getRightX() << ", " << simplifiedGap->getRightY());
+        }
+
         gapVisualizer_->drawGaps(currSimpGaps_, std::string("simp"));
 
-        // ROS_INFO_STREAM("currSimpGaps_ count:" << currSimpGaps_.size());
+        // ROS_INFO_STREAM_NAMED("Planner", "currSimpGaps_ count:" << currSimpGaps_.size());
 
         hasLaserScan_ = true;
 
@@ -321,18 +334,18 @@ namespace quad_gap
     void Planner::updateEgoCircle()
     {
         // If no global plan, the local goal finding won't execute.
-        globalPlanManager_->updateEgoCircle(scan_);
-        trajEvaluator_->updateEgoCircle(scan_);
+        globalPlanManager_->updateEgoCircle(scanRbtFrame_);
+        trajEvaluator_->updateEgoCircle(scanRbtFrame_);
 
-        gapManipulator_->updateEgoCircle(scan_);
-        gapGoalPlacer_->updateEgoCircle(scan_);
-        trajController_->updateEgoCircle(scan_);
+        gapManipulator_->updateEgoCircle(scanRbtFrame_);
+        gapGoalPlacer_->updateEgoCircle(scanRbtFrame_);
+        trajController_->updateEgoCircle(scanRbtFrame_);
     }
 
     void Planner::poseCB(const nav_msgs::Odometry::ConstPtr& rbtOdomMsg)
     {
         // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
-        // ROS_INFO_STREAM("[poseCB()]");
+        // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
 
         if (!haveTFs_)
             return;
@@ -525,7 +538,7 @@ namespace quad_gap
             }
         } catch(...) 
         {
-            ROS_FATAL_STREAM("gapManipulate");
+            ROS_FATAL_STREAM_NAMED("Planner", "gapManipulate");
         }
 
         return manipGaps;
@@ -544,7 +557,7 @@ namespace quad_gap
             }
         } catch(...) 
         {
-            ROS_FATAL_STREAM("gapGoalPlace");
+            ROS_FATAL_STREAM_NAMED("Planner", "gapGoalPlace");
         }            
 
     }
@@ -602,6 +615,7 @@ namespace quad_gap
 
                 // std::chrono::steady_clock::time_point proc_traj_time = std::chrono::steady_clock::now();
 
+                ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 1");
                 gapTrajGenerator_->getOrientDecayedPath(gapTraj);
                 // virtualGapPaths.at(i) = orientedGapTraj;
 
@@ -647,7 +661,7 @@ namespace quad_gap
             }
         } catch (...) 
         {
-            ROS_FATAL_STREAM("generateGapTrajectories");
+            ROS_FATAL_STREAM_NAMED("Planner", "generateGapTrajectories");
         }
         
         // trajVisualizer_->pubAllScore(ret_traj, ret_traj_scores);
@@ -678,7 +692,7 @@ namespace quad_gap
         // if (gapTrajs.size() != pathPoseCosts.size() ||
         //     gapTrajs.size() != pathTerminalPoseCosts.size())
         // {
-        //     ROS_FATAL_STREAM("pickTraj size mismatch: gapTrajs = " << gapTrajs.size() << " != pathPoseCosts =" << pathPoseCosts.size() << 
+        //     ROS_FATAL_STREAM_NAMED("Planner", "pickTraj size mismatch: gapTrajs = " << gapTrajs.size() << " != pathPoseCosts =" << pathPoseCosts.size() << 
         //                      " != pathTerminalPoseCosts = " << pathTerminalPoseCosts.size());
         //     bestGapPath = geometry_msgs::PoseArray();
         //     bestVirtualGapPath = geometry_msgs::PoseArray();
@@ -699,11 +713,11 @@ namespace quad_gap
                 //                                             pathPoseCosts.at(i).end(), float(0)) / (pathPoseCosts.at(i).size() + eps);
                 // gapTrajCosts.at(i) = pathTerminalPoseCosts.at(i) + averagedPoseCost;
                 // gapTrajCosts.at(i) = gapTrajs.at(i).poses.size() == 0 ? -std::numeric_limits<float>::infinity() : gapTrajCosts.at(i);
-                ROS_DEBUG_STREAM("Cost: " << gapTrajCosts.at(i));
+                ROS_DEBUG_STREAM_NAMED("Planner", "Cost: " << gapTrajCosts.at(i));
             }
         } catch (...) 
         {
-            ROS_FATAL_STREAM("pickTraj");
+            ROS_FATAL_STREAM_NAMED("Planner", "pickTraj");
         }
 
         auto lowestCostTrajIter = std::min_element(gapTrajCosts.begin(), gapTrajCosts.end());
@@ -750,6 +764,7 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("Planner", "    evaluating incoming trajectory");
 
             // geometry_msgs::PoseArray orientedIncomingPathRbtFrame = 
+            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 2");
             gapTrajGenerator_->getOrientDecayedPath(incomingTraj);
             // std::vector<float> incomingPathPoseCosts;
             // float incomingPathTerminalCost;
@@ -845,6 +860,7 @@ namespace quad_gap
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // geometry_msgs::PoseArray virtual_curr_score_path = getOrientDecayedPath(reducedCurrentPathRobotFrame);
+            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 3");            
             gapTrajGenerator_->getOrientDecayedPath(reducedCurrentTraj);
 
             // std::vector<float> reducedCurrentPathPoseCosts;
@@ -902,6 +918,7 @@ namespace quad_gap
 
             // geometry_msgs::PoseArray virtual_score_path_curr = getOrientDecayedPath(updatedCurrentPathRobotFrame);
             // virtual_currTraj = gapTrajGenerator_->transformPath(virtual_score_path_curr, rbt2odom_);
+            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 4");
             gapTrajGenerator_->getOrientDecayedPath(currTraj);
             currTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(currTraj.getOrientedPathRbtFrame(), rbt2odom_));
 
@@ -909,7 +926,7 @@ namespace quad_gap
             trajVisualizer_->drawCurrentTrajectory(currTraj);
         } catch (...) 
         {
-            ROS_FATAL_STREAM("compareToCurrentTraj");
+            ROS_FATAL_STREAM_NAMED("Planner", "compareToCurrentTraj");
         }
         return currTraj;
     }
@@ -933,7 +950,7 @@ namespace quad_gap
             pt.x = orientedPathRbtFrame.poses[i].position.x;
             pt.y = orientedPathRbtFrame.poses[i].position.y;
 
-            // ROS_INFO_STREAM(pt.x << " " << pt.y);
+            // ROS_INFO_STREAM_NAMED("Planner", pt.x << " " << pt.y);
 
             tf2::Quaternion quat_tf;
             tf2::convert(orientedPathRbtFrame.poses[i].orientation, quat_tf);
@@ -957,7 +974,7 @@ namespace quad_gap
     int Planner::getClosestTrajectoryPoseIdx(const geometry_msgs::PoseArray & currTrajRbtFrame) 
     {
         std::vector<float> pathPoseNorms(currTrajRbtFrame.poses.size());
-        // ROS_INFO_STREAM("Ref_pose length: " << ref_pose.poses.size());
+        // ROS_INFO_STREAM_NAMED("Planner", "Ref_pose length: " << ref_pose.poses.size());
         for (size_t i = 0; i < pathPoseNorms.size(); i++) // i will always be positive, so this is fine
         {
             pathPoseNorms.at(i) = sqrt(pow(currTrajRbtFrame.poses.at(i).position.x, 2) + 
@@ -1098,8 +1115,10 @@ namespace quad_gap
         std::vector<Gap *> planningGaps;
 
         for (Gap * gap : currSimpGaps_)
+        {
+            assert(gap->getFrame() == cfg_.robot_frame_id);
             planningGaps.push_back(new Gap(*gap));
-
+        }
         return planningGaps;
     }
 
@@ -1148,6 +1167,8 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("Planner", "Planning gaps:");
         for (int i = 0; i < gapCount; i++)
         {
+            assert(planningGaps.at(i)->getFrame() == cfg_.robot_frame_id);
+
             Gap * gap = planningGaps.at(i);
             float leftX, leftY, rightX, rightY;
             gap->getLCartesian(leftX, leftY);
@@ -1169,6 +1190,8 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("Planner", "Manipulated gaps:");
         for (int i = 0; i < manipGaps.size(); i++)
         {
+            assert(manipGaps.at(i)->getFrame() == cfg_.robot_frame_id);
+
             Gap * gap = manipGaps.at(i);
             float leftX, leftY, rightX, rightY;
             gap->getManipLCartesian(leftX, leftY);
@@ -1269,7 +1292,7 @@ namespace quad_gap
         float cum_vel_sum = std::accumulate(cmdVelBuffer.begin(), cmdVelBuffer.end(), float(0));
         bool ret_val = cum_vel_sum > 1.0 || !cmdVelBuffer.full();
         if (!ret_val && !cfg_.man.man_ctrl) {
-            ROS_FATAL_STREAM("--------------------------Planning Failed--------------------------");
+            ROS_FATAL_STREAM_NAMED("Planner", "--------------------------Planning Failed--------------------------");
             reset();
         }
         return ret_val || cfg_.man.man_ctrl;
