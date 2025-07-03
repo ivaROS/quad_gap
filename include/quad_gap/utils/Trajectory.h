@@ -44,6 +44,12 @@ namespace quad_gap
                 }
             }
 
+            void setRbtFrameDefaultHeader(const std_msgs::Header & header)
+            {
+                pathRbtFrame_.header = header;
+                orientedPathRbtFrame_.header = header;
+            }
+
             /**
             * \brief Setter for trajectory path in robot frame
             * \param pathRbtFrame trajectory path in robot frame

@@ -25,7 +25,7 @@ namespace quad_gap
             * \param trajSwitchIndex trajectory switch count
             * \param chosenTraj new trajectory that planner is switching to
             */
-            void drawTrajectorySwitchCount(const int & trajSwitchIndex, const geometry_msgs::PoseArray & path);
+            void drawTrajectorySwitchCount(const int & trajSwitchIndex,  const Trajectory & traj);
 
             void drawGapTrajectories(const std::vector<Trajectory> & trajs);
 

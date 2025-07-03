@@ -96,10 +96,12 @@ TrajectoryVisualizer::TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapCon
         planLoopIdxPublisher.publish(trajSwitchIdxMarker);
     }
 
-    void TrajectoryVisualizer::drawTrajectorySwitchCount(const int & trajSwitchIndex, const geometry_msgs::PoseArray & path) 
+    void TrajectoryVisualizer::drawTrajectorySwitchCount(const int & trajSwitchIndex, const Trajectory & traj) 
     {
         // First, clearing topic.
         clearMarkerPublisher(trajSwitchIdxPublisher);
+
+        geometry_msgs::PoseArray path = traj.getPathRbtFrame();
 
         // geometry_msgs::PoseArray path = chosenTraj.getPathRbtFrame();
         geometry_msgs::Pose lastTrajPose = (path.poses.size() > 0) ? path.poses.back() : geometry_msgs::Pose();

@@ -281,6 +281,9 @@ namespace quad_gap
 
         private:
 
+            Trajectory changeTrajectoryHelper(Trajectory & incomingTraj,
+                                              const bool & switchToIncoming);
+
             std::vector<Gap *> deepCopyCurrentSimplifiedGaps();
 
             boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
@@ -356,6 +359,8 @@ namespace quad_gap
             geometry_msgs::TwistStamped rbtVelRbtFrame_;
 
             boost::shared_ptr<sensor_msgs::LaserScan const> scanRbtFrame_;
+
+            int trajectoryChangeCount_ = 0; /**< Counter for how many times the trajectory has been changed */
 
             // ros::WallTime last_time;
             // TrajPlan ni_ref, orig_ref;

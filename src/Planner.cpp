@@ -740,11 +740,30 @@ namespace quad_gap
         return candidateLowestCostTrajIdx;
     }
 
-    // Trajectory Planner::changeTrajectoryHelper(Trajectory & incomingTraj,
-    //                                             const bool & switchToIncoming)
-    // {
-        
-    // }
+    Trajectory Planner::changeTrajectoryHelper(Trajectory & incomingTraj,
+                                                const bool & switchToIncoming)
+    {
+        trajectoryChangeCount_++;
+
+        if (switchToIncoming)
+        {
+            incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
+            trajVisualizer_->drawCurrentTrajectory(incomingTraj);
+            trajVisualizer_->drawTrajectorySwitchCount(trajectoryChangeCount_, incomingTraj);
+            setCurrentTraj(incomingTraj);         
+            
+            return incomingTraj;
+        } else
+        {
+            Trajectory emptyTraj = Trajectory();
+            emptyTraj.setRbtFrameDefaultHeader(incomingTraj.getPathRbtFrame().header);
+            trajVisualizer_->drawCurrentTrajectory(emptyTraj);
+            trajVisualizer_->drawTrajectorySwitchCount(trajectoryChangeCount_, emptyTraj);
+            setCurrentTraj(emptyTraj);
+
+            return emptyTraj;
+        }
+    }
 
     // , 
     // geometry_msgs::PoseArray& virtual_currTraj
@@ -752,21 +771,21 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        Trajectory chosenTraj = Trajectory();
-
-        Trajectory currTraj = getCurrentTraj();
-
         try 
         {
+            Trajectory chosenTraj = Trajectory();
+
+            Trajectory currTraj = getCurrentTraj();
+
             //////////////////////////////////////////////////////
             // Transform incoming traj into current robot frame //
-            // to score against the current scan                //
+            //        to score against the current scan         //
             //////////////////////////////////////////////////////
             ROS_INFO_STREAM_NAMED("Planner", "    evaluating incoming trajectory");
 
             // geometry_msgs::PoseArray orientedIncomingPathRbtFrame = 
             ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 2");
-            gapTrajGenerator_->getOrientDecayedPath(incomingTraj);
+            // gapTrajGenerator_->getOrientDecayedPath(incomingTraj);
             // std::vector<float> incomingPathPoseCosts;
             // float incomingPathTerminalCost;
             trajEvaluator_->evaluateTrajectory(incomingTraj); // orientedIncomingPathRbtFrame, incomingPathPoseCosts, incomingPathTerminalCost);
@@ -799,48 +818,20 @@ namespace quad_gap
 
             if (currTraj.size() == 0) 
             {
-                if (!ableToSwitchToIncomingPath)
-                {
-                    // geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
-                    // virtual_currTraj = empty_traj;
-                    ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0, curr traj score inf.");
-                    setCurrentTraj(chosenTraj);
-                    return chosenTraj;
-                } else
-                {
-                    // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
-                    incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
-                    // trajectory_pub.publish(incomingTraj);
-                    trajVisualizer_->drawCurrentTrajectory(incomingTraj); // incomingPathRbtFrame);
-                    ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0");
-                    setCurrentTraj(incomingTraj);                    
-                    return incomingTraj;                    
-                }
+                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ <<  
+                                                    ": current path is of length zero, " << incomingTrajStatus);   
+
+                return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);               
             }
 
-            //     if (incomingTrajCost == -std::numeric_limits<float>::infinity()) 
-            //     {
-            //         geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
-            //         setCurrentTraj(empty_traj);
-            //         virtual_currTraj = empty_traj;
-            //         ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0, curr traj score inf.");
-            //         return empty_traj;
-            //     } else 
-            //     {
-            //         setCurrentTraj(incomingTraj);
-            //         virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
-            //         trajectory_pub.publish(incomingTraj);
-            //         ROS_WARN_STREAM_NAMED("Planner", "Old Traj length 0");
-            //         return incomingTraj;
-            //     }
-            // } 
+            // Transform current traj into most recent robot frame to score against the current scan
 
             // Update the current trajectory
-            // geometry_msgs::PoseArray updatedCurrentPathRobotFrame = gapTrajGenerator_->transformPath(currTraj, odom2rbt_);
-            // updatedCurrentPathRobotFrame.header.frame_id = cfg_.robot_frame_id;
-            currTraj.setPathRbtFrame(gapTrajGenerator_->transformPath(currTraj.getPathOdomFrame(), odom2rbt_));
+            geometry_msgs::PoseArray updatedCurrentPathRobotFrame = gapTrajGenerator_->transformPath(currTraj.getPathOdomFrame(), odom2rbt_);
+            Trajectory updatedCurrentTraj(updatedCurrentPathRobotFrame);
+            updatedCurrentTraj.setPathOdomFrame(currTraj.getPathOdomFrame());
+            gapTrajGenerator_->getOrientDecayedPath(updatedCurrentTraj);
 
-            geometry_msgs::PoseArray updatedCurrentPathRobotFrame = currTraj.getPathRbtFrame();
             int updatedCurrentPathPoseIdx = getClosestTrajectoryPoseIdx(updatedCurrentPathRobotFrame); // updatedCurrentPathRobotFrame
             geometry_msgs::PoseArray reducedCurrentPathRobotFrame = updatedCurrentPathRobotFrame;
             reducedCurrentPathRobotFrame.poses = std::vector<geometry_msgs::Pose>(updatedCurrentPathRobotFrame.poses.begin() + updatedCurrentPathPoseIdx, updatedCurrentPathRobotFrame.poses.end());
@@ -849,11 +840,10 @@ namespace quad_gap
 
             if (reducedCurrentTraj.size() < 2) 
             {
-                ROS_WARN_STREAM_NAMED("Planner", "Old Traj short");
-                // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
-                incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
-                setCurrentTraj(incomingTraj);
-                return incomingTraj;
+                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ <<  
+                                                                ": old path length less than 2, " << incomingTrajStatus);
+
+                return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);
             }
             
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,72 +854,41 @@ namespace quad_gap
             ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 3");            
             gapTrajGenerator_->getOrientDecayedPath(reducedCurrentTraj);
 
-            // std::vector<float> reducedCurrentPathPoseCosts;
-            // float reducedCurrentPathTerminalCost;                       
-            // trajEvaluator_->evaluateTrajectory(virtual_curr_score_path, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
             trajEvaluator_->evaluateTrajectory(reducedCurrentTraj); // reducedCurrentPathRobotFrame, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
 
-            // float currAveragedPoseCost = std::accumulate(reducedCurrentPathPoseCosts.begin(), 
-            //                                                 reducedCurrentPathPoseCosts.end(), float(0)) / (reducedCurrentPathPoseCosts.size() + eps);
             float reducedCurrTrajCost = reducedCurrentTraj.getTerminalPoseCost() + reducedCurrentTraj.getAveragePosewiseCost(); // reducedCurrentPathTerminalCost + currAveragedPoseCost;
-            
-            // incomingTrajCost = std::accumulate(incomingTrajPoseCosts.begin(), incomingTrajPoseCosts.begin() + counts, float(0));
-
-            // std::vector<std::vector<float>> ret_traj_scores(2);
-            // ret_traj_scores.at(0) = incomingTrajPoseCosts;
-            // ret_traj_scores.at(1) = reducedCurrentPathPoseCosts;
-            
-            // std::vector<geometry_msgs::PoseArray> viz_traj(2);
-            // viz_traj.at(0) = incomingTrajRbtFrame;
-            // viz_traj.at(1) = reducedCurrentPathRobotFrame;
-            // trajVisualizer_->pubAllScore(viz_traj, ret_traj_scores);
 
             ROS_INFO_STREAM_NAMED("Planner", "Reduced curr score: " << reducedCurrTrajCost << ", incom Cost:" << incomingTrajCost);
 
             if (reducedCurrTrajCost == std::numeric_limits<float>::infinity())
             {
-                ROS_WARN_STREAM_NAMED("Planner", "current score infinity, switching to incoming path, score of: " << incomingTrajCost);
-                // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
-                incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
-                // trajectory_pub.publish(incomingTraj);
-                trajVisualizer_->drawCurrentTrajectory(incomingTraj);
-                setCurrentTraj(incomingTraj);
-                return incomingTraj;                
-            }
+                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ << 
+                                                            ": current trajectory is of cost infinity," << incomingTrajStatus);
 
-            // if (reducedCurrTrajCost == -std::numeric_limits<float>::infinity() && incomingTrajCost == -std::numeric_limits<float>::infinity()) 
-            // {
-            //     ROS_WARN_STREAM_NAMED("Planner", "Both Failed");
-            //     geometry_msgs::PoseArray empty_traj = geometry_msgs::PoseArray();
-            //     setCurrentTraj(empty_traj);
-            //     virtual_currTraj = empty_traj;
-            //     return empty_traj;
-            // }
+                return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);               
+            }
 
             if (incomingTrajCost < reducedCurrTrajCost)  
             {
-                ROS_WARN_STREAM_NAMED("Planner", "Swap to new for better score: " << incomingTrajCost << " < " << reducedCurrTrajCost);
-                // virtual_currTraj = gapTrajGenerator_->transformPath(orientedIncomingPathRbtFrame, rbt2odom_);
-                incomingTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(incomingTraj.getOrientedPathRbtFrame(), rbt2odom_));
-                // trajectory_pub.publish(incomingTraj);
-                trajVisualizer_->drawCurrentTrajectory(incomingTraj);
-                setCurrentTraj(incomingTraj);
-                return incomingTraj;
+                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ << 
+                                                            ": incoming trajectory is lower score");
+                return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);
             }
 
-            // geometry_msgs::PoseArray virtual_score_path_curr = getOrientDecayedPath(updatedCurrentPathRobotFrame);
-            // virtual_currTraj = gapTrajGenerator_->transformPath(virtual_score_path_curr, rbt2odom_);
             ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 4");
-            gapTrajGenerator_->getOrientDecayedPath(currTraj);
-            currTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(currTraj.getOrientedPathRbtFrame(), rbt2odom_));
+            // gapTrajGenerator_->getOrientDecayedPath(currTraj);
+            // currTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(currTraj.getOrientedPathRbtFrame(), rbt2odom_));
 
             // trajectory_pub.publish(currTraj);
-            trajVisualizer_->drawCurrentTrajectory(currTraj);
+            trajVisualizer_->drawCurrentTrajectory(reducedCurrentTraj);
+
+            return updatedCurrentTraj;
         } catch (...) 
         {
             ROS_FATAL_STREAM_NAMED("Planner", "compareToCurrentTraj");
         }
-        return currTraj;
+
+        return Trajectory();
     }
 
     CollisionResults Planner::checkCollision(const Trajectory & trajectory)
