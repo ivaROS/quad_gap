@@ -128,7 +128,7 @@ namespace quad_gap
 
         minScanDist_ = *std::min_element(scan_.ranges.begin(), scan_.ranges.end());
         maxScanDist_ = *std::max_element(scan_.ranges.begin(), scan_.ranges.end());
-        ROS_INFO_STREAM_NAMED("GapDetector", "gapDetection min_dist: " << minScanDist_);
+        // ROS_INFO_STREAM_NAMED("GapDetector", "gapDetection min_dist: " << minScanDist_);
 
         std::string frame = scan_.header.frame_id;
         ros::Time timeStamp = scan_.header.stamp;
@@ -158,7 +158,7 @@ namespace quad_gap
 
                 if (equivalentPLDistcheck(currIdx, currRange, prevIdx, prevRange))
                 {
-                    ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 1");
+                    // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 1");
                     Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, prevIdx, prevRange, minScanDist_, true);
                     rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                 }
@@ -178,7 +178,7 @@ namespace quad_gap
 
                     if (sweptGapSizeCheck(currIdx, currRange, gapRIdx, gapRRange))
                     {
-                        ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 2");
+                        // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 2");
                         Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, gapRIdx, gapRRange, minScanDist_, false);
                         rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                     }
@@ -205,7 +205,7 @@ namespace quad_gap
 
             if (sweptGapSizeCheck(lastIdx, lastRange, gapRIdx, gapRRange))
             {
-                ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 3");
+                // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 3");
                 Gap * rawGap = new Gap(frame, timeStamp, lastIdx, lastRange, gapRIdx, gapRRange, minScanDist_, false);
 
                 rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated

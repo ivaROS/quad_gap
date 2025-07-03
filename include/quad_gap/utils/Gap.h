@@ -35,14 +35,14 @@ namespace quad_gap
 
                 if (! checkPtIdx(rightIdx))
                 {
-                    ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
+                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
                     ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
                     // rightIdx = 0;
                 }
 
                 if (! checkPtRange(rightRange))
                 {
-                    ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
+                    // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
                     ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
                     // rightRange = 0.0;
                 }                
@@ -62,9 +62,6 @@ namespace quad_gap
                 if (frame_.empty())
                 {
                     ROS_WARN_STREAM_NAMED("Gap", "Gap frame is empty");
-                } else
-                {
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap frame is: " << frame_);
                 }
             };
 

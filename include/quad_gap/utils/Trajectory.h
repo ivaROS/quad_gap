@@ -23,10 +23,10 @@ namespace quad_gap
                 pathRbtFrame_ = pathRbtFrame;
                 // pathTiming_ = pathTiming;
 
-                if (pathRbtFrame.poses.empty())
-                {
-                    ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path in robot frame is empty");
-                }
+                // if (pathRbtFrame.poses.empty())
+                // {
+                //     ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path in robot frame is empty");
+                // }
 
                 // if (pathTiming.empty())
                 // {

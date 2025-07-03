@@ -950,7 +950,7 @@ namespace quad_gap
 
         if (rawPath.poses.size() <= 1)
         {
-            ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "[getOrientDecayedPath] Original path is too short with size [ " << rawPath.poses.size() << " ].");
+            // ROS_WARN_STREAM_NAMED("GapTrajectoryGenerator", "[getOrientDecayedPath] Original path is too short with size [ " << rawPath.poses.size() << " ].");
             orientedPath = rawPath;
             traj.setOrientedPathRbtFrame(orientedPath);
             return;
