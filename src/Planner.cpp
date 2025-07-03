@@ -740,6 +740,12 @@ namespace quad_gap
         return candidateLowestCostTrajIdx;
     }
 
+    // Trajectory Planner::changeTrajectoryHelper(Trajectory & incomingTraj,
+    //                                             const bool & switchToIncoming)
+    // {
+        
+    // }
+
     // , 
     // geometry_msgs::PoseArray& virtual_currTraj
     Trajectory Planner::compareToCurrentTraj(Trajectory & incomingTraj) 
@@ -752,15 +758,10 @@ namespace quad_gap
 
         try 
         {
-            //////////////////////////////////////////////////////////////////////////////
-            // Transform into the current robot frame to score against the current scan //
-            //////////////////////////////////////////////////////////////////////////////
-
-            // Both Args are in Odom frame
-            // geometry_msgs::PoseArray incomingPathRbtFrame = 
-            incomingTraj.setPathRbtFrame(gapTrajGenerator_->transformPath(incomingTraj.getPathOdomFrame(), odom2rbt_));
-            // incomingPathRbtFrame.header.frame_id = cfg_.robot_frame_id;
-
+            //////////////////////////////////////////////////////
+            // Transform incoming traj into current robot frame //
+            // to score against the current scan                //
+            //////////////////////////////////////////////////////
             ROS_INFO_STREAM_NAMED("Planner", "    evaluating incoming trajectory");
 
             // geometry_msgs::PoseArray orientedIncomingPathRbtFrame = 

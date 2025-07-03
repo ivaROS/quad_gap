@@ -173,12 +173,6 @@ namespace quad_gap
             */
             void gapGoalPlace(const std::vector<Gap *> & planningGaps);
 
-            /**
-            *    std::vector<geometry_msgs::PoseArray>& res, 
-            *    std::vector<geometry_msgs::PoseArray>& virtual_decayed,
-            *    std::vector<std::vector<float>> & pathPoseCosts,
-            *    std::vector<float> & pathTerminalPoseCosts 
-            */
             void generateGapTrajectories(const std::vector<Gap *> & vec, 
                                             std::vector<Trajectory> & gapTrajs);
 
@@ -194,13 +188,7 @@ namespace quad_gap
             * @param Vector of PoseArray
             * @param Vector of corresponding trajectory scores
             * @return the best trajectory
-            */
-            // const std::vector<geometry_msgs::PoseArray> & paths, 
-            // const std::vector<geometry_msgs::PoseArray> & virtualGapPaths, 
-            // const std::vector<std::vector<float>> & pathPoseCosts, 
-            // const std::vector<float> & pathTerminalPoseCosts, 
-            // geometry_msgs::PoseArray& chosen_path,
-            // geometry_msgs::PoseArray& chosen_virtual_path            
+            */         
             int pickTraj(const std::vector<Trajectory> & gapTrajs);
 
             /**
@@ -320,7 +308,6 @@ namespace quad_gap
             // ros::Publisher trajectory_pub;
 
             ros::Publisher transformed_laser_pub;
-            // ros::Publisher virtual_orient_traj_pub;
 
             bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */
             bool hasLaserScan_ = false;
@@ -398,7 +385,6 @@ namespace quad_gap
             // bool use_geo_storage_;
             RobotGeometryStorage robotGeoStorage_;
             RobotGeometryProcessor robotGeoProc_;
-            // bool robot_path_orient_linear_decay_, virtual_path_decay_enable_;
             // float speed_factor_;
 
             // Bezier curve

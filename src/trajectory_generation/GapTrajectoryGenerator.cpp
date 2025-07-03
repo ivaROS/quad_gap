@@ -801,67 +801,91 @@ namespace quad_gap
             }
             else
             {
-                // float des_dist = robotGeoProc_->getRobotAvgLinSpeed() * cfg_->traj.bezier_unit_time;
-                float entire_dist = getBezierDist(quadraBezier, 0, 1, 30);
-                // int num_sampled_pts = int(round(entire_dist / des_dist));
-                // num_sampled_pts = num_sampled_pts >= 2 ? num_sampled_pts : 2;
+                // Approximate the arclength of the bezier curve
+                int numArclengthApproxPts = 25;
+                float curveArclength = getBezierDist(quadraBezier, 0, 1, numArclengthApproxPts);
 
-                int num_sampled_pts = cfg_->traj.bezier_num_sampled_pts;
+                int numCurvePts = cfg_->traj.bezier_num_sampled_pts;
 
-                float des_dist = entire_dist / num_sampled_pts;
+                float desPtToPtArclength = curveArclength / (numCurvePts - 1);
 
-                int steps = 5;
-                float dist_thresh = des_dist / 10;
-                float t_step = 1. / (num_sampled_pts - 1);
-                float t_kmin1 = 0;
-                for (size_t i = 0; i < num_sampled_pts; i++)
+                int numSamplePts = 2 * numCurvePts; // Number of sample points for the bezier curve
+                int maxIters = 10;
+                int numPtToPtIntegrationPts = 5;
+                float ptToPtArclengthErrorThresh = desPtToPtArclength / 25;
+
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Arclenght sampling Bezier... ");
+
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Curve arclength: " << curveArclength);
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Number of curve points: " << numCurvePts);
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Desired pt to pt arclength: " << desPtToPtArclength);
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Number of sample points: " << numSamplePts);
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Number of integration points for pt to pt arclength: " << numPtToPtIntegrationPts);
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pt to pt arclength error threshold: " << ptToPtArclengthErrorThresh);
+
+                float t_delta = 1. / (numSamplePts - 1);
+                float t_kmin1 = 0.0f;
+                float t_k = 0.0f;
+                for (size_t i = 0; i < numSamplePts; i++)
                 {
-                    float t_k = i * t_step;
-                    float cur_dist = getBezierDist(quadraBezier, t_kmin1, t_k, steps);
-                    if(abs(cur_dist - des_dist) < dist_thresh)
+                    t_k = i * t_delta;
+
+                    // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "i: " << i << ", t_k: " << t_k << ", t_kmin1: " << t_kmin1);
+
+                    float currPtToPtArclength = getBezierDist(quadraBezier, t_kmin1, t_k, numPtToPtIntegrationPts);
+
+                    if (std::abs(currPtToPtArclength - desPtToPtArclength) < ptToPtArclengthErrorThresh)
                     {
+                        // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Adding point at t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
                         geometry_msgs::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_k, 0);
                         pose.position.y = quadraBezier.valueAt(t_k, 1);
                         pathRbtFrame.poses.push_back(pose);
                         t_kmin1 = t_k;
-                    }
-                    else if(cur_dist > des_dist)
+                    } else if (currPtToPtArclength > desPtToPtArclength)
                     {
-                        float t_prev = (i - 1) * t_step;
-                        float t_interp = (t_k + t_prev) / 2;
-                        float interp_dist = getBezierDist(quadraBezier, t_kmin1, t_interp, steps);
+                        // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Interpolating point between t_kmin1: " << t_kmin1 << " and t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
+                        // float t_prev = (i - 1) * t_delta;
+                        float t_interp = (t_kmin1 + t_k) / 2;
+                        float interm_arclength = getBezierDist(quadraBezier, t_kmin1, t_interp, numPtToPtIntegrationPts);
 
-                        float t_high = t_k;
-                        float t_low = t_prev;
-                        while(abs(interp_dist - des_dist) > dist_thresh)
+                        float t_lower_bound = t_kmin1;
+                        float t_upper_bound = t_k;
+                        int interp_iter = 0;
+                        while (std::abs(interm_arclength - desPtToPtArclength) > ptToPtArclengthErrorThresh && interp_iter < maxIters)
                         {
-                            if(interp_dist < des_dist)
+                            if (interm_arclength < desPtToPtArclength)
                             {
-                                t_low = t_interp;
-                                t_interp = (t_interp + t_high) / 2;
+                                t_lower_bound = t_interp;
+                                t_interp = (t_interp + t_upper_bound) / 2;
                             }
                             else
                             {
-                                t_high = t_interp;
-                                t_interp = (t_interp + t_low) / 2;
+                                t_upper_bound = t_interp;
+                                t_interp = (t_interp + t_lower_bound) / 2;
                             }
-                            interp_dist = getBezierDist(quadraBezier, t_kmin1, t_interp, steps);
-                            if (abs(t_interp - t_low) <= 1e-3 && abs(t_interp - t_high) <= 1e-3)
-                                break;
-                            // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", t_interp << " " << t_low << " " << t_high << " " << interp_dist << " " << abs(interp_dist - des_dist) << " " << dist_thresh);
+
+                            interm_arclength = getBezierDist(quadraBezier, t_kmin1, t_interp, numPtToPtIntegrationPts);
+
+                            // if (abs(t_interp - t_lower_bound) <= 1e-3 && abs(t_interp - t_upper_bound) <= 1e-3)
+                            //     break;
+                            // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", t_interp << " " << t_lower_bound << " " << t_upper_bound << " " << interm_arclength << " " << abs(interm_arclength - desPtToPtArclength) << " " << ptToPtArclengthErrorThresh);
                         }
                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "exit");
+
+                        // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "t_interp: " << t_interp << " t_kmin1: " << t_kmin1 << " dist: " << interm_arclength);
                         geometry_msgs::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
                         pathRbtFrame.poses.push_back(pose);
                         t_kmin1 = t_interp;
-                    }
+                    }                
                 }
+                
 
-                if (pathRbtFrame.poses.size() < num_sampled_pts)
+                if (pathRbtFrame.poses.size() < numCurvePts)
                 {
+                    // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "The number of points in the bezier curve is less than the desired number of points. [ " << pathRbtFrame.poses.size() << " < " << numCurvePts << " ]");
                     geometry_msgs::Pose pose;
                     pose.position.x = quadraBezier.valueAt(1, 0);
                     pose.position.y = quadraBezier.valueAt(1, 1);

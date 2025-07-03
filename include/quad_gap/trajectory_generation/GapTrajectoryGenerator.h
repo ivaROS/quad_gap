@@ -134,21 +134,36 @@ namespace quad_gap
             //     return ang_1 >= ang_2;
             // }
 
-            float getBezierDist(Bezier::Bezier<2>& quadBezier, const float & tStart, const float & tEnd, const int & steps)
+            float getBezierDist(Bezier::Bezier<2>& quadBezier, const float & tStart, const float & tEnd, const int & numPts)
             {
-                float approx_dist = 0;
-                float t_diff = (tEnd - tStart) / (steps - 1);
-                for (size_t k = 0; k < steps - 1; k++)
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[getBezierDist()]");
+
+                float bezier_arclength = 0;
+                float t_diff = (tEnd - tStart) / (numPts - 1);
+                float t_k = 0.0;
+                float t_kplus1 = 0.0;
+                for (size_t k = 0; k < numPts; k++)
                 {
-                    float x = quadBezier.valueAt(tStart + k * t_diff, 0);
-                    float y = quadBezier.valueAt(tStart + k * t_diff, 1);
-                    float x_next = quadBezier.valueAt(tStart + (k + 1) * t_diff, 0);
-                    float y_next = quadBezier.valueAt(tStart + (k + 1) * t_diff, 1);
+                    t_k = tStart + k * t_diff;
+                    t_kplus1 = tStart + (k + 1) * t_diff;
+
+                    // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "t_k: " << t_k << ", t_kplus1: " << t_kplus1);
+
+                    float x = quadBezier.valueAt(t_k, 0);
+                    float y = quadBezier.valueAt(t_k, 1);
+
+                    float x_next = quadBezier.valueAt(t_kplus1, 0);
+                    float y_next = quadBezier.valueAt(t_kplus1, 1);
 
                     float dist = sqrt(pow(x - x_next, 2) + pow(y - y_next, 2));
-                    approx_dist += dist;
+
+                    // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Segment " << k << " distance: " << dist);
+
+                    bezier_arclength += dist;
                 }
-                return approx_dist;
+
+                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Total bezier arc length: " << bezier_arclength);
+                return bezier_arclength;
             }
 
             const QuadGapConfig* cfg_ = NULL;
