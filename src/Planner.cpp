@@ -94,10 +94,7 @@ namespace quad_gap
             robotGeoProc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
         
         // Visualization Setup
-        // trajectory_pub = nh.advertise<geometry_msgs::PoseArray>("qg_traj", 10);
-
         transformed_laser_pub = nh.advertise<sensor_msgs::LaserScan>("transformed_laserscan", 5);
-        // virtual_orient_traj_pub = nh.advertise<geometry_msgs::PoseArray>("picked_virtual_traj", 10);
 
         // TF Lookup setup
         tfBuffer = std::make_shared<tf2_ros::Buffer>();
@@ -500,14 +497,6 @@ namespace quad_gap
         }
     }
 
-    // [[deprecated("Use Proper trajectory scoring instead")]]
-    // void Planner::vectorSelectGap(Gap & selected_gap)
-    // {
-    //     Gap result = trajEvaluator_->returnAndScoreGaps();
-    //     selected_gap = result;
-    //     return;
-    // }
-
     std::vector<Gap *> Planner::gapManipulate(const std::vector<Gap *> & planningGaps) 
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "[manipulateGaps()]");
@@ -524,7 +513,7 @@ namespace quad_gap
             {
                 gapManipulator_->reduceGap(planningGaps.at(i), local_goal_rbt_frame);
                 gapManipulator_->convertRadialGap(planningGaps.at(i));
-                // gapManipulator_->inflateGapSides(planningGaps.at(i));
+                gapManipulator_->inflateGapSides(planningGaps.at(i));
                 gapManipulator_->radialExtendGap(planningGaps.at(i));
 
                 bool valid = planningGaps.at(i)->checkPoints();

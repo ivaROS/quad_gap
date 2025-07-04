@@ -14,7 +14,7 @@ namespace quad_gap
     class RobotGeometryProcessor 
     {
         public:
-            // RobotGeometryProcessor() {};
+            RobotGeometryProcessor() {};
             ~RobotGeometryProcessor() 
             {
                 initialized_ = false;
@@ -64,7 +64,7 @@ namespace quad_gap
                     o_vec.normalize(); // = o_vec / o_vec.norm();
                 
                 if (p_vec.norm() != 1)
-                    p_vec.normalize() // = p_vec / p_vec.norm();
+                    p_vec.normalize(); // = p_vec / p_vec.norm();
 
                 float er;
                 float vec_dot_product = o_vec.dot(p_vec);

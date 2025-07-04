@@ -16,7 +16,7 @@ namespace quad_gap
         float diagonal_length = 0;
         float avg_lin_speed = 0;
         float avg_rot_speed = 0;
-        // Robot(){};
+        Robot(){};
 
 
         Robot(const RobotShape & in_shape, 

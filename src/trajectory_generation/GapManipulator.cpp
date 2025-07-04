@@ -519,10 +519,10 @@ namespace quad_gap
 
         float leftTheta = idx2theta(leftIdx);
         float rightTheta = idx2theta(rightIdx);
-        float xLeft = (leftRange) * cos(leftTheta);
-        float yLeft = (leftRange) * sin(leftTheta);
-        float xRight = (rightRange) * cos(rightTheta);
-        float yRight = (rightRange) * sin(rightTheta);
+        float xLeft = leftRange * cos(leftTheta);
+        float yLeft = leftRange * sin(leftTheta);
+        float xRight = rightRange * cos(rightTheta);
+        float yRight = rightRange * sin(rightTheta);
         
         Eigen::Vector2f leftPt(xLeft, yLeft);
         Eigen::Vector2f rightPt(xRight, yRight);
@@ -557,7 +557,7 @@ namespace quad_gap
             ///////////////////////
             ROS_INFO_STREAM_NAMED("GapManipulator", "        inflating gap sides with ratio: " << inf_ratio);
     
-            if ( epl_radius * inf_ratio > leftRange)
+            if (epl_radius * inf_ratio > leftRange)
             {
                 ROS_WARN_STREAM_NAMED("GapManipulator", "        inflation ratio is too large, aborting");
 

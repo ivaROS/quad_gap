@@ -290,13 +290,13 @@ namespace quad_gap
         Eigen::Vector2f eLeft = pLeftSafe.normalized();
         Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eLeft; 
 
-        Eigen::Vector2f pLeftSafeInfl = pLeftSafe + scaledMinDim * leftAngularInflDir;
+        Eigen::Vector2f pLeftSafeInfl = pLeftSafe; //  + scaledMinDim * leftAngularInflDir;
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pLeftSafeInfl: " << pLeftSafeInfl.transpose());
 
         Eigen::Vector2f eRight = pRightSafe.normalized();
         Eigen::Vector2f rightAngularInflDir = Rpi2 * eRight; 
 
-        Eigen::Vector2f pRightSafeInfl = pRightSafe + scaledMinDim * rightAngularInflDir;
+        Eigen::Vector2f pRightSafeInfl = pRightSafe; //  + scaledMinDim * rightAngularInflDir;
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "pRightSafeInfl: " << pRightSafeInfl.transpose());
 
         // Check if inflation failed
