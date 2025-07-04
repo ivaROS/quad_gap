@@ -32,7 +32,7 @@ namespace quad_gap
         
         // Get the equivalent passing length
         // Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f pMid = (pLeft + pRight) / 2;
+        Eigen::Vector2f pMid = 0.5 * (pLeft + pRight);
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
         float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, pMid, pMid.norm());
         
@@ -77,7 +77,7 @@ namespace quad_gap
 
             // ROS_INFO_STREAM_NAMED("GapGoalPlacer", "leftToRightAngle: " << leftToRightAngle);
             float thetaCenter = (thetaLeft - 0.5 * leftToRightAngle); 
-            float rangeCenter = (pLeft.norm() + pRight.norm()) / 2.0;
+            float rangeCenter = 0.5 * (pLeft.norm() + pRight.norm());
             Eigen::Vector2f centerGoal(rangeCenter * std::cos(thetaCenter), rangeCenter * std::sin(thetaCenter));
             // ROS_INFO_STREAM_NAMED("GapGoalPlacer", "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
 

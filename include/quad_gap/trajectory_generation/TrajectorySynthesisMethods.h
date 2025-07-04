@@ -40,7 +40,7 @@ namespace quad_gap
             : xLeft_(xLeft), xRight_(xRight), yLeft_(yLeft), yRight_(yRight), 
                 xGoal_(xGoal), yGoal_(yGoal), radial_(radial), sigma_(sigma) 
         {
-            float rotAngle = M_PI / 2;
+            float rotAngle = M_PI_OVER_TWO;
             Rpi2_ << std::cos(rotAngle), -std::sin(rotAngle), 
                      std::sin(rotAngle), std::cos(rotAngle);
             Rnegpi2_ << std::cos(-rotAngle), -std::sin(-rotAngle), 
@@ -61,7 +61,8 @@ namespace quad_gap
             {
                 // std::cout << "not clipping" << std::endl;
                 return;
-            } else {
+            } else 
+            {
                 // std::cout << "max: " << vx_absmax << ", norm: " << origVel.norm() << std::endl;
                 // Eigen::Vector2f clipVel = vRbtLinMax_ * origVel / std::max(speedX, speedY);
                 rbtVel = epsilonDivide(vRbtLinMax_ * rbtVel,  std::max(speedX, speedY));

@@ -72,7 +72,7 @@ namespace Bezier
     public:
         BinomialCoefficients()
         {
-            size_t center = N / 2;
+            size_t center = 0.5 * N;
             size_t k = 0;
 
             while (k <= center)
@@ -236,10 +236,11 @@ namespace Bezier
             return atan2(y, x);
         }
 
-        float angleDeg() const
-        {
-            return angle() * 180.0 / M_PI;
-        }
+        // float angleDeg() const
+        // {
+        //     // Pre-calc ratio: 180 / M_PI = 57.29577951308232
+        //     return angle() * 57.29577951308232;
+        // }
 
         float operator[](const size_t & axis) const
         {

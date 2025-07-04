@@ -154,8 +154,8 @@ namespace quad_gap
             return false;
         }
 
-        Eigen::Vector2f pLeftSafe = minSafeDist * pLeft / pLeft.norm();
-        Eigen::Vector2f pRightSafe = minSafeDist * pRight / pRight.norm();
+        Eigen::Vector2f pLeftSafe = minSafeDist * pLeft.normalized();
+        Eigen::Vector2f pRightSafe = minSafeDist * pRight.normalized();
         Eigen::Vector2f pGoal(goal_x, goal_y);
 
         // Eigen::Vector2f rbt_orient_vec(1, 0);
@@ -846,7 +846,7 @@ namespace quad_gap
                     {
                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Interpolating point between t_kmin1: " << t_kmin1 << " and t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
                         // float t_prev = (i - 1) * t_delta;
-                        float t_interp = (t_kmin1 + t_k) / 2;
+                        float t_interp = 0.5 * (t_kmin1 + t_k);
                         float interm_arclength = getBezierDist(quadraBezier, t_kmin1, t_interp, numPtToPtIntegrationPts);
 
                         float t_lower_bound = t_kmin1;
@@ -857,12 +857,12 @@ namespace quad_gap
                             if (interm_arclength < desPtToPtArclength)
                             {
                                 t_lower_bound = t_interp;
-                                t_interp = (t_interp + t_upper_bound) / 2;
+                                t_interp = 0.5 * (t_interp + t_upper_bound);
                             }
                             else
                             {
                                 t_upper_bound = t_interp;
-                                t_interp = (t_interp + t_lower_bound) / 2;
+                                t_interp = 0.5 * (t_interp + t_lower_bound);
                             }
 
                             interm_arclength = getBezierDist(quadraBezier, t_kmin1, t_interp, numPtToPtIntegrationPts);

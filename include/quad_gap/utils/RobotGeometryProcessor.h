@@ -14,7 +14,7 @@ namespace quad_gap
     class RobotGeometryProcessor 
     {
         public:
-            RobotGeometryProcessor() {};
+            // RobotGeometryProcessor() {};
             ~RobotGeometryProcessor() 
             {
                 initialized_ = false;
@@ -32,9 +32,9 @@ namespace quad_gap
 
                 float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
                 Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
-                Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
-                Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
-                
+                Eigen::Vector2f robot_f_vec = robot_.half_length * robotOrientationVector.normalized();
+                Eigen::Vector2f robot_ccw_n_vec = robot_.half_width * o_normal.normalized();
+
                 // 8 points ccw from -pi angle
                 Eigen::Vector2f p1 = -robot_f_vec;
                 Eigen::Vector2f p2 = -robot_f_vec - robot_ccw_n_vec;
@@ -61,25 +61,26 @@ namespace quad_gap
                 Eigen::Vector2f p_vec = pt_direct;
 
                 if (o_vec.norm() != 1)
-                    o_vec = o_vec / o_vec.norm();
+                    o_vec.normalize(); // = o_vec / o_vec.norm();
                 
                 if (p_vec.norm() != 1)
-                    p_vec = p_vec / p_vec.norm();
+                    p_vec.normalize() // = p_vec / p_vec.norm();
 
                 float er;
                 float vec_dot_product = o_vec.dot(p_vec);
+                float length_ratio = robot_.length / robot_.diagonal_length;
 
-                if (vec_dot_product > (robot_.length / robot_.diagonal_length) && vec_dot_product <= 1)
+                if (vec_dot_product > length_ratio && vec_dot_product <= 1)
                 {
-                    er = robot_.length / 2 / vec_dot_product;
+                    er = robot_.half_length / vec_dot_product;
                 }
-                else if (vec_dot_product <= (robot_.length / robot_.diagonal_length) && vec_dot_product > -(robot_.length / robot_.diagonal_length))
+                else if (vec_dot_product <= length_ratio && vec_dot_product > -length_ratio)
                 {
-                    er = robot_.width / 2 / (sqrt(1 - vec_dot_product * vec_dot_product));
+                    er = robot_.half_width / (sqrt(1 - vec_dot_product * vec_dot_product));
                 }
                 else
                 {
-                    er = -robot_.length / 2 / vec_dot_product;
+                    er = -robot_.half_length / vec_dot_product;
                 }
                 return er;
             }
@@ -93,10 +94,10 @@ namespace quad_gap
                 Eigen::Vector2f m_vec = motion_vec;
 
                 if (o_vec.norm() != 1)
-                    o_vec = o_vec / o_vec.norm();
+                    o_vec.normalize(); // = o_vec / o_vec.norm();
                 
                 if (m_vec.norm() != 1)
-                    m_vec = m_vec / m_vec.norm();
+                    m_vec.normalize(); // = m_vec / m_vec.norm();
 
                 float m_ang = atan2(m_vec[1], m_vec[0]);
                 float o_ang = atan2(o_vec[1], o_vec[0]);
@@ -108,8 +109,8 @@ namespace quad_gap
                 Eigen::Vector2f o_new_vec = rot * o_vec;
                 float o_new_ang = atan2(o_new_vec[1], o_new_vec[0]);
                 // Eigen::Vector2f m_new_vec(1, 0);
-                
-                Eigen::Vector2f length_vec = robot_.length / 2 * o_new_vec;
+
+                Eigen::Vector2f length_vec = robot_.half_length * o_new_vec;
                 Eigen::Vector2f left_pt_vec;
                 if (o_new_ang <= -M_PI_OVER_TWO || (o_new_ang > 0 && o_new_ang <= M_PI_OVER_TWO)) // TODO: float check
                 {
@@ -123,7 +124,7 @@ namespace quad_gap
                 }
                 
                 left_pt_vec = left_pt_vec / left_pt_vec.norm();
-                left_pt_vec = robot_.width / 2 * left_pt_vec;
+                left_pt_vec = robot_.half_width * left_pt_vec;
                 Eigen::Vector2f corner_pt = length_vec + left_pt_vec;
 
                 return 2 * abs(corner_pt[1]);
@@ -155,7 +156,7 @@ namespace quad_gap
             //     float o_new_ang = atan2(o_new_vec[1], o_new_vec[0]);
             //     Eigen::Vector2f m_new_vec(1, 0);
                 
-            //     Eigen::Vector2f length_vec = robot_.length / 2 * o_new_vec;
+            //     Eigen::Vector2f length_vec = robot_.half_length * o_new_vec;
             //     Eigen::Vector2f pt_vec;
             //     if(o_new_ang <= -M_PI_OVER_TWO || (o_new_ang > 0 && o_new_ang <= M_PI_OVER_TWO)) // TODO: float check
             //     {
@@ -169,7 +170,7 @@ namespace quad_gap
             //     }
                 
             //     pt_vec = pt_vec / pt_vec.norm();
-            //     pt_vec = robot_.width / 2 * pt_vec;
+            //     pt_vec = robot_.half_width * pt_vec;
             //     Eigen::Vector2f corner_pt = motion_vec + length_vec + pt_vec;
             //     Eigen::Vector2f opposite_corner_pt = motion_vec - length_vec - pt_vec;
 
@@ -244,8 +245,8 @@ namespace quad_gap
                 float max_dist = *std::max_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
                 float min_dist = *std::min_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
 
-                if (std::abs(m_new_vec[0]) < robot_.length / 2 && 
-                    std::abs(m_new_vec[1]) < robot_.width / 2)
+                if (std::abs(m_new_vec[0]) < (robot_.half_length) && 
+                    std::abs(m_new_vec[1]) < (robot_.half_width))
                 {
                     return max_dist;
                 } else
@@ -346,8 +347,8 @@ namespace quad_gap
 
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  pt_new_vec: " << pt_new_vec.transpose());
 
-                if (std::abs(pt_new_vec[0]) < robot_.length / 2 && 
-                    std::abs(pt_new_vec[1]) < robot_.width / 2)
+                if (std::abs(pt_new_vec[0]) < robot_.half_length && 
+                    std::abs(pt_new_vec[1]) < robot_.half_width)
                 {
                     // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
                     // ROS_WARN_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
@@ -355,10 +356,10 @@ namespace quad_gap
                     return -1;
                 }
 
-                // if  (pt_new_vec[0] > (-robot_.length / 2) && 
-                //      pt_new_vec[0] < (robot_.length / 2) && 
-                //      pt_new_vec[1] > (-robot_.width / 2) && 
-                //      pt_new_vec[1] < (robot_.width / 2))
+                // if  (pt_new_vec[0] > (-robot_.half_length) && 
+                //      pt_new_vec[0] < (robot_.half_length) && 
+                //      pt_new_vec[1] > (-robot_.half_width) && 
+                //      pt_new_vec[1] < (robot_.half_width))
                 // {
                 //     return -1;
                 // }
@@ -385,8 +386,8 @@ namespace quad_gap
 
                 // 8 corner points
                 // Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
-                // Eigen::Vector2f robot_f_vec = robot_.length / 2 * robotOrientationVector / robotOrientationVector.norm();
-                // Eigen::Vector2f robot_ccw_n_vec = robot_.width / 2 * o_normal / o_normal.norm();
+                // Eigen::Vector2f robot_f_vec = robot_.half_length * robotOrientationVector / robotOrientationVector.norm();
+                // Eigen::Vector2f robot_ccw_n_vec = robot_.half_width * o_normal / o_normal.norm();
                 
                 // // 8 points ccw from -pi angle
                 // Eigen::Vector2f p1 = -robot_f_vec;
@@ -435,7 +436,7 @@ namespace quad_gap
                     return robot_.radius;
                 } else if (robot_.shape == RobotShape::box)
                 {
-                    return robot_.width / 2;
+                    return robot_.half_width;
                 } else
                 {
                     throw std::runtime_error("[getRobotMinRadius()]: robot shape not recognized!");
@@ -449,7 +450,7 @@ namespace quad_gap
                     return robot_.radius;
                 } else if (robot_.shape == RobotShape::box)
                 {
-                    return robot_.length / 2;
+                    return robot_.half_length;
                 } else
                 {
                     throw std::runtime_error("[getRobotHalfLength()]: robot shape not recognized!");
@@ -463,7 +464,7 @@ namespace quad_gap
                     return robot_.radius;
                 } else if (robot_.shape == RobotShape::box)
                 {
-                    return robot_.width / 2;
+                    return robot_.half_width;
                 } else
                 {
                     throw std::runtime_error("[getRobotHalfWidth()]: robot shape not recognized!");

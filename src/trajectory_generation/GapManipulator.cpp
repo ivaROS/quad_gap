@@ -56,7 +56,7 @@ namespace quad_gap
         float globalPathLocalWaypointTheta = std::atan2(globalPathLocalWaypoint.pose.position.y, globalPathLocalWaypoint.pose.position.x);
         int globalPathLocalWaypointIdx = theta2idx(globalPathLocalWaypointTheta); // globalPathLocalWaypointTheta / (M_PI / gap->half_scan) + gap->half_scan;
         ROS_INFO_STREAM_NAMED("GapManipulator", "        globalPathLocalWaypointIdx: " << globalPathLocalWaypointIdx);
-        int halfTargetGapIdxSpan = targetGapIdxSpan / 2; // distance in scan indices
+        int halfTargetGapIdxSpan = 0.5 * targetGapIdxSpan; // distance in scan indices
         
         leftIdxBiasedRight = subtractAndWrapScanIndices(leftIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
         int leftIdxBiasedLeft = (leftIdx + halfTargetGapIdxSpan) % cfg_->scan.full_scan;
@@ -164,12 +164,12 @@ namespace quad_gap
         Eigen::Vector2f leftPt(xLeft, yLeft);
         Eigen::Vector2f rightPt(xRight, yRight);
 
-        Eigen::Vector2f mid = (rightPt + leftPt) / 2;
+        Eigen::Vector2f mid = 0.5 * (rightPt + leftPt);
         // Eigen::Vector2f robot_orient(1,0);
         float equivPassingLength = float(robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, mid, mid.norm()));
         float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, mid, mid.norm()));
-        
-        float nomPivotAngle = (float) std::atan2(equivPassingLength / 2 * cfg_->gap_manip.rot_ratio, equivRadialLength / 2);
+
+        float nomPivotAngle = (float) std::atan2(0.5 * equivPassingLength * cfg_->gap_manip.rot_ratio, 0.5 * equivRadialLength);
         
         int nearIdx = 0.0, farIdx = 0.0;
         float nearRange = 0.0, farRange = 0.0;
@@ -527,7 +527,7 @@ namespace quad_gap
         Eigen::Vector2f leftPt(xLeft, yLeft);
         Eigen::Vector2f rightPt(xRight, yRight);
 
-        Eigen::Vector2f midPt = (leftPt + rightPt) / 2;
+        Eigen::Vector2f midPt = 0.5 * (leftPt + rightPt);
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
         float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, midPt, midPt.norm());
                 
@@ -541,7 +541,7 @@ namespace quad_gap
 
         ROS_INFO_STREAM_NAMED("GapManipulator", "        leftToRightAngle: " << leftToRightAngle);;
 
-        float epl_radius = epl / 2.0;
+        float epl_radius = 0.5 * epl;
         float newLeftToRightAngle = leftToRightAngle;
         float inflatedLeftTheta = leftTheta;
         float inflatedRightTheta = rightTheta;
