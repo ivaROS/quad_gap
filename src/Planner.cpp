@@ -86,12 +86,12 @@ namespace quad_gap
         if (robot_shape == RobotShape::circle)
             cfg_.rbt.width = 0;
 
-        Robot robot(robot_shape, cfg_.rbt.length, cfg_.rbt.width, cfg_.rbt.avg_lin_speed, cfg_.rbt.avg_rot_speed);
+        robot_ = Robot(robot_shape, cfg_.rbt.length, cfg_.rbt.width, cfg_.rbt.avg_lin_speed, cfg_.rbt.avg_rot_speed);
 
         if (cfg_.rbt.use_geo_storage)
             robotGeoStorage_ = RobotGeometryStorage(file_name);
         else
-            robotGeoProc_ = RobotGeometryProcessor(robot, cfg_.planning.decay_factor);
+            robotGeoProc_ = RobotGeometryProcessor(robot_, cfg_.planning.decay_factor);
         
         // Visualization Setup
         transformed_laser_pub = nh.advertise<sensor_msgs::LaserScan>("transformed_laserscan", 5);
@@ -487,6 +487,8 @@ namespace quad_gap
             cam2rbt_ = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, ros::Time(0));
 
             tf2::doTransform(rbtPoseInRbtFrame_, rbtPoseInSensorFrame_, rbt2cam_);
+
+            robot_.drawRobotShape(cfg_.robot_frame_id, ros::Time::now());
         
             haveTFs_ = true;
         } catch (tf2::TransformException &ex) 
@@ -506,12 +508,12 @@ namespace quad_gap
 
         // geometry_msgs::PoseStamped local_goal_sensor_frame;
         // tf2::doTransform(globalPlanManager_->rbtFrameLocalGoal(), local_goal_sensor_frame, rbt2cam_);
-        geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
+        geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
         try 
         {
             for (size_t i = 0; i < planningGaps.size(); i++)
             {
-                gapManipulator_->reduceGap(planningGaps.at(i), local_goal_rbt_frame);
+                gapManipulator_->reduceGap(planningGaps.at(i), globalPathLocalWaypointRobotFrame);
                 gapManipulator_->convertRadialGap(planningGaps.at(i));
                 gapManipulator_->inflateGapSides(planningGaps.at(i));
                 gapManipulator_->radialExtendGap(planningGaps.at(i));
@@ -537,12 +539,13 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        geometry_msgs::PoseStamped local_goal_rbt_frame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
+        geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame = globalPlanManager_->getGlobalPathLocalWaypointRobotFrame();
+
         try 
         {
             for (size_t i = 0; i < planningGaps.size(); i++)
             {
-                gapGoalPlacer_->setGapWaypoint(planningGaps.at(i), local_goal_rbt_frame);
+                gapGoalPlacer_->setGapWaypoint(planningGaps.at(i), globalPathLocalWaypointRobotFrame);
             }
         } catch(...) 
         {

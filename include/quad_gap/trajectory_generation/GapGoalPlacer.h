@@ -64,7 +64,10 @@ namespace quad_gap
             bool checkWaypointVisibility(const Eigen::Vector2f & leftPt, 
                                             const Eigen::Vector2f & rightPt,
                                             const Eigen::Vector2f & globalPathLocalWaypoint);
-                                            
+                                      
+            float setBiasedGapGoalTheta(const float & leftTheta, const float & rightTheta, const float & globalGoalTheta,
+                                        const float & leftToRightAngle, const float & leftToWaypointAngle,  const float & rightToWaypointAngle);
+
             boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
             const QuadGapConfig* cfg_;        
             // int num_of_scan;

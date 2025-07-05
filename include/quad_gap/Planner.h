@@ -390,6 +390,7 @@ namespace quad_gap
             // bool use_geo_storage_;
             RobotGeometryStorage robotGeoStorage_;
             RobotGeometryProcessor robotGeoProc_;
+            Robot robot_;
             // float speed_factor_;
 
             // Bezier curve

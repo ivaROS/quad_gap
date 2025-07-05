@@ -1,5 +1,8 @@
 #pragma once
 
+#include <ros/ros.h>
+#include <visualization_msgs/Marker.h>
+
 namespace quad_gap
 {
     enum RobotShape { circle = 0,  
@@ -8,6 +11,7 @@ namespace quad_gap
     struct Robot
     {
         RobotShape shape;
+        ros::Publisher shape_pub;
         float radius = 0;
         float length = 0;
         float half_length = 0;
@@ -25,6 +29,8 @@ namespace quad_gap
                 const float & robot_avg_lin_speed=0.2, 
                 const float & robot_avg_rot_speed=0.5)
         {
+            ros::NodeHandle nh;
+            shape_pub = nh.advertise<visualization_msgs::Marker>("robot_shape", 1);
             shape = in_shape;
             switch (shape)
             {
@@ -59,6 +65,41 @@ namespace quad_gap
                     avg_rot_speed = robot_avg_rot_speed;
                     break;
             }
+        }
+
+        void drawRobotShape(const std::string & robot_frame, const ros::Time & time)
+        {
+            visualization_msgs::Marker marker;
+            marker.header.frame_id = robot_frame;
+            marker.header.stamp = time;
+            marker.ns = "robot_shape";
+            marker.id = 0;
+            marker.action = visualization_msgs::Marker::ADD;
+            marker.pose.orientation.w = 1.0;
+            marker.pose.position.x = 0.0;
+            marker.pose.position.y = 0.0;
+            marker.pose.position.z = 0.0;
+
+            if (shape == RobotShape::circle)
+            {
+                marker.type = visualization_msgs::Marker::SPHERE;
+                marker.scale.x = radius * 2;
+                marker.scale.y = radius * 2;
+            }
+            else if (shape == RobotShape::box)
+            {
+                marker.type = visualization_msgs::Marker::CUBE;
+                marker.scale.x = length;
+                marker.scale.y = width;
+            }
+                marker.scale.z = 0.001;
+
+            marker.color.r = 0.0;
+            marker.color.g = 1.0;
+            marker.color.b = 0.0;
+            marker.color.a = 1.0;
+
+            shape_pub.publish(marker);
         }
     };
 }
