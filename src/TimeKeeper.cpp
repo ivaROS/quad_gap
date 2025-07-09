@@ -65,6 +65,15 @@ namespace quad_gap
             case GAP_TRAJ_GEN:
                 gapTrajectoryGenerationStartTime = std::chrono::steady_clock::now();
                 break;
+            case GAP_TRAJ_SYNTH:
+                synthesizeGapTrajectoryStartTime = std::chrono::steady_clock::now();
+                break;
+            case GAP_TRAJ_PROC:
+                processGapTrajectoryStartTime = std::chrono::steady_clock::now();
+                break;
+            case GAP_TRAJ_SCORE:
+                scoreGapTrajectoryStartTime = std::chrono::steady_clock::now();
+                break;
             // case IDLING_TRAJ_GEN:
             //     idlingTrajectoryGenerationStartTime = std::chrono::steady_clock::now();
             //     break;
@@ -80,7 +89,7 @@ namespace quad_gap
             case PLAN:
                 totalPlanningStartTime = std::chrono::steady_clock::now();
                 break;
-            case FEEBDACK:
+            case FEEDBACK:
                 feedbackControlStartTime = std::chrono::steady_clock::now();
                 break;
             case PO:
@@ -146,6 +155,18 @@ namespace quad_gap
                 gapTrajectoryGenerationEndTime = std::chrono::steady_clock::now();
                 currTimeTaken = timeTaken(gapTrajectoryGenerationStartTime, gapTrajectoryGenerationEndTime);  
                 break;
+            case GAP_TRAJ_SYNTH:
+                synthesizeGapTrajectoryEndTime = std::chrono::steady_clock::now();
+                currTimeTaken = timeTaken(synthesizeGapTrajectoryStartTime, synthesizeGapTrajectoryEndTime);  
+                break;
+            case GAP_TRAJ_PROC:
+                processGapTrajectoryEndTime = std::chrono::steady_clock::now();
+                currTimeTaken = timeTaken(processGapTrajectoryStartTime, processGapTrajectoryEndTime);
+                break;
+            case GAP_TRAJ_SCORE:
+                scoreGapTrajectoryEndTime = std::chrono::steady_clock::now();
+                currTimeTaken = timeTaken(scoreGapTrajectoryStartTime, scoreGapTrajectoryEndTime);
+                break;
             // case IDLING_TRAJ_GEN:
             //     idlingTrajectoryGenerationEndTime = std::chrono::steady_clock::now();
             //     currTimeTaken = timeTaken(idlingTrajectoryGenerationStartTime, idlingTrajectoryGenerationEndTime);  
@@ -166,7 +187,7 @@ namespace quad_gap
                 totalPlanningEndTime = std::chrono::steady_clock::now();
                 currTimeTaken = timeTaken(totalPlanningStartTime, totalPlanningEndTime);  
                 break;
-            case FEEBDACK:
+            case FEEDBACK:
                 feedbackControlEndTime = std::chrono::steady_clock::now();
                 currTimeTaken = timeTaken(feedbackControlStartTime, feedbackControlEndTime);  
                 break;
@@ -245,6 +266,21 @@ namespace quad_gap
                 generateGapTrajCalls++;
                 averageTimeTaken = (totalGenerateGapTrajTimeTaken / generateGapTrajCalls);
                 break;
+            case GAP_TRAJ_SYNTH:
+                totalSynthesizeGapTrajTimeTaken += currTimeTaken;
+                synthesizeGapTrajCalls++;
+                averageTimeTaken = (totalSynthesizeGapTrajTimeTaken / synthesizeGapTrajCalls);
+                break;
+            case GAP_TRAJ_PROC:
+                totalProcessGapTrajTimeTaken += currTimeTaken;
+                processGapTrajCalls++;
+                averageTimeTaken = (totalProcessGapTrajTimeTaken / processGapTrajCalls);
+                break;
+            case GAP_TRAJ_SCORE:
+                totalScoreGapTrajTimeTaken += currTimeTaken;
+                scoreGapTrajCalls++;
+                averageTimeTaken = (totalScoreGapTrajTimeTaken / scoreGapTrajCalls);
+                break;
             // case UNGAP_TRAJ_GEN:
             //     totalGenerateUngapTrajTimeTaken += currTimeTaken;
             //     generateUngapTrajCalls++;
@@ -275,7 +311,7 @@ namespace quad_gap
                 planningLoopCalls++;
                 averageTimeTaken = (totalPlanningTimeTaken / planningLoopCalls);
                 break; 
-            case FEEBDACK:
+            case FEEDBACK:
                 totalFeedbackControlTimeTaken += currTimeTaken;
                 feedbackControlCalls++;
                 averageTimeTaken = (totalFeedbackControlTimeTaken / feedbackControlCalls);

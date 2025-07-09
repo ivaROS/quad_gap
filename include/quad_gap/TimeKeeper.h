@@ -11,46 +11,38 @@ namespace quad_gap
 
     enum planningStepIdxs { GAP_DET = 0, 
                             GAP_SIMP = 1, 
-                            // GAP_ASSOC = 2, 
-                            // GAP_EST = 3,
                             SCAN = 2,
-                            // GAP_PROP = 5,
                             GAP_MANIP = 3,
                             GAP_GOAL = 4,
-                            // GAP_FEAS = 7,
-                            // SCAN_PROP = 8,
-                            // UNGAP_TRAJ_GEN = 9,
                             GAP_TRAJ_GEN = 5,
-                            // IDLING_TRAJ_GEN = 11,
-                            TRAJ_PICK = 6,
-                            TRAJ_COMP = 7,
-                            COLL_CHECK = 8,
-                            PLAN = 9,
-                            FEEBDACK = 10,
-                            PO = 11,
-                            CONTROL = 12
+                            GAP_TRAJ_SYNTH = 6,
+                            GAP_TRAJ_PROC = 7,
+                            GAP_TRAJ_SCORE = 8,
+                            TRAJ_PICK = 9,
+                            TRAJ_COMP = 10,
+                            COLL_CHECK = 11,
+                            PLAN = 12,
+                            FEEDBACK = 13,
+                            PO = 14,
+                            CONTROL = 15
                             };
 
     const std::map<int, std::string> planningSteps = { {GAP_DET, "Gap Detection"},
-                                                    {GAP_SIMP, "Gap Simplification"},  
-                                                    // {GAP_ASSOC, "Gap Association"},
-                                                    // {GAP_EST, "Gap Estimation"},
-                                                    {SCAN, "Scan Loop"},
-                                                    // {GAP_PROP, "Gap Propagation"},
-                                                    {GAP_MANIP, "Gap Manipulation"},
-                                                    {GAP_GOAL, "Gap Goal Placement"},
-                                                    // {GAP_FEAS, "Gap Feasibility Check"},
-                                                    // {SCAN_PROP, "Scan Propagation"},
-                                                    // {UNGAP_TRAJ_GEN, "Ungap Trajectory Generation"},
-                                                    {GAP_TRAJ_GEN, "Gap Trajectory Generation"},
-                                                    // {IDLING_TRAJ_GEN, "Idling Trajectory Generation"},
-                                                    {TRAJ_PICK, "Trajectory Picking"},
-                                                    {TRAJ_COMP, "Trajectory Comparison"},
-                                                    {COLL_CHECK, "Collision Checking"},
-                                                    {PLAN, "Planning Loop"},
-                                                    {FEEBDACK, "Feedback Control"},
-                                                    {PO, "Projection Operator"},
-                                                    {CONTROL, "Control Loop"}
+                                                        {GAP_SIMP, "Gap Simplification"},  
+                                                        {SCAN, "Scan Loop"},
+                                                        {GAP_MANIP, "Gap Manipulation"},
+                                                        {GAP_GOAL, "Gap Goal Placement"},
+                                                        {GAP_TRAJ_GEN, "Gap Trajectory Generation"},
+                                                        {GAP_TRAJ_SYNTH, "Gap Trajectory Synthesis"},
+                                                        {GAP_TRAJ_PROC, "Gap Trajectory Processing"},
+                                                        {GAP_TRAJ_SCORE, "Gap Trajectory Scoring"},
+                                                        {TRAJ_PICK, "Trajectory Picking"},
+                                                        {TRAJ_COMP, "Trajectory Comparison"},
+                                                        {COLL_CHECK, "Collision Checking"},
+                                                        {PLAN, "Planning Loop"},
+                                                        {FEEDBACK, "Feedback Control"},
+                                                        {PO, "Projection Operator"},
+                                                        {CONTROL, "Control Loop"}
                                                 };
 
 
@@ -147,6 +139,21 @@ namespace quad_gap
             std::chrono::steady_clock::time_point gapTrajectoryGenerationEndTime; /**< End time for gap trajectory generation */
             float totalGenerateGapTrajTimeTaken = 0.0f; /**< Total time taken for gap trajectory synthesis */
             int generateGapTrajCalls = 0; /**< Total number of calls for gap trajetory synthesis */
+
+            std::chrono::steady_clock::time_point synthesizeGapTrajectoryStartTime; /**< Start time for gap trajectory synthesis */
+            std::chrono::steady_clock::time_point synthesizeGapTrajectoryEndTime; /**< End time for gap trajectory synthesis */
+            float totalSynthesizeGapTrajTimeTaken = 0.0f; /**< Total time taken for gap trajectory synthesis */
+            int synthesizeGapTrajCalls = 0; /**< Total number of calls for gap trajetory synthesis */
+
+            std::chrono::steady_clock::time_point processGapTrajectoryStartTime; /**< Start time for gap trajectory processing */
+            std::chrono::steady_clock::time_point processGapTrajectoryEndTime; /**< End time for gap trajectory processing */
+            float totalProcessGapTrajTimeTaken = 0.0f; /**< Total time taken for gap trajectory processing */
+            int processGapTrajCalls = 0; /**< Total number of calls for gap trajectory processing */
+
+            std::chrono::steady_clock::time_point scoreGapTrajectoryStartTime; /**< Start time for gap trajectory scoring */
+            std::chrono::steady_clock::time_point scoreGapTrajectoryEndTime; /**< End time for gap trajectory scoring */
+            float totalScoreGapTrajTimeTaken = 0.0f; /**< Total time taken for gap trajectory scoring */
+            int scoreGapTrajCalls = 0; /**< Total number of calls for gap trajectory scoring */
 
             // std::chrono::steady_clock::time_point idlingTrajectoryGenerationStartTime; /**< Start time for idling trajectory generation */
             // std::chrono::steady_clock::time_point idlingTrajectoryGenerationEndTime; /**< End time for idling trajectory generation */

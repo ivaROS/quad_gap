@@ -642,12 +642,13 @@ namespace quad_gap
 
                 // auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(transform_traj_time - start_time).count();
 
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory generation: " << gen_traj_duration << " ms");
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory processing: " << proc_traj_duration << " ms");
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory orientation decay: " << orient_traj_duration << " ms");
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory scoring: " << score_traj_duration << " ms");
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Time taken for trajectory transformation: " << transform_traj_duration << " ms");
-                // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "   Total time taken for trajectory generation: " << total_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Gap Trajectory " << i << " generated");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Time taken for trajectory generation: " << gen_traj_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Time taken for trajectory processing: " << proc_traj_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Time taken for trajectory orientation decay: " << orient_traj_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Time taken for trajectory scoring: " << score_traj_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Time taken for trajectory transformation: " << transform_traj_duration << " ms");
+                // ROS_INFO_STREAM_NAMED("Timing", "   Total time taken for trajectory generation: " << total_duration << " ms");
             
                 gapTrajs.at(i) = gapTraj;
             }
@@ -1008,32 +1009,32 @@ namespace quad_gap
 
             // sensor_msgs::LaserScan stored_scan_msgs = *scan_.get();
 
-            // timeKeeper_->startTimer(FEEBDACK);
+            // timeKeeper_->startTimer(FEEDBACK);
             // geometry_msgs::Twist cmd_vel = trajController_->controlLaw(currPoseOdomFrame, targetTrajectoryPoseOdomFrame, stored_scan_msgs, currPoseStRobotFrame);
-            // timeKeeper_->stopTimer(FEEBDACK);
+            // timeKeeper_->stopTimer(FEEDBACK);
 
 
             if (cfg_.planning.holonomic)
             {
-                timeKeeper_->startTimer(FEEBDACK);
+                timeKeeper_->startTimer(FEEDBACK);
                 rawCmdVel = trajController_->controlLawHolonomic(currPoseOdomFrame, targetTrajectoryPoseOdomFrame);
-                timeKeeper_->stopTimer(FEEBDACK);
+                timeKeeper_->stopTimer(FEEDBACK);
 
                 timeKeeper_->startTimer(PO);
                 cmdVel = trajController_->processCmdVelHolonomic(rawCmdVel, rbtPoseInSensorFrame_); 
                 timeKeeper_->stopTimer(PO);
             } else
             {
-                timeKeeper_->startTimer(FEEBDACK);
+                timeKeeper_->startTimer(FEEDBACK);
                 rawCmdVel = trajController_->controlLawNonholonomic(currPoseOdomFrame, targetTrajectoryPoseOdomFrame);
-                timeKeeper_->stopTimer(FEEBDACK);
+                timeKeeper_->stopTimer(FEEDBACK);
 
                 timeKeeper_->startTimer(PO);
                 cmdVel = trajController_->processCmdVelNonholonomic(currPoseOdomFrame,
                                                                     targetTrajectoryPoseOdomFrame,
                                                                     rawCmdVel,
                                                                     rbtPoseInSensorFrame_); 
-                timeKeeper_->stopTimer(FEEBDACK);
+                timeKeeper_->stopTimer(FEEDBACK);
             }
 
         } catch (const std::exception &e)

@@ -156,7 +156,9 @@ namespace quad_gap
         float theta_i = 0.0;
         Eigen::Vector2f scanPt;
         Eigen::Vector2f rel_pt_vec;
-        // float nearest_dist = 0.0;
+
+        float nearest_dist = std::numeric_limits<float>::infinity();
+        // int nearest_idx = -1;
 
         std::vector<float> scan2RbtDists(scan.ranges.size());
         for (int i = 0; i < scan2RbtDists.size(); i++) 
@@ -197,14 +199,20 @@ namespace quad_gap
             //     range_i, pose);
             // dist.at(i) -= robot_er * cfg_->traj.inf_ratio;
             // rmax_offset.at(i) = rmax - robot_er * cfg_->traj.inf_ratio;
+
+            if (scan2RbtDists.at(i) < nearest_dist) 
+            {
+                nearest_dist = scan2RbtDists.at(i);
+                // nearest_idx = i;
+            }
         }
 
-        auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
+        // auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << *iter);
+        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << nearest_dist);
 
         // float rmax_offset_val = rmax_offset[iter - dist.begin()];
-        return chapterCost(*iter);
+        return chapterCost(nearest_dist);
     }
 
     float TrajectoryEvaluator::chapterCost(const float & rbtToScanDist) 
