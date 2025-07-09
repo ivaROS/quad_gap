@@ -165,9 +165,10 @@ namespace quad_gap
         Eigen::Vector2f rightPt(xRight, yRight);
 
         Eigen::Vector2f mid = 0.5 * (rightPt + leftPt);
+        Eigen::Vector2f eMid = mid.normalized(); // normalized vector of mid point
         // Eigen::Vector2f robot_orient(1,0);
         float equivPassingLength = robotGeoProc_->getLinearDecayEquivalentPL(mid);
-        float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(mid, mid.norm()));
+        float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(eMid, mid.norm()));
 
         float nomPivotAngle = (float) std::atan2(0.5 * equivPassingLength * cfg_->gap_manip.rot_ratio, 0.5 * equivRadialLength);
         

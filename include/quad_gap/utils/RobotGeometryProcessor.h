@@ -46,7 +46,7 @@ namespace quad_gap
                 p8 = -robot_f_vec + robot_ccw_n_vec;
                 pt_list = {p1, p2, p3, p4, p5, p6, p7, p8};
 
-                distsForNearestDist_.resize(pt_list.size() + sample_size);
+                // distsForNearestDist_.resize(pt_list.size()); //  + sample_size
                 distsForEquivalentRL_.resize(pt_list.size()); // + sample_size
             }
 
@@ -85,21 +85,21 @@ namespace quad_gap
                 return er;
             }
 
-            float getEquivalentPL(const Eigen::Vector2f& projHeading, const Eigen::Vector2f& gapDir)
+            float getEquivalentPL(const Eigen::Vector2f& projHeadingInc, const Eigen::Vector2f& gapDirInc)
             {
                 if (robot_.shape == RobotShape::circle)
                     return 2 * robot_.radius;
 
-                // Eigen::Vector2f projHeading = projHeading;
-                // Eigen::Vector2f gapDir = gapDir;
+                Eigen::Vector2f projHeading = projHeadingInc;
+                Eigen::Vector2f gapDir = gapDirInc;
 
-                // if (projHeading.norm() != 1)
-                //     projHeading.normalize(); // = projHeading / projHeading.norm();
+                if (projHeading.norm() != 1)
+                    projHeading.normalize(); // = projHeading / projHeading.norm();
 
-                // if (gapDir.norm() != 1)
-                //     gapDir.normalize(); // = gapDir / gapDir.norm();
+                if (gapDir.norm() != 1)
+                    gapDir.normalize(); // = gapDir / gapDir.norm();
 
-                assert(projHeading.norm() == 1 && gapDir.norm() == 1);
+                // assert(projHeading.norm() == 1 && gapDir.norm() == 1);
 
                 float alpha = atan2(gapDir[1], gapDir[0]);
                 float theta = atan2(projHeading[1], projHeading[0]);
@@ -137,7 +137,7 @@ namespace quad_gap
                 return 2 * abs(cornerPt[1]);
             }
 
-            float getEquivalentRL(const Eigen::Vector2f& orientation_vec, const Eigen::Vector2f& motion_vec)
+            float getEquivalentRL(const Eigen::Vector2f& projHeading, const Eigen::Vector2f& pDes)
             {
                 // Motion vec cannot be normalized
 
@@ -146,58 +146,60 @@ namespace quad_gap
                 if (robot_.shape == RobotShape::circle)
                     return 2 * robot_.radius;
 
-                Eigen::Vector2f o_vec = orientation_vec;
-                Eigen::Vector2f m_vec = motion_vec;
+                // Eigen::Vector2f o_vec = projHeading;
+                Eigen::Vector2f eDes = pDes.normalized();
 
-                o_vec.normalize();
+                // o_vec.normalize();
                 // if(o_vec.norm() != 1)
                 //     o_vec = o_vec / o_vec.norm();
                 
-                m_vec.normalize();
+                // m_vec.normalize();
                 // if(m_vec.norm() != 1)
                 //     m_vec = m_vec / m_vec.norm();
 
-                float m_ang = atan2(m_vec[1], m_vec[0]);
-                float o_ang = atan2(o_vec[1], o_vec[0]);
-                // float o_new_ang = o_ang - m_ang;
+                // float thetaDes = atan2(eDes[1], eDes[0]);
+                float projTheta = atan2(projHeading[1], projHeading[0]);
+                // float o_new_ang = projTheta - thetaDes;
                 // Eigen::Vector2f o_new_vec(cos(o_new_ang), sin(o_new_ang));
-                float rot_ang = 0 - o_ang;
+                float negProjTheta = -projTheta;
                 Eigen::Matrix2f rot;
-                rot << cos(rot_ang), -sin(rot_ang), 
-                        sin(rot_ang), cos(rot_ang);
+                rot << cos(negProjTheta), -sin(negProjTheta), 
+                        sin(negProjTheta), cos(negProjTheta);
 
-                Eigen::Vector2f m_new_vec = motion_vec.norm() * rot * m_vec;
+                // Rotate the desired vector to align with the projHeading
+                Eigen::Vector2f pDesHeadingFrame = rot * pDes; // * pDes.norm() 
                 // Eigen::Vector2f robotOrientationVector(1, 0);
 
                 // std::vector<Eigen::Vector2f> pt_list{p1, p2, p3, p4, p5, p6, p7, p8};
                 // std::vector<float> dists;
 
-                float ang = 0.0;
-                Eigen::Vector2f i_vec;
-                float dist = 0.0;
-                Eigen::Vector2f i_bound;                
-                for (size_t i = 0; i < sample_size; i++)
-                {
-                    ang = idx2theta(i); // i * res - M_PI;
-                    // ang = (ang <= M_PI) ? ang : M_PI;
-                    // ang = (ang >= -M_PI) ? ang : -M_PI;
+                // float ang = 0.0;
+                // Eigen::Vector2f i_vec;
+                // float dist = 0.0;
+                // Eigen::Vector2f i_bound;                
+                // for (size_t i = 0; i < sample_size; i++)
+                // {
+                //     ang = idx2theta(i); // i * res - M_PI;
+                //     // ang = (ang <= M_PI) ? ang : M_PI;
+                //     // ang = (ang >= -M_PI) ? ang : -M_PI;
 
-                    i_vec << cos(ang), sin(ang);
-                    dist = getEquivalentR(i_vec);
+                //     i_vec << cos(ang), sin(ang);
+                //     dist = getEquivalentR(i_vec);
 
-                    i_bound = dist * i_vec;
+                //     i_bound = dist * i_vec;
 
-                    distsForEquivalentRL_.at(i) = (m_new_vec + i_bound).norm();
-                }
+                //     distsForEquivalentRL_.at(i) = (pDesHeadingFrame + i_bound).norm();
+                // }
 
                 for (size_t i = 0; i < pt_list.size(); i++)
                 {
-                    Eigen::Vector2f pt_vec_global = m_new_vec + pt_list.at(i);
-                    distsForEquivalentRL_.at(i + sample_size) = pt_vec_global.norm();
+                    Eigen::Vector2f pt_vec_global = pDesHeadingFrame + pt_list.at(i);
+                    distsForEquivalentRL_.at(i) = pt_vec_global.norm(); //  + sample_size
                 }
+
                 // for (const Eigen::Vector2f & pt : pt_list)
                 // {
-                //     Eigen::Vector2f pt_vec_global = m_new_vec + pt;
+                //     Eigen::Vector2f pt_vec_global = pDesHeadingFrame + pt;
                 //     dist.push_back(pt_vec_global.norm());
                 // }
 
@@ -205,8 +207,8 @@ namespace quad_gap
                 float max_dist = *std::max_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
                 float min_dist = *std::min_element(distsForEquivalentRL_.begin(), distsForEquivalentRL_.end());
 
-                if (std::abs(m_new_vec[0]) < (robot_.half_length) && 
-                    std::abs(m_new_vec[1]) < (robot_.half_width))
+                if (std::abs(pDesHeadingFrame[0]) < (robot_.half_length) && 
+                    std::abs(pDesHeadingFrame[1]) < (robot_.half_width))
                 {
                     return max_dist;
                 } else
@@ -257,23 +259,38 @@ namespace quad_gap
                 return epl;
             }
 
-            float getLinearDecayEquivalentRL(const Eigen::Vector2f& motion_vec, 
+            float getLinearDecayEquivalentRL(const Eigen::Vector2f& eDes, 
                                                 const float & dist)
             {
+                float alpha = atan2(eDes[1], eDes[0]);
                 float t = dist / robot_.avg_lin_speed;
-                float ang = t * robot_.avg_rot_speed;
-                float ang_diff = robotOrientationVector.dot(motion_vec) / (robotOrientationVector.norm() * motion_vec.norm());
-                float cur_ang = acos(ang_diff) - ang;
-                cur_ang = cur_ang >= 0 ? cur_ang : 0;
-                if(ang_diff < 0)
-                    cur_ang = -cur_ang;
+                float beta = t * robot_.avg_rot_speed;
 
-                float m_ang = atan2(motion_vec[1], motion_vec[0]);
-                cur_ang = m_ang + cur_ang;
-                Eigen::Vector2f cur_vec(cos(cur_ang), sin(cur_ang));
+                // float ang_diff = robotOrientationVector.dot(eDes) / (robotOrientationVector.norm() * eDes.norm());
+                // float cur_ang = acos(ang_diff) - ang;
+                // cur_ang = cur_ang >= 0 ? cur_ang : 0;
+                // if(ang_diff < 0)
+                //     cur_ang = -cur_ang;
 
-                Eigen::Vector2f m_new_vec = dist * motion_vec / motion_vec.norm();
-                float erl = getEquivalentRL(cur_vec, m_new_vec);
+                // float thetaDes = atan2(eDes[1], eDes[0]);
+                // cur_ang = thetaDes + cur_ang;
+                // Eigen::Vector2f cur_vec(cos(cur_ang), sin(cur_ang));
+                float headingError = 0.0f;
+                float predTheta = 0.0f;
+                if (alpha >= 0)
+                {
+                    headingError = std::max(alpha - beta, 0.0f); // non-negative
+                    predTheta = alpha - headingError;
+                } else
+                {
+                    headingError = std::max(alpha + beta, 0.0f); // non-negative
+                    predTheta = alpha + headingError;
+                }
+
+                Eigen::Vector2f projHeading(cos(predTheta), sin(predTheta));                
+
+                Eigen::Vector2f pDes = dist * eDes / eDes.norm();
+                float erl = getEquivalentRL(projHeading, pDes);
                 return erl;
             }
 
@@ -478,10 +495,10 @@ namespace quad_gap
             Eigen::Vector2f p1, p2, p3, p4, p5, p6, p7, p8;
             std::vector<Eigen::Vector2f> pt_list;
 
-            int sample_size = 0; // 20; // TOO SLOW
+            // int sample_size = 0; // 20; // TOO SLOW
             // float res = M_PI * 2 / sample_size;
 
-            std::vector<float> distsForNearestDist_;
+            // std::vector<float> distsForNearestDist_;
             std::vector<float> distsForEquivalentRL_;
 
     };

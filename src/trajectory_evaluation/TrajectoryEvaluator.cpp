@@ -119,18 +119,6 @@ namespace quad_gap
 
         ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[evaluatePose()]");
 
-        // float pose_ori = std::atan2(pose.position.y + 1e-3, pose.position.x + 1e-3);
-        // int center_idx = (int) std::round((pose_ori + M_PI) / msg.get()->angle_increment);
-        
-        // int scan_size = (int) ;
-        // std::vector<float> rmax_offset(scan_size);
-
-        // This size **should** be ensured
-        // if (scan.ranges.size() < 500) 
-        // {
-        //     ROS_FATAL_STREAM_NAMED("TrajectoryEvaluator", "Scan range incorrect evaluatePose");
-        // }
-
         // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
         // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
         float yaw = quaternionToYaw(poseRbtFrame.orientation);
@@ -158,7 +146,6 @@ namespace quad_gap
         Eigen::Vector2f rel_pt_vec;
 
         float nearest_dist = std::numeric_limits<float>::infinity();
-        // int nearest_idx = -1;
 
         std::vector<float> scan2RbtDists(scan.ranges.size());
         for (int i = 0; i < scan2RbtDists.size(); i++) 
@@ -183,27 +170,11 @@ namespace quad_gap
             // pt_vec = range_i * pt_vec;
             
             rel_pt_vec = scanPt - poseRbtFrameVec;
-            // nearest_dist = 
             scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(orient_vec, rel_pt_vec);
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", dist.at(i));
-            // rmax_offset.at(i) = rmax - robotGeoProc_.getRobotMaxRadius() * cfg_->traj.inf_ratio;
-            
-            // Get the robot equivalent radius
-            
-            // Eigen::Vector2f pose_position_vec(pose.position.x, pose.position.y);
-            // Eigen::Vector2f scan_pt_vec(range_i * cos(i * scan.angle_increment - M_PI), range_i * sin(i * scan.angle_increment - M_PI));
-            // Eigen::Vector2f relative_vec = scan_pt_vec - pose_position_vec;
-            // relative_vec = relative_vec / relative_vec.norm();
-            // float robot_er = robotGeoProc_.getEquivalentR(orient_vec, relative_vec);
-            // dist.at(i) = dist2Pose(i * scan.angle_increment - M_PI,
-            //     range_i, pose);
-            // dist.at(i) -= robot_er * cfg_->traj.inf_ratio;
-            // rmax_offset.at(i) = rmax - robot_er * cfg_->traj.inf_ratio;
 
             if (scan2RbtDists.at(i) < nearest_dist) 
             {
                 nearest_dist = scan2RbtDists.at(i);
-                // nearest_idx = i;
             }
         }
 

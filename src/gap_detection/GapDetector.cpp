@@ -259,16 +259,17 @@ namespace quad_gap
             auto minIntergapRangeIter = std::min_element(scan_.ranges.begin() + startIdx, scan_.ranges.begin() + endIdx);
             float minIntergapRange = *minIntergapRangeIter;
             int minIntergapIdx = minIntergapRangeIter - scan_.ranges.begin();
-            float minInterpgapTheta = idx2theta(minIntergapIdx);
-            Eigen::Vector2f minIntergapVec(cos(minInterpgapTheta), sin(minInterpgapTheta));
+            float minIntergapTheta = idx2theta(minIntergapIdx);
+            Eigen::Vector2f minIntergapRangeDir(cos(minIntergapTheta), sin(minIntergapTheta));
 
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
             // float max_r_er = robotGeoProc_->getRobotMaxRadius();
             
 
-            float erlLRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapVec, currLRange);
-            float erlRRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapVec, simplifiedGaps[j]->RRange());
-            bool second_test = currLRange <= (minIntergapRange - erlLRange) && simplifiedGaps[j]->RRange() <= (minIntergapRange - erlRRange);
+            float erlLRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapRangeDir, currLRange);
+            float erlRRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapRangeDir, simplifiedGaps[j]->RRange());
+            bool second_test = currLRange <= (minIntergapRange - erlLRange) && 
+                                simplifiedGaps[j]->RRange() <= (minIntergapRange - erlRRange);
             
             
             // 2. Checking if current simplified gap is either right dist < left dist or swept 
