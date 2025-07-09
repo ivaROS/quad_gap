@@ -122,11 +122,11 @@ namespace quad_gap
         // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
         // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
         float yaw = quaternionToYaw(poseRbtFrame.orientation);
-        Eigen::Vector2f orient_vec(cos(yaw), sin(yaw));
+        Eigen::Vector2f poseHeading(cos(yaw), sin(yaw));
         Eigen::Vector2f poseRbtFrameVec(poseRbtFrame.position.x, poseRbtFrame.position.y);
 
         ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose: " << poseRbtFrameVec.transpose() << 
-                                                     ", Orientation: " << orient_vec.transpose());
+                                                     ", Orientation: " << poseHeading.transpose());
 
         float poseRbtFrameTheta = atan2(poseRbtFrameVec[1], poseRbtFrameVec[0]);
         int poseRbtFrameIdx = theta2idx(poseRbtFrameTheta);
@@ -140,45 +140,67 @@ namespace quad_gap
         if (poseRbtFrameVec.norm() >= poseRbtFrameIdxRange)
             return std::numeric_limits<float>::infinity();
 
-        float range_i = 0.0;
-        float theta_i = 0.0;
-        Eigen::Vector2f scanPt;
-        Eigen::Vector2f rel_pt_vec;
+        // float range_i = 0.0;
+        // float theta_i = 0.0;
+        // Eigen::Vector2f scanPt;
+        // Eigen::Vector2f rel_pt_vec;
 
-        float nearest_dist = std::numeric_limits<float>::infinity();
+        // float nearest_dist = std::numeric_limits<float>::infinity();
 
         std::vector<float> scan2RbtDists(scan.ranges.size());
-        for (int i = 0; i < scan2RbtDists.size(); i++) 
+        // #pragma omp parallel for
+        // #pragma omp parallel for shared(scan2RbtDists, poseRbtFrameVec, poseHeading, scan)
+        // #pragma GCC ivdep  //https://gcc.gnu.org/onlinedocs/gcc/Loop-Specific-Pragmas.html
+        #pragma omp parallel for num_threads(4) // works
+        for (int i = 0; i < scan.ranges.size(); i++)
         {
-            range_i = scan.ranges.at(i);
-            theta_i = idx2theta(i);
-            scanPt << range_i * cos(theta_i), range_i * sin(theta_i);
-            
-            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
-            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
-            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
-
-            // range_i = range_i == 3 ? range_i + cfg_->traj.rmax : range_i;
-
-            // Iterate through robot boundary
-            
-            // float pt_ang = i * scan.angle_increment - M_PI;
-            // pt_ang = (pt_ang >= -M_PI) ? pt_ang : -M_PI;
-            // pt_ang = (pt_ang <= M_PI) ? pt_ang : M_PI;
-
-            // Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
-            // pt_vec = range_i * pt_vec;
-            
-            rel_pt_vec = scanPt - poseRbtFrameVec;
-            scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(orient_vec, rel_pt_vec);
-
-            if (scan2RbtDists.at(i) < nearest_dist) 
-            {
-                nearest_dist = scan2RbtDists.at(i);
-            }
+            float range_i = scan.ranges.at(i);
+            float theta_i = idx2theta(i);
+            Eigen::Vector2f scanPt(range_i * cos(theta_i), range_i * sin(theta_i));
+            Eigen::Vector2f rel_pt_vec = scanPt - poseRbtFrameVec;
+            scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(poseHeading, rel_pt_vec);
+            // if (scan2RbtDists.at(i) < nearest_dist)
+            // {
+            //     nearest_dist = scan2RbtDists.at(i);
+            // }
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Relative Point: " << rel_pt_vec.transpose());
+            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan to Robot Dist: " << scan2RbtDists.at(i));
         }
+        // for (int i = 0; i < scan2RbtDists.size(); i++) 
+        // {
+        //     float range_i = scan.ranges.at(i);
+        //     float theta_i = idx2theta(i);
+        //     Eigen::Vector2f scanPt(range_i * cos(theta_i), range_i * sin(theta_i));
+            
+        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
+        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
+        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
 
-        // auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
+        //     // range_i = range_i == 3 ? range_i + cfg_->traj.rmax : range_i;
+
+        //     // Iterate through robot boundary
+            
+        //     // float pt_ang = i * scan.angle_increment - M_PI;
+        //     // pt_ang = (pt_ang >= -M_PI) ? pt_ang : -M_PI;
+        //     // pt_ang = (pt_ang <= M_PI) ? pt_ang : M_PI;
+
+        //     // Eigen::Vector2f pt_vec(cos(pt_ang), sin(pt_ang));
+        //     // pt_vec = range_i * pt_vec;
+            
+        //     Eigen::Vector2f rel_pt_vec = scanPt - poseRbtFrameVec;
+        //     scan2RbtDists.at(i) = robotGeoProc_->getNearestDistance(poseHeading, rel_pt_vec);
+
+        //     // if (scan2RbtDists.at(i) < nearest_dist) 
+        //     // {
+        //     //     nearest_dist = scan2RbtDists.at(i);
+        //     // }
+        // }
+
+        auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
+        float nearest_dist = *iter;
 
         ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << nearest_dist);
 
