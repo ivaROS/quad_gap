@@ -36,18 +36,18 @@ namespace quad_gap
                 Eigen::Vector2f robot_ccw_n_vec = robot_.half_width * o_normal.normalized();
 
                 // 8 points ccw from -pi angle
-                Eigen::Vector2f p1 = -robot_f_vec;
-                Eigen::Vector2f p2 = -robot_f_vec - robot_ccw_n_vec;
-                Eigen::Vector2f p3 = -robot_ccw_n_vec;
-                Eigen::Vector2f p4 = robot_f_vec - robot_ccw_n_vec;
-                Eigen::Vector2f p5 = robot_f_vec;
-                Eigen::Vector2f p6 = robot_f_vec + robot_ccw_n_vec;
-                Eigen::Vector2f p7 = robot_ccw_n_vec;
-                Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
+                p1 = -robot_f_vec;
+                p2 = -robot_f_vec - robot_ccw_n_vec;
+                p3 = -robot_ccw_n_vec;
+                p4 = robot_f_vec - robot_ccw_n_vec;
+                p5 = robot_f_vec;
+                p6 = robot_f_vec + robot_ccw_n_vec;
+                p7 = robot_ccw_n_vec;
+                p8 = -robot_f_vec + robot_ccw_n_vec;
                 pt_list = {p1, p2, p3, p4, p5, p6, p7, p8};
 
                 distsForNearestDist_.resize(pt_list.size() + sample_size);
-                distsForEquivalentRL_.resize(pt_list.size() + sample_size);
+                distsForEquivalentRL_.resize(pt_list.size()); // + sample_size
             }
 
             bool initialized() { return initialized_; }
@@ -255,12 +255,12 @@ namespace quad_gap
                 }
             }
 
-            float getDecayEquivalentPL(Eigen::Vector2f& orientation_vec, Eigen::Vector2f& motion_vec, const float & dist)
-            {
-                float max_epl = getEquivalentPL(orientation_vec, motion_vec);
-                float min_epl = robot_.width;
-                return (max_epl - min_epl) * exp(-decay_factor_ * dist) + min_epl;
-            }
+            // float getDecayEquivalentPL(Eigen::Vector2f& orientation_vec, Eigen::Vector2f& motion_vec, const float & dist)
+            // {
+            //     float max_epl = getEquivalentPL(orientation_vec, motion_vec);
+            //     float min_epl = robot_.width;
+            //     return (max_epl - min_epl) * exp(-decay_factor_ * dist) + min_epl;
+            // }
 
             float getLinearDecayEquivalentPL(const Eigen::Vector2f & orientation_vec, 
                                                 Eigen::Vector2f & motion_vec, 
@@ -305,50 +305,50 @@ namespace quad_gap
 
             /*
             * @brief Get the nearest distance from the robot to a scan point. Accounts for the robot shape.
-            * @param orientation_vec The orientation vector of the robot.
-            * @param poseToScan The relative vector from the robot origin to the scan point.
+            * @param eTheta The orientation vector of the robot.
+            * @param poseToScanOrigRbtFrame The relative vector from the robot origin to the scan point.
             * @return The nearest distance from the robot to the scan point.
             *         If the point is inside the robot bounding box, return -1.
             *         If the point is outside the robot bounding box, return the distance.
             *         If the robot is a circle, return the distance from the point to the robot radius.
             *         If the robot is a box, return the distance from the point to the robot bounding box.
             */
-            float getNearestDistance(const Eigen::Vector2f & orientation_vec, const Eigen::Vector2f & poseToScan)
+            float getNearestDistance(const Eigen::Vector2f & eTheta, const Eigen::Vector2f & poseToScanOrigRbtFrame)
             {
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "[getNearestDistance()]");
 
                 // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Robot shape: " << robot_.shape);
-                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  orientation_vec: " << orientation_vec.transpose());
-                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  poseToScan: " << poseToScan.transpose());
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  eTheta: " << eTheta.transpose());
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  poseToScanOrigRbtFrame: " << poseToScanOrigRbtFrame.transpose());
 
                 if (robot_.shape == RobotShape::circle)
                 {
                     // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Robot is circle.");
-                    return poseToScan.norm() - robot_.radius;
+                    return poseToScanOrigRbtFrame.norm() - robot_.radius;
                 }
 
-                // poseToScan: relative vector from robot origin to scan point.
+                // poseToScanOrigRbtFrame: relative vector from robot origin to scan point (wrt original robot frame at t=0).
 
                 // distsForNearestDist_.clear();
 
-                float o_ang = atan2(orientation_vec[1], orientation_vec[0]);
+                float theta = atan2(eTheta[1], eTheta[0]);
 
-                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  o_ang: " << o_ang);
-                float rot_ang = 0.0 - o_ang;
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  theta: " << theta);
+                float negTheta = -theta;
 
-                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  rot_ang: " << rot_ang);
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  negTheta: " << negTheta);
 
-                // ????
+                // Transform the poseToScanOrigRbtFrame vector to the robot's coordinate system.
                 Eigen::Matrix2f rot;
-                rot << cos(rot_ang), -sin(rot_ang), 
-                        sin(rot_ang), cos(rot_ang);
+                rot << cos(negTheta), -sin(negTheta), 
+                        sin(negTheta), cos(negTheta);
                 
-                Eigen::Vector2f pt_new_vec = rot * poseToScan;
+                Eigen::Vector2f poseToScanCurrRbtFrame = rot * poseToScanOrigRbtFrame;
 
-                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  pt_new_vec: " << pt_new_vec.transpose());
+                // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  poseToScanCurrRbtFrame: " << poseToScanCurrRbtFrame.transpose());
 
-                if (std::abs(pt_new_vec[0]) < robot_.half_length && 
-                    std::abs(pt_new_vec[1]) < robot_.half_width)
+                if (std::abs(poseToScanCurrRbtFrame[0]) < robot_.half_length && 
+                    std::abs(poseToScanCurrRbtFrame[1]) < robot_.half_width)
                 {
                     // ROS_INFO_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
                     // ROS_WARN_STREAM_NAMED("RobotGeometryProcessor", "  Point is inside the robot bounding box.");
@@ -356,33 +356,21 @@ namespace quad_gap
                     return -1;
                 }
 
-                // if  (pt_new_vec[0] > (-robot_.half_length) && 
-                //      pt_new_vec[0] < (robot_.half_length) && 
-                //      pt_new_vec[1] > (-robot_.half_width) && 
-                //      pt_new_vec[1] < (robot_.half_width))
+                // float ang = 0.0;
+                // Eigen::Vector2f i_vec;
+                // float dist = 0.0;
+                // Eigen::Vector2f i_bound;
+                // for (size_t i = 0; i < sample_size; i++)
                 // {
-                //     return -1;
+                //     ang = idx2theta(i);
+                //     i_vec << cos(ang), sin(ang);
+
+                //     dist = getEquivalentR(robotOrientationVector, i_vec);
+
+                //     i_bound = dist * i_vec;
+
+                //     distsForNearestDist_.at(i) = (poseToScanCurrRbtFrame - i_bound).norm();
                 // }
-                
-                // Eigen::Vector2f o_new_vec(1, 0);
-
-                float ang = 0.0;
-                Eigen::Vector2f i_vec;
-                float dist = 0.0;
-                Eigen::Vector2f i_bound;
-                for (size_t i = 0; i < sample_size; i++)
-                {
-                    ang = idx2theta(i); // i * res - M_PI;
-                    // ang = (ang <= M_PI) ? ang : M_PI;
-                    // ang = (ang >= -M_PI) ? ang : -M_PI;
-
-                    i_vec << cos(ang), sin(ang);
-                    dist = getEquivalentR(robotOrientationVector, i_vec);
-
-                    i_bound = dist * i_vec;
-
-                    distsForNearestDist_.at(i) = (pt_new_vec - i_bound).norm();
-                }
 
                 // 8 corner points
                 // Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
@@ -399,19 +387,52 @@ namespace quad_gap
                 // Eigen::Vector2f p7 = robot_ccw_n_vec;
                 // Eigen::Vector2f p8 = -robot_f_vec + robot_ccw_n_vec;
 
-                Eigen::Vector2f pt_vec_global;
-                for (int i = 0; i < pt_list.size(); i++)
-                {
-                    pt_vec_global = pt_new_vec - pt_list[i];
-                    distsForNearestDist_.at(i + sample_size) = pt_vec_global.norm();
-                }
-                // for (const Eigen::Vector2f & pt : pt_list)
+                // Eigen::Vector2f pt_vec_global;
+                // for (int i = 0; i < pt_list.size(); i++)
                 // {
-                //     pt_vec_global = pt_new_vec - pt;
-                //     dists.push_back(pt_vec_global.norm());
+                //     pt_vec_global = poseToScanCurrRbtFrame - pt_list[i];
+                //     distsForNearestDist_.at(i + sample_size) = pt_vec_global.norm();
                 // }
 
-                return *std::min_element(distsForNearestDist_.begin(), distsForNearestDist_.end());
+                float thetaCurr = std::atan2(poseToScanCurrRbtFrame[1], poseToScanCurrRbtFrame[0]);
+
+                if (thetaCurr > -M_PI_OVER_FOUR && thetaCurr <= M_PI_OVER_FOUR)
+                {
+                    return pointToLineSegmentDistance(p4, p6, poseToScanCurrRbtFrame);
+                } else if (thetaCurr > M_PI_OVER_FOUR && thetaCurr <= 3 * M_PI_OVER_FOUR)
+                {
+                    return pointToLineSegmentDistance(p6, p8, poseToScanCurrRbtFrame);
+                } else if (thetaCurr > -THREE_M_PI_OVER_FOUR && thetaCurr <= -M_PI_OVER_FOUR)
+                {
+                    return pointToLineSegmentDistance(p2, p4, poseToScanCurrRbtFrame);
+                } else
+                {
+                    return pointToLineSegmentDistance(p8, p2, poseToScanCurrRbtFrame);
+                }
+
+                // float min_dist = *std::min_element(distsForNearestDist_.begin(), distsForNearestDist_.end());
+
+                // return min_dist;
+            }
+
+            float pointToLineSegmentDistance(const Eigen::Vector2f & line_start, 
+                                                const Eigen::Vector2f & line_end,
+                                                const Eigen::Vector2f & point)
+            {
+                // Calculate the distance from the point to the line segment defined by line_start and line_end
+                Eigen::Vector2f line_vec = line_end - line_start;
+                Eigen::Vector2f point_vec = point - line_start;
+
+                float line_length_squared = line_vec.squaredNorm();
+                // if (line_length_squared == 0.0) // Line segment is a point
+                // {
+                //     return (point - line_start).norm();
+                // }
+
+                float t = std::max(0.0f, std::min(1.0f, point_vec.dot(line_vec) / line_length_squared));
+                Eigen::Vector2f projection = line_start + t * line_vec;
+
+                return (point - projection).norm();
             }
 
             float getRobotMaxRadius()
@@ -480,7 +501,7 @@ namespace quad_gap
             Robot robot_;
             float decay_factor_ = 0;
             bool initialized_ = false;
-            // Eigen::Vector2f p1, p2, p3, p4, p5, p6, p7, p8;
+            Eigen::Vector2f p1, p2, p3, p4, p5, p6, p7, p8;
             std::vector<Eigen::Vector2f> pt_list;
 
             int sample_size = 0; // 20; // TOO SLOW

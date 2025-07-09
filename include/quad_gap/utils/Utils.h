@@ -85,7 +85,8 @@ namespace quad_gap
 
     static float TWO_M_PI = 2*M_PI; /**< 2 * pi */
     static float M_PI_OVER_TWO = M_PI / 2.0; /**< pi / 2 */
-    // static float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
+    static float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
+    static float THREE_M_PI_OVER_FOUR = 3.0 * M_PI / 4.0; /**< 3 * pi / 4 */
 
     static int half_num_scan = 256; /**< Half of total rays in scan */
     static float angle_increment = (TWO_M_PI) / (2*half_num_scan - 1); /**< Angular increment of scan */
