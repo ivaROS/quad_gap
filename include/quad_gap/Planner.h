@@ -262,10 +262,6 @@ namespace quad_gap
             // bool collision_checker_enable_ = false;
             // int cc_type_ = -1;
 
-            using Mutex = boost::mutex;
-            using Lock = Mutex::scoped_lock;
-            Mutex connect_mutex_;
-
             // typedef dynamic_reconfigure::Server<CollisionCheckerConfig> ReconfigureServer;
             // std::shared_ptr<ReconfigureServer> reconfigure_server_;
 
@@ -370,10 +366,16 @@ namespace quad_gap
             // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
 
             // bool replan = true;
+
+            ros::Time lastScanTime_;
+            ros::Time currScanTime_;
+            ros::Time lastPlanTime_;
+            ros::Time currPlanTime_;
             
             QuadGapConfig cfg_;
 
             boost::mutex gapMutex_;
+            boost::mutex tfMutex_;
 
             Trajectory currTraj_;
 

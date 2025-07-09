@@ -166,8 +166,8 @@ namespace quad_gap
 
         Eigen::Vector2f mid = 0.5 * (rightPt + leftPt);
         // Eigen::Vector2f robot_orient(1,0);
-        float equivPassingLength = float(robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, mid, mid.norm()));
-        float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, mid, mid.norm()));
+        float equivPassingLength = robotGeoProc_->getLinearDecayEquivalentPL(mid);
+        float equivRadialLength = float(robotGeoProc_->getLinearDecayEquivalentRL(mid, mid.norm()));
 
         float nomPivotAngle = (float) std::atan2(0.5 * equivPassingLength * cfg_->gap_manip.rot_ratio, 0.5 * equivRadialLength);
         
@@ -529,8 +529,8 @@ namespace quad_gap
 
         Eigen::Vector2f midPt = 0.5 * (leftPt + rightPt);
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
-        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, midPt, midPt.norm());
-                
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(midPt);
+
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [inflateGapSides()]");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
         ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");

@@ -163,8 +163,8 @@ namespace quad_gap
         std::vector<float> scan2RbtDists(scan.ranges.size());
         for (int i = 0; i < scan2RbtDists.size(); i++) 
         {
-            float range_i = scan.ranges.at(i);
-            float theta_i = idx2theta(i);
+            range_i = scan.ranges.at(i);
+            theta_i = idx2theta(i);
             scanPt << range_i * cos(theta_i), range_i * sin(theta_i);
             
             ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);

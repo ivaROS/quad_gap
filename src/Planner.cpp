@@ -157,6 +157,13 @@ namespace quad_gap
 
         int bufferSize = 5;
         cmdVelBuffer.set_capacity(bufferSize);
+
+        currScanTime_ = ros::Time::now();
+        lastScanTime_ = currScanTime_;
+
+        currPlanTime_ = ros::Time::now();
+        lastPlanTime_ = currPlanTime_;
+
         return true;
     }
 
@@ -242,6 +249,10 @@ namespace quad_gap
         //////// SCAN PRE-PROCESSING ////////
         /////////////////////////////////////
 
+        currScanTime_ = scanSensorFrame->header.stamp;
+        ROS_INFO_STREAM_NAMED("Scan", "     Current scan time: " << currScanTime_);
+        ROS_INFO_STREAM_NAMED("Scan", "     Time since last scan: " << (currScanTime_ - lastScanTime_).toSec() << " seconds");
+
         gapDetector_->preprocessScan(scanSensorFrame);
 
         scanRbtFrame_ = transformLaserToRbt(scanSensorFrame);
@@ -324,6 +335,8 @@ namespace quad_gap
         // store current gaps as previous gaps
         prevRawGaps_ = currRawGaps_;
         prevSimpGaps_ = currSimpGaps_;
+
+        lastScanTime_ = currScanTime_;
 
         timeKeeper_->stopTimer(SCAN);
     }
@@ -472,6 +485,7 @@ namespace quad_gap
 
     void Planner::tfCB(const tf2_msgs::TFMessage& msg)
     {
+        boost::mutex::scoped_lock tfset(tfMutex_);
         // ROS_INFO_STREAM_NAMED("Planner", "[tfCB()]");
 
         try 
@@ -1079,6 +1093,10 @@ namespace quad_gap
     {
         ROS_INFO_STREAM_NAMED("Planner", "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
 
+        currPlanTime_ = ros::Time::now();
+        ROS_INFO_STREAM_NAMED("Timing", "Current planning time: " << currPlanTime_);
+        ROS_INFO_STREAM_NAMED("Timing", "Time since last plan: " << (currPlanTime_ - lastPlanTime_).toSec() << " seconds");
+
         if (!initialized_ || !hasLaserScan_ || !hasGlobalGoal_)
         {
             ROS_WARN_STREAM_NAMED("Planner", "Not ready to plan, initialized: " << initialized_ << ", laser scan: " << hasLaserScan_ << ", global goal: " << hasGlobalGoal_);
@@ -1233,7 +1251,9 @@ namespace quad_gap
             delete planningGap;
 
         timeKeeper_->stopTimer(PLAN);
-        timeKeeper_->computeAverageNumberGaps(gapCount);        
+        timeKeeper_->computeAverageNumberGaps(gapCount);      
+        
+        lastPlanTime_ = currPlanTime_;
 
         return chosenTraj;
     }

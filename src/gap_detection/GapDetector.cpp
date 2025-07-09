@@ -76,7 +76,7 @@ namespace quad_gap
 
         Eigen::Vector2f midPt = 0.5 * (currPt + prevPt);
 
-        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, midPt, midPt.norm());
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(midPt);
 
         // Fine for gap detection since angle goes from -pi to pi
         float gapAngle = std::abs(currTheta - prevTheta);
@@ -259,16 +259,15 @@ namespace quad_gap
             auto minIntergapRangeIter = std::min_element(scan_.ranges.begin() + startIdx, scan_.ranges.begin() + endIdx);
             float minIntergapRange = *minIntergapRangeIter;
             int minIntergapIdx = minIntergapRangeIter - scan_.ranges.begin();
-            
-            float farside_angle = idx2theta(minIntergapIdx);
-            Eigen::Vector2f farside_vec(cos(farside_angle), sin(farside_angle));
+            float minInterpgapTheta = idx2theta(minIntergapIdx);
+            Eigen::Vector2f minIntergapVec(cos(minInterpgapTheta), sin(minInterpgapTheta));
 
             // TODO: what number to use? Currently, use the max radius. The merging will not happen frequently.
             // float max_r_er = robotGeoProc_->getRobotMaxRadius();
             
 
-            float erlLRange = robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, currLRange);
-            float erlRRange = robotGeoProc_->getLinearDecayEquivalentRL(robotOrientationVector, farside_vec, simplifiedGaps[j]->RRange());
+            float erlLRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapVec, currLRange);
+            float erlRRange = robotGeoProc_->getLinearDecayEquivalentRL(minIntergapVec, simplifiedGaps[j]->RRange());
             bool second_test = currLRange <= (minIntergapRange - erlLRange) && simplifiedGaps[j]->RRange() <= (minIntergapRange - erlRRange);
             
             

@@ -7,14 +7,12 @@ Panels:
         - /TrackedPersons1/History as line1
         - /Dynamic Gap1
         - /Dynamic Gap1/Scans1
-        - /Dynamic Gap1/Gaps1
         - /Dynamic Gap1/Gaps1/Marker1
         - /Dynamic Gap1/Gaps1/Marker2
         - /Dynamic Gap1/Gaps1/Marker3
         - /Dynamic Gap1/Gaps1/Marker4
         - /Dynamic Gap1/Gaps1/Marker5
         - /Dynamic Gap1/Gaps1/Marker6
-        - /Dynamic Gap1/Trajectories1
         - /Dynamic Gap1/Trajectories1/MarkerArray2
         - /Dynamic Gap1/Trajectories1/MarkerArray3
         - /Dynamic Gap1/Trajectories1/MarkerArray4
@@ -241,7 +239,7 @@ Visualization Manager:
               Color: 239; 41; 41
               Color Transformer: FlatColor
               Decay Time: 0
-              Enabled: true
+              Enabled: false
               Invert Rainbow: false
               Max Color: 239; 41; 41
               Min Color: 0; 0; 0
@@ -256,7 +254,7 @@ Visualization Manager:
               Unreliable: false
               Use Fixed Frame: true
               Use rainbow: true
-              Value: true
+              Value: false
             - Alpha: 1
               Autocompute Intensity Bounds: true
               Autocompute Value Bounds:
@@ -346,7 +344,7 @@ Visualization Manager:
               Marker Topic: /rto/curr_exec_dg_traj
               Name: MarkerArray
               Namespaces:
-                currentTraj: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -362,7 +360,7 @@ Visualization Manager:
               Marker Topic: /rto/candidate_trajectories
               Name: MarkerArray
               Namespaces:
-                allTraj: true
+                {}
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -370,10 +368,10 @@ Visualization Manager:
               Marker Topic: /rto/relevant_global_plan_snippet
               Name: MarkerArray
               Namespaces:
-                globalPlanSnippet: true
+                {}
               Queue Size: 100
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Trajectories
         - Class: rviz/Group
           Displays:
@@ -382,10 +380,10 @@ Visualization Manager:
               Marker Topic: /rto/po_dir
               Name: Marker
               Namespaces:
-                "": true
+                {}
               Queue Size: 100
               Value: true
-          Enabled: true
+          Enabled: false
           Name: Tracking
         - Class: rviz/Marker
           Enabled: true

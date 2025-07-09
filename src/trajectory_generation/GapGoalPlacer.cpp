@@ -37,7 +37,7 @@ namespace quad_gap
         // Eigen::Vector2f orient_vec(1, 0);
         Eigen::Vector2f pMid = 0.5 * (pLeft + pRight);
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
-        float epl = robotGeoProc_->getLinearDecayEquivalentPL(robotOrientationVector, pMid, pMid.norm());
+        float epl = robotGeoProc_->getLinearDecayEquivalentPL(pMid);
         
         // Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         // float thetaRight = car2pol(lr)(1);
