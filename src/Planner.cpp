@@ -592,10 +592,11 @@ namespace quad_gap
 
         try 
         {
-            Trajectory gapTraj;
             for (size_t i = 0; i < gaps.size(); i++) 
             {
                 ROS_INFO_STREAM_NAMED("Planner", "   Generating trajectory for gap " << i);
+
+                Trajectory gapTraj;
 
                 // std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();        
 
@@ -710,8 +711,8 @@ namespace quad_gap
         
         try 
         {
-            if (omp_get_dynamic()) 
-                omp_set_dynamic(0);
+            // if (omp_get_dynamic()) 
+            //     omp_set_dynamic(0);
             
             for (size_t i = 0; i < gapTrajCosts.size(); i++) 
             {

@@ -151,7 +151,7 @@ namespace quad_gap
         // #pragma omp parallel for
         // #pragma omp parallel for shared(scan2RbtDists, poseRbtFrameVec, poseHeading, scan)
         // #pragma GCC ivdep  //https://gcc.gnu.org/onlinedocs/gcc/Loop-Specific-Pragmas.html
-        #pragma omp parallel for num_threads(4) // works
+        #pragma omp parallel for num_threads(4) // works sometimes? Unclear.
         for (int i = 0; i < scan.ranges.size(); i++)
         {
             float range_i = scan.ranges.at(i);

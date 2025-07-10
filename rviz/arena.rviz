@@ -344,7 +344,7 @@ Visualization Manager:
               Marker Topic: /rto/curr_exec_dg_traj
               Name: MarkerArray
               Namespaces:
-                {}
+                currentTraj: true
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -360,7 +360,7 @@ Visualization Manager:
               Marker Topic: /rto/candidate_trajectories
               Name: MarkerArray
               Namespaces:
-                {}
+                allTraj: true
               Queue Size: 100
               Value: true
             - Class: rviz/MarkerArray
@@ -368,10 +368,10 @@ Visualization Manager:
               Marker Topic: /rto/relevant_global_plan_snippet
               Name: MarkerArray
               Namespaces:
-                {}
+                globalPlanSnippet: true
               Queue Size: 100
               Value: true
-          Enabled: false
+          Enabled: true
           Name: Trajectories
         - Class: rviz/Group
           Displays:
@@ -380,10 +380,10 @@ Visualization Manager:
               Marker Topic: /rto/po_dir
               Name: Marker
               Namespaces:
-                {}
+                "": true
               Queue Size: 100
               Value: true
-          Enabled: false
+          Enabled: true
           Name: Tracking
         - Class: rviz/Marker
           Enabled: true
