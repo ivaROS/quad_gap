@@ -2,10 +2,10 @@
 #include <quad_gap/QuadGapPlanner.h>
 
 // MBF return codes
-#include <mbf_msgs/ExePathResult.h>
+// #include <mbf_msgs/ExePathResult.h>
 
 // #include <quad_gap/utils/Gap.h>
-#include <pluginlib/class_list_macros.h>
+// #include <pluginlib/class_list_macros.h>
 
 // #include <visualization_msgs/msg/marker.h>
 // #include <visualization_msgs/msg/marker_array.h>
@@ -19,16 +19,21 @@
 // using namespace boost::numeric::odeint;
 // namespace pl = std::placeholders;
 
-PLUGINLIB_EXPORT_CLASS(quad_gap::QuadGapPlanner, nav_core::BaseLocalPlanner)
-
 namespace quad_gap 
 {
-    void QuadGapPlanner::initialize(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros)
+    void QuadGapPlanner::configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr & parent,
+                                    std::string name, 
+                                    const std::shared_ptr<tf2_ros::Buffer> tf,
+                                    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
     {
-        ROS_INFO_STREAM_NAMED("Planner", "Initializing Planner with name: " << name);
+        // RCLCPP_INFO_STREAM(logger_,  "Initializing Planner with name: " << name);
         
-        planner_name = name;
-        planner.initialize(planner_name);
+        node_ = parent;
+        auto node = node_.lock();
+        logger_ = node->get_logger();
+
+        // planner_name = name;
+        // planner.initialize(planner_name);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 
@@ -38,114 +43,164 @@ namespace quad_gap
         // dynamic_recfg_server->setCallback(f);
     }
 
-    bool QuadGapPlanner::computeVelocityCommands(geometry_msgs::Twist & cmdVel)
+    void QuadGapPlanner::cleanup()
     {
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::computeVelocityCommands(twist)]");
-
-        std::string dummy_message;
-        geometry_msgs::PoseStamped dummy_pose;
-        geometry_msgs::TwistStamped dummy_velocity, cmd_vel_stamped;
-
-        bool outcome = computeVelocityCommands(dummy_pose, dummy_velocity, cmd_vel_stamped, dummy_message);
-
-        cmdVel = cmd_vel_stamped.twist;
-
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "computeVelocityCommands cmdVel: ");
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "                linear: ");
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "                  x: " << cmdVel.linear.x << ", y: " << cmdVel.linear.y << ", z: " << cmdVel.linear.z);
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "                angular: ");
-        ROS_INFO_STREAM_NAMED("QuadGapPlanner", "                  x: " << cmdVel.angular.x << ", y: " << cmdVel.angular.y << ", z: " << cmdVel.angular.z);
-
-        // TODO: just hardcoding this now, need to revise
-        bool success = 1;
-
-        return success;
+        RCLCPP_INFO_STREAM(logger_,  "Cleaning up Planner");
     }
 
-    uint32_t QuadGapPlanner::computeVelocityCommands(const geometry_msgs::PoseStamped& pose,
-                                                        const geometry_msgs::TwistStamped& velocity,
-                                                        geometry_msgs::TwistStamped &cmd_vel,
-                                                        std::string &message)
+    void QuadGapPlanner::activate()
     {
-        if (!planner.initialized())
-        {
-            planner.initialize(planner_name);
-            ROS_WARN_STREAM_NAMED("QuadGapPlanner", "computerVelocity called before initializing planner");
-        }
+        RCLCPP_INFO_STREAM(logger_,  "Activating Planner");
+    }
 
-        // if (planner.ccEnabled() && !planner.getCCWrapper()->isReady())
+    void QuadGapPlanner::deactivate()
+    {
+        RCLCPP_INFO_STREAM(logger_,  "Deactivating Planner");
+    }
+
+    void QuadGapPlanner::setSpeedLimit(const double& speed_limit, 
+                                        const bool& percentage)
+    {
+        (void) speed_limit;
+        (void) percentage;
+    }
+
+    geometry_msgs::msg::TwistStamped QuadGapPlanner::computeVelocityCommands(const geometry_msgs::msg::PoseStamped & pose,
+                                                                                const geometry_msgs::msg::Twist & velocity,
+                                                                                nav2_core::GoalChecker * goal_checker)
+    {
+        RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]");
+
+        geometry_msgs::msg::TwistStamped cmd_vel;
+
+        // if (!planner.initialized())
         // {
-        //     ROS_ERROR("CC NOT READY");
-        //     return false;
+        //     planner.initialize(planner_name);
+        //     ROS_WARN_STREAM_NAMED("QuadGapPlanner", "computerVelocity called before initializing planner");
         // }
 
-        planner.setReachedGlobalGoal(false);
+        // // std::string dummy_message;
+        // // geometry_msgs::PoseStamped dummy_pose;
+        // // geometry_msgs::TwistStamped dummy_velocity, cmd_vel_stamped;
 
-        Trajectory finalTraj = planner.runPlanningLoop();
+        // // bool outcome = computeVelocityCommands(dummy_pose, dummy_velocity, cmd_vel_stamped, dummy_message);
 
-        if (planner.isGoalReached())
-        {
-            cmd_vel.twist = geometry_msgs::Twist();
-            return mbf_msgs::ExePathResult::SUCCESS;
-        }        
+        // // cmdVel = cmd_vel_stamped.twist;
 
-        geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(finalTraj);
+        // planner.setReachedGlobalGoal(false);
 
-        cmd_vel.twist = cmdVelNoStamp;
+        // Trajectory finalTraj = planner.runPlanningLoop();
 
-        bool acceptedCmdVel = planner.recordAndCheckVel(cmdVelNoStamp);  
-        
-        /*
-        *         SUCCESS           = 0
-        *         1..9 are reserved as plugin specific non-error results
-        *         FAILURE           = 100  # Unspecified failure, only used for old, non-mfb_core based plugins
-        *         CANCELED          = 101
-        *         NO_VALID_CMD      = 102
-        *         PAT_EXCEEDED      = 103
-        *         COLLISION         = 104
-        *         OSCILLATION       = 105
-        *         ROBOT_STUCK       = 106
-        *         MISSED_GOAL       = 107
-        *         MISSED_PATH       = 108
-        *         BLOCKED_GOAL      = 109
-        *         BLOCKED_PATH      = 110
-        *         INVALID_PATH      = 111
-        *         TF_ERROR          = 112
-        *         NOT_INITIALIZED   = 113
-        *         INVALID_PLUGIN    = 114
-        *         INTERNAL_ERROR    = 115
-        *         OUT_OF_MAP        = 116  # The start and / or the goal are outside the map
-        *         MAP_ERROR         = 117  # The map is not running properly
-        *         STOPPED           = 118  # The controller execution has been stopped rigorously
-        */        
-        if (acceptedCmdVel)
-            return mbf_msgs::ExePathResult::SUCCESS;
-        else
-            return mbf_msgs::ExePathResult::FAILURE;        
-        
+        // if (planner.isGoalReached())
+        // {
+        //     cmd_vel.twist = geometry_msgs::Twist();
+        //     return mbf_msgs::ExePathResult::SUCCESS;
+        // }        
+
+        // cmd_vel.twist = planner.ctrlGeneration(finalTraj);
+
+        // bool acceptedCmdVel = planner.recordAndCheckVel(cmd_vel);  
+
+        // RCLCPP_INFO_STREAM(logger_,  "computeVelocityCommands cmdVel: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                linear: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.linear.x << ", y: " << cmd_vel.twist.linear.y << ", z: " << cmd_vel.twist.linear.z);
+        // RCLCPP_INFO_STREAM(logger_,  "                angular: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.angular.x << ", y: " << cmd_vel.twist.angular.y << ", z: " << cmd_vel.twist.angular.z);
+
+        // // TODO: just hardcoding this now, need to revise
+        // bool success = 1;
+
+        // return success;
+        return cmd_vel;
     }
 
-    bool QuadGapPlanner::isGoalReached()
+    // uint32_t QuadGapPlanner::computeVelocityCommands(const geometry_msgs::PoseStamped& pose,
+    //                                                     const geometry_msgs::TwistStamped& velocity,
+    //                                                     geometry_msgs::TwistStamped &cmd_vel,
+    //                                                     std::string &message)
+    // {
+    //     if (!planner.initialized())
+    //     {
+    //         planner.initialize(planner_name);
+    //         ROS_WARN_STREAM_NAMED("QuadGapPlanner", "computerVelocity called before initializing planner");
+    //     }
+
+    //     // if (planner.ccEnabled() && !planner.getCCWrapper()->isReady())
+    //     // {
+    //     //     ROS_ERROR("CC NOT READY");
+    //     //     return false;
+    //     // }
+
+    //     planner.setReachedGlobalGoal(false);
+
+    //     Trajectory finalTraj = planner.runPlanningLoop();
+
+    //     if (planner.isGoalReached())
+    //     {
+    //         cmd_vel.twist = geometry_msgs::Twist();
+    //         return mbf_msgs::ExePathResult::SUCCESS;
+    //     }        
+
+    //     geometry_msgs::Twist cmdVelNoStamp = planner.ctrlGeneration(finalTraj);
+
+    //     cmd_vel.twist = cmdVelNoStamp;
+
+    //     bool acceptedCmdVel = planner.recordAndCheckVel(cmdVelNoStamp);  
+        
+    //     /*
+    //     *         SUCCESS           = 0
+    //     *         1..9 are reserved as plugin specific non-error results
+    //     *         FAILURE           = 100  # Unspecified failure, only used for old, non-mfb_core based plugins
+    //     *         CANCELED          = 101
+    //     *         NO_VALID_CMD      = 102
+    //     *         PAT_EXCEEDED      = 103
+    //     *         COLLISION         = 104
+    //     *         OSCILLATION       = 105
+    //     *         ROBOT_STUCK       = 106
+    //     *         MISSED_GOAL       = 107
+    //     *         MISSED_PATH       = 108
+    //     *         BLOCKED_GOAL      = 109
+    //     *         BLOCKED_PATH      = 110
+    //     *         INVALID_PATH      = 111
+    //     *         TF_ERROR          = 112
+    //     *         NOT_INITIALIZED   = 113
+    //     *         INVALID_PLUGIN    = 114
+    //     *         INTERNAL_ERROR    = 115
+    //     *         OUT_OF_MAP        = 116  # The start and / or the goal are outside the map
+    //     *         MAP_ERROR         = 117  # The map is not running properly
+    //     *         STOPPED           = 118  # The controller execution has been stopped rigorously
+    //     */        
+    //     if (acceptedCmdVel)
+    //         return mbf_msgs::ExePathResult::SUCCESS;
+    //     else
+    //         return mbf_msgs::ExePathResult::FAILURE;        
+    // }
+
+    // bool QuadGapPlanner::isGoalReached()
+    // {
+    //     // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::isGoalReached()]");
+
+    //     return planner.isGoalReached();
+    // }
+
+    void QuadGapPlanner::setPlan(const nav_msgs::msg::Path & path)
     {
-        // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::isGoalReached()]");
+        // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::setPlan()]");
 
-        return planner.isGoalReached();
-    }
+        // if (!planner.initialized())
+        // {
+        //     return false;
+        // } else
+        // {
+        //     return planner.setPlan(path.poses);
+        // }
 
-    bool QuadGapPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlanMapFrame)
-    {
-        // ROS_INFO_STREAM_NAMED("QuadGapPlanner", "[QuadGapPlanner::setPlan()]");
-
-        if (!planner.initialized())
-        {
-            return false;
-        } else
-        {
-            return planner.setPlan(globalPlanMapFrame);
-        }
+        return;
 
         // 0: fail, 1: success
         // return 1;
     }
 
 }
+
+PLUGINLIB_EXPORT_CLASS(quad_gap::QuadGapPlanner, nav2_core::Controller)
