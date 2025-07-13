@@ -78,9 +78,9 @@ namespace quad_gap
         cfg_.loadRosParamFromNodeHandle(name);
 
         // Load precomputed robot geo
-        std::string file_name = ros::package::getPath("quad_gap") + "/config/box_1_geometry.yaml";
-        unh.getParam("file_name", file_name);
-        unh.setParam("file_name", file_name);
+        // std::string file_name = ros::package::getPath("quad_gap") + "/config/box_1_geometry.yaml";
+        // unh.getParam("file_name", file_name);
+        // unh.setParam("file_name", file_name);
 
         RobotShape robot_shape = static_cast<RobotShape>(cfg_.rbt.shape_id);
         if (robot_shape == RobotShape::circle)
@@ -88,10 +88,10 @@ namespace quad_gap
 
         robot_ = Robot(robot_shape, cfg_.rbt.length, cfg_.rbt.width, cfg_.rbt.avg_lin_speed, cfg_.rbt.avg_rot_speed);
 
-        if (cfg_.rbt.use_geo_storage)
-            robotGeoStorage_ = RobotGeometryStorage(file_name);
-        else
-            robotGeoProc_ = RobotGeometryProcessor(robot_, cfg_.planning.decay_factor);
+        // if (cfg_.rbt.use_geo_storage)
+        //     robotGeoStorage_ = RobotGeometryStorage(file_name);
+        // else
+        robotGeoProc_ = RobotGeometryProcessor(robot_, cfg_.planning.decay_factor);
         
         // Visualization Setup
         transformed_laser_pub = nh.advertise<sensor_msgs::LaserScan>("transformed_laserscan", 5);

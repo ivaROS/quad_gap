@@ -1,7 +1,8 @@
 #pragma once
 
-#include <ros/ros.h>
-#include <visualization_msgs/Marker.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <visualization_msgs/msg/marker.h>
 
 namespace quad_gap
 {

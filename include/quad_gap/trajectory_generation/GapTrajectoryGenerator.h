@@ -1,14 +1,15 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <boost/numeric/odeint.hpp>
 
 // #include <traj_generator.h>
 // #include <turtlebot_trajectory_generator/near_identity.h>
-#include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/msg/pose_array.h>
+#include <geometry_msgs/msg/twist_stamped.h>
 #include <quad_gap/trajectory_generation/TrajectorySynthesisMethods.h>
-#include <ros/ros.h>
 #include <math.h>
 #include <quad_gap/utils/Trajectory.h>
 #include <quad_gap/utils/Gap.h>
@@ -24,9 +25,9 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/msg/laser_scan.h>
 #include <boost/shared_ptr.hpp>
-#include <nav_msgs/Odometry.h>
+#include <nav_msgs/msg/odometry.h>
 #include <quad_gap/trajectory_generation/Bezier.h>
 
 #include <quad_gap/utils/RobotGeometryProcessor.h>

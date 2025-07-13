@@ -7,8 +7,8 @@
 // #include <quad_gap/utils/Gap.h>
 #include <pluginlib/class_list_macros.h>
 
-// #include <visualization_msgs/Marker.h>
-// #include <visualization_msgs/MarkerArray.h>
+// #include <visualization_msgs/msg/marker.h>
+// #include <visualization_msgs/msg/marker_array.h>
 
 // #include <boost/numeric/odeint.hpp>
 // #include <Eigen/Core>

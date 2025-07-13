@@ -1,0 +1,10 @@
+<class_libraries>
+    <library path="quad_gap">
+        <class type="quad_gap::QuadGapPlanner" base_class_type="nav2_core::Controller">
+            <description>
+                quad_gap
+            </description>
+        </class>
+    </library>
+</class_libraries>
+

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <vector>
-#include <tf/tf.h>
+// #include <tf/tf.h>
 
 namespace quad_gap 
 {
@@ -22,58 +23,58 @@ namespace quad_gap
     // {
     //     if (condition)
     //     {
-    //         ROS_ERROR_STREAM_NAMED("Parameters", message);
+    //         RCLCPP_ERROR_STREAM(node->get_logger(),  message);
     //         throw std::runtime_error(message);
     //     }
     // }
     
-    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, bool & param)
+    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, bool & param)
     {
         // format: key, value, default value
 
-        if (!nh.getParam(param_name, param))
+        if (!node->get_parameter(param_name, param))
         {
-            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
     
-    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, std::string & param)
+    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, std::string & param)
     {
-        if (!nh.getParam(param_name, param))
+        if (!node->get_parameter(param_name, param))
         {
-            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
 
-    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, float & param)
+    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, float & param)
     {
-        if (!nh.getParam(param_name, param))
+        if (!node->get_parameter(param_name, param))
         {
-            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
 
-    inline void ros_throw_param_load(const ros::NodeHandle & nh, const std::string & param_name, int & param)
+    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, int & param)
     {
-        if (!nh.getParam(param_name, param))
+        if (!node->get_parameter(param_name, param))
         {
-            ROS_ERROR_STREAM_NAMED("Parameters", "Couldn't find parameter: " << param_name);
+            RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            ROS_INFO_STREAM_NAMED("Parameters", "Loaded parameter: " << param_name << " = " << param);
+            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }    
     
@@ -243,17 +244,6 @@ namespace quad_gap
     * \param quat incoming quaternion
     * \return yaw angle
     */
-    inline float quaternionToYaw(const tf::Quaternion & quat)
-    {
-        return std::atan2(2.0 * (quat.w() * quat.z() + quat.x() * quat.y()), 
-                            1 - 2.0 * (quat.y() * quat.y() + quat.z() * quat.z()));
-    }
-
-    /**
-    * \brief Helper for extracting yaw angle from quaternion
-    * \param quat incoming quaternion
-    * \return yaw angle
-    */
     inline float quaternionToYaw(const tf2::Quaternion & quat)
     {
         return std::atan2(2.0 * (quat.w() * quat.z() + quat.x() * quat.y()), 
@@ -265,7 +255,7 @@ namespace quad_gap
     * \param quat incoming quaternion
     * \return yaw angle
     */
-    inline float quaternionToYaw(const geometry_msgs::Quaternion & quat)
+    inline float quaternionToYaw(const geometry_msgs::msg::Quaternion & quat)
     {
         return std::atan2(2.0 * (quat.w * quat.z + quat.x * quat.y), 
                             1 - 2.0 * (quat.y * quat.y + quat.z * quat.z));

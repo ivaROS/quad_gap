@@ -1,12 +1,14 @@
 #pragma once
 
-#include <ros/console.h>
-#include <ros/ros.h>
+// #include <ros/console.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 // #include <quad_gap/qgConfig.h>
 #include <Eigen/Core>
 #include <boost/thread/mutex.hpp>
 
-#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/msg/laser_scan.h>
 #include <boost/shared_ptr.hpp>
 
 #include <quad_gap/utils/Utils.h>  

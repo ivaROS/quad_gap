@@ -1,12 +1,14 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <vector>
-#include "geometry_msgs/PoseArray.h"
-#include <geometry_msgs/PoseStamped.h>
-#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/msg/pose_array.h"
+#include <geometry_msgs/msg/pose_stamped.h>
+#include "geometry_msgs/msg/twist.h"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 

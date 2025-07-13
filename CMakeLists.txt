@@ -3,6 +3,10 @@ project(quad_gap)
 
 add_compile_options(-std=c++17)
 
+##########
+# OpenMP #
+##########
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 
 find_package(OpenMP REQUIRED)
@@ -12,57 +16,48 @@ if(OPENMP_FOUND)
   set(OpenMP_LIBS gomp)
 endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  base_local_planner
-  pluginlib
-  geometry_msgs
-  nav_msgs
-  roscpp
-  rospy
-  std_msgs
-  pips_trajectory_msgs
-  # message_generation
-  mbf_costmap_core
-  pips_trajectory_testing
-  turtlebot_trajectory_testing
-  pips_egocylindrical
-  pips_egocircle
+################
+# Dependencies #
+################
+set(dependencies
+    rclcpp
+    geometry_msgs
+    nav2_costmap_2d
+    pluginlib
+    nav_msgs
+    nav2_util
+    nav2_core
+    tf2
+  # pips_trajectory_testing
+  # turtlebot_trajectory_testing
+  # pips_egocylindrical
+  # pips_egocircle
   # dynamic_reconfigure
   # dynamic_reconfigure
   # benchmarking_tools
   # pips
+  # pips_trajectory_msgs
 )
+
+find_package(ament_cmake REQUIRED)
+
+foreach(dependency IN ITEMS ${dependencies})
+  find_package(${dependency} REQUIRED)
+endforeach()
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
-
-# generate_dynamic_reconfigure_options(
-#   cfg/qg.cfg
-#   cfg/CollisionChecker.cfg
-# )
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
   include
   ${EIGEN3_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
-  ${YAML_CPP_INCLUDE_DIR}
 )
 
-catkin_package(
-  INCLUDE_DIRS 
-    include 
-    ${EIGEN3_INCLUDE_DIRS} 
-    ${catkin_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIR}
-  LIBRARIES 
-    quad_gap 
-    yaml-cpp
-  DEPENDS OpenMP 
-  CATKIN_DEPENDS 
-    base_local_planner geometry_msgs nav_msgs roscpp rospy std_msgs sensor_msgs message_runtime pips_trajectory_msgs #   pips_egocircle dynamic_reconfigure
-)
+###########
+# Library #
+###########
 
 add_library(quad_gap
   src/gap_detection/GapDetector.cpp
@@ -81,12 +76,35 @@ add_library(quad_gap
   src/TimeKeeper.cpp 
   ) 
 
-# add_dependencies(quad_gap ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_generate_messages_cpp)
+# prevent pluginlib from using boost
+target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 
-target_compile_options(quad_gap PRIVATE ${OpenMP_FLAGS})
-
-target_link_libraries(quad_gap
-                  ${catkin_LIBRARIES}
-                  ${OpenMP_LIBS}
-                  yaml-cpp
+ament_target_dependencies(${PROJECT_NAME}
+  ${dependencies}
 )
+
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  set(ament_cmake_copyright_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
+
+pluginlib_export_plugin_description_file(nav2_core ${PROJECT_NAME}.xml)
+
+ament_package()
+

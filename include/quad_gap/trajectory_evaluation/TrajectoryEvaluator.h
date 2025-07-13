@@ -1,6 +1,8 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <math.h>
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/utils/Trajectory.h>
@@ -8,13 +10,13 @@
 #include <vector>
 #include <map>
 #include <numeric>
-#include <visualization_msgs/MarkerArray.h>
-#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/msg/marker_array.h>
+#include <visualization_msgs/msg/marker.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/msg/pose_stamped.h>
+#include <geometry_msgs/msg/pose_array.h>
+#include <sensor_msgs/msg/laser_scan.h>
 #include <boost/shared_ptr.hpp>
 #include <omp.h>
 #include <boost/thread/mutex.hpp>

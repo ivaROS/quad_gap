@@ -1,6 +1,8 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <math.h>
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>

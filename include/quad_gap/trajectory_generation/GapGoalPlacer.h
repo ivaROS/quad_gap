@@ -1,12 +1,14 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <math.h>
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 
-#include <geometry_msgs/PoseStamped.h>
-#include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/msg/pose_stamped.h>
+#include <sensor_msgs/msg/laser_scan.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>

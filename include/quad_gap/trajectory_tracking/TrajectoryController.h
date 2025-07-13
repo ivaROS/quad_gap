@@ -1,21 +1,22 @@
 #pragma once
 
-#include <ros/ros.h>
+// #include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+
 #include <quad_gap/config/QuadGapConfig.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <ros/ros.h>
-#include "geometry_msgs/Twist.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/PoseArray.h"
-#include "geometry_msgs/TransformStamped.h"
-#include "nav_msgs/Odometry.h"
-#include <sensor_msgs/LaserScan.h>
+#include "geometry_msgs/msg/twist.h"
+#include "geometry_msgs/msg/pose.h"
+#include "geometry_msgs/msg/pose_array.h"
+#include "geometry_msgs/msg/transform_stamped.h"
+#include "nav_msgs/msg/odometry.h"
+#include <sensor_msgs/msg/laser_scan.h>
 #include <tf/tf.h>
 #include <quad_gap/utils/Gap.h>
 // #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/GapTrajectoryGenerator.h>
-#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/msg/marker.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <ros/ros.h>
-#include <ros/console.h>
+// #include <ros/ros.h>
+// #include <ros/console.h>
+#include <rclcpp/rclcpp.hpp>
 
 // move_base_flex
 #include <mbf_costmap_core/costmap_controller.h>
@@ -18,7 +19,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/msg/transform_stamped.h>
+
 #include <boost/numeric/odeint.hpp>
 
 #include <quad_gap/Planner.h>

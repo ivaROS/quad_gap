@@ -1,26 +1,11 @@
 #pragma once
 
-#include <ros/ros.h>
-#include <ros/package.h>
 
+/////////////
+// QUADGAP //
+/////////////
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/utils/Trajectory.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
-
-#include <boost/numeric/odeint.hpp>
-#include <boost/shared_ptr.hpp>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-#include <cmath>
-#include <math.h>
-#include <chrono>
-
-#include <geometry_msgs/TransformStamped.h>
-#include <geometry_msgs/PoseArray.h>
-#include <sensor_msgs/LaserScan.h>
-#include <std_msgs/Header.h>
-#include "nav_msgs/Odometry.h"
 // #include "quad_gap/TrajPlan.h"
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/utils/Utils.h>
@@ -35,6 +20,43 @@
 #include <quad_gap/trajectory_generation/GapGoalPlacer.h>
 #include <quad_gap/trajectory_tracking/TrajectoryController.h>
 #include <quad_gap/TimeKeeper.h>
+
+// #include <quad_gap/CollisionCheckerConfig.h>
+
+#include <quad_gap/utils/RobotGeometryStorage.h>
+#include <quad_gap/utils/RobotGeometryProcessor.h>
+
+/////////
+// ROS //
+/////////
+
+// #include <ros/ros.h>
+// #include <ros/package.h>
+#include "rclcpp/rclcpp.hpp"
+
+//////////////
+// ROS MSGS //
+//////////////
+#include <visualization_msgs/msg/marker.h>
+#include <visualization_msgs/msg/marker_array.h>
+
+//////////
+// MISC //
+//////////
+
+#include <boost/numeric/odeint.hpp>
+#include <boost/shared_ptr.hpp>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <cmath>
+#include <math.h>
+#include <chrono>
+
+#include <geometry_msgs/msg/transform_stamped.h>
+#include <geometry_msgs/msg/pose_array.h>
+#include <sensor_msgs/msg/laser_scan.h>
+#include <std_msgs/msg/header.h>
+#include <nav_msgs/msg/odometry.h>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -58,11 +80,6 @@
 #include <pips_trajectory_testing/depth_image_cc_wrapper.h>
 #include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
 #include <pips_egocircle/egocircle_cc_wrapper.h>
-
-// #include <quad_gap/CollisionCheckerConfig.h>
-
-#include <quad_gap/utils/RobotGeometryStorage.h>
-#include <quad_gap/utils/RobotGeometryProcessor.h>
 
 namespace quad_gap
 {

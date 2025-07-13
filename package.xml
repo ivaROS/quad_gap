@@ -1,64 +1,30 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>quad_gap</name>
-  <version>0.0.0</version>
-  <description>The quad_gap package</description>
+  <version>1.0.0</version>
+  <description>Quad gap controller</description>
+  <maintainer email="asselmeier.max@gmail.com">Max Asselmeier</maintainer>
+  <license>BSD-3-Clause</license>
 
-  <maintainer email="asselmeier.max@gmail.com">Maxwell Asselmeier</maintainer>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>nav2_common</depend>
+  <depend>nav2_core</depend>
+  <depend>nav2_util</depend>
+  <depend>nav2_costmap_2d</depend>
+  <depend>rclcpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav2_msgs</depend>
+  <depend>pluginlib</depend>
+  <depend>tf2</depend>
 
-  <license>MIT</license>
+  <exec_depend>nav2_bringup</exec_depend>
 
-  <build_depend>message_generation</build_depend>
-  <build_export_depend>message_generation</build_export_depend>
-  <exec_depend>message_runtime</exec_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>base_local_planner</build_depend>
-  <!-- <build_depend>dynamic_reconfigure</build_depend> -->
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>pluginlib</build_depend>
-  <build_depend>nav_core</build_depend>
-  <build_depend>pips_trajectory_msgs</build_depend>
-
-  <build_export_depend>base_local_planner</build_export_depend>
-  <!-- <build_export_depend>dynamic_reconfigure</build_export_depend> -->
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>nav_msgs</build_export_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>pluginlib</build_export_depend>
-  <build_export_depend>pips_trajectory_msgs</build_export_depend>
-
-  <exec_depend>base_local_planner</exec_depend>
-  <!-- <exec_depend>dynamic_reconfigure</exec_depend> -->
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>pluginlib</exec_depend>
-  <exec_depend>nav_core</exec_depend>
-  <exec_depend>pips_trajectory_msgs</exec_depend>
-
-  <depend>mbf_costmap_core</depend>
-  <!-- <depend>pips</depend> -->
-  <depend>pips_trajectory_testing</depend>
-  <depend>turtlebot_trajectory_testing</depend>
-  <depend>pips_egocylindrical</depend>
-  <depend>pips_egocircle</depend>
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-    <nav_core plugin="${prefix}/qg_plugin.xml" />
-    <!-- <mbf_costmap_core plugin="${prefix}/qg_plugin.xml"/> -->
+    <build_type>ament_cmake</build_type>
   </export>
+
 </package>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/msg/pose_array.h>
 #include <vector>
 #include <numeric>
 
