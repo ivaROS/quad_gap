@@ -73,7 +73,7 @@ add_library(quad_gap
   src/trajectory_tracking/TrajectoryController.cpp
   # src/Planner.cpp
   src/QuadGapPlanner.cpp 
-  # src/TimeKeeper.cpp 
+  src/TimeKeeper.cpp 
   ) 
 
 # prevent pluginlib from using boost

@@ -20,7 +20,7 @@ namespace quad_gap
     {
         totalNumGaps += gapCount;
         float avgNumberGaps = (totalNumGaps / (float) planningLoopCalls);
-        ROS_INFO_STREAM_NAMED("Timing", "      [Planning Loop average number of gaps: " << avgNumberGaps << "]");
+        RCLCPP_INFO_STREAM(logger_,  "      [Planning Loop average number of gaps: " << avgNumberGaps << "]");
 
         return avgNumberGaps;
     }
@@ -202,8 +202,8 @@ namespace quad_gap
         }
 
         avgTimeTaken = computeAverageTimeTaken(currTimeTaken, planningStepIdx);     
-        ROS_INFO_STREAM_NAMED("Timing", "      [" << planningSteps.at(planningStepIdx) << " took " << currTimeTaken << " seconds]");
-        ROS_INFO_STREAM_NAMED("Timing", "      [" << planningSteps.at(planningStepIdx) << " average time: " << avgTimeTaken << " seconds (" << (1.0 / avgTimeTaken) << " Hz) ]");
+        RCLCPP_INFO_STREAM(logger_,  "      [" << planningSteps.at(planningStepIdx) << " took " << currTimeTaken << " seconds]");
+        RCLCPP_INFO_STREAM(logger_,  "      [" << planningSteps.at(planningStepIdx) << " average time: " << avgTimeTaken << " seconds (" << (1.0 / avgTimeTaken) << " Hz) ]");
     }
 
     float TimeKeeper::computeAverageTimeTaken(const float & currTimeTaken, const int & planningStepIdx)

@@ -197,5 +197,7 @@ namespace quad_gap
             int controlCalls = 0; /**< Total number of calls for control loop */
 
             int totalNumGaps = 0; /**< Total number of gaps planned over during deployment */
+
+            rclcpp::Logger logger_ {rclcpp::get_logger("TimeKeeper")};
     };
 }
