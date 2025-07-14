@@ -33,7 +33,7 @@ namespace quad_gap
         logger_ = node->get_logger();
 
         // planner_name = name;
-        planner.initialize(node_);
+        planner.initialize(node);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 

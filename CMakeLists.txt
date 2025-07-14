@@ -71,7 +71,7 @@ add_library(quad_gap
   src/trajectory_generation/GapTrajectoryGenerator.cpp
   src/trajectory_generation/GapManipulator.cpp
   src/trajectory_tracking/TrajectoryController.cpp
-  # src/Planner.cpp
+  src/Planner.cpp
   src/QuadGapPlanner.cpp 
   src/TimeKeeper.cpp 
   ) 

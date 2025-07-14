@@ -62,7 +62,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-
+#include <tf2_ros/buffer.h>
 // #include <tf2_utils/transform_manager.h>
 
 #include <omp.h>
@@ -111,7 +111,7 @@ namespace quad_gap
             * \param name planner name (used for ROS namespaces) 
             * \return initialization success / failure
             */
-            bool initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node);
+            bool initialize(const rclcpp::Node::SharedPtr & node);
 
             /**
             * \brief Indicator for if planner has been initialized
@@ -389,7 +389,7 @@ namespace quad_gap
             rclcpp::Time lastPlanTime_;
             rclcpp::Time currPlanTime_;
 
-            rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
+            rclcpp::Node::SharedPtr node_;
             
             QuadGapConfig cfg_;
 

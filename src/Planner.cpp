@@ -1,10 +1,10 @@
 #include <quad_gap/Planner.h>
-#include "tf/transform_datatypes.h"
-#include <tf/LinearMath/Matrix3x3.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+// #include "tf/transform_datatypes.h"
+// #include <tf/LinearMath/Matrix3x3.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+// #include <tf2/LinearMath/Quaternion.h>
+// #include <Eigen/Core>
+// #include <Eigen/Geometry>
 
 namespace quad_gap
 {
@@ -61,11 +61,11 @@ namespace quad_gap
         //     delete tfListener_;
     }
 
-    bool Planner::initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node)
+    bool Planner::initialize(const rclcpp::Node::SharedPtr & node)
     {
         if (initialized_)
         {
-            ROS_WARN("PotentialGap Planner already initalized");
+            RCLCPP_WARN_STREAM(node_->get_logger(), "PotentialGap Planner already initalized");
             return true;
         }
 
@@ -127,21 +127,21 @@ namespace quad_gap
         // Set collision checker
         if(!cfg_.collision_checker.collision_checker_enable)
         {
-            ROS_WARN_STREAM_NAMED("Planner", "Collision checking is disabled.");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Collision checking is disabled.");
             // return;
         }
 
         if (cfg_.collision_checker.cc_type == CC_DEPTH)
         {
-            ROS_INFO_STREAM_NAMED("Planner", "New cc type = depth");
+            RCLCPP_INFO_STREAM(node_->logger(),  "New cc type = depth");
             cc_wrapper_ = std::make_shared<pips_trajectory_testing::DepthImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
         } else if(cfg_.collision_checker.cc_type == CC_DEPTH_EGO)
         {
-            ROS_INFO_STREAM_NAMED("Planner", "New cc type = depth ego");
+            RCLCPP_INFO_STREAM(node_->logger(),  "New cc type = depth ego");
             cc_wrapper_ = std::make_shared<pips_egocylindrical::EgocylindricalRangeImageCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
         } else if(cfg_.collision_checker.cc_type == CC_EGOCIRCLE)
         {
-            ROS_INFO_STREAM_NAMED("Planner", "New cc type = egocircle");
+            RCLCPP_INFO_STREAM(node_->logger(),  "New cc type = egocircle");
             cc_wrapper_ = std::make_shared<pips_egocircle::EgoCircleCCWrapper>(nh, pnh, tf2_utils::TransformManager(tfBuffer, tfListener));
         }
 
@@ -183,9 +183,9 @@ namespace quad_gap
                              globalGoalAngDist < cfg_.goal.yaw_global_goal_tolerance;
         
         if (reachedGlobalGoal_)
-            ROS_INFO_STREAM_NAMED("Planner", "[Reset] Goal Reached");
+            RCLCPP_INFO_STREAM(node_->logger(),  "[Reset] Goal Reached");
         // else
-        //     ROS_INFO_STREAM_NAMED("Planner", "Distance from goal: " << globalGoalDist << 
+        //     RCLCPP_INFO_STREAM(node_->logger(),  "Distance from goal: " << globalGoalDist << 
         //                                      ", Goal tolerance: " << cfg_.goal.xy_global_goal_tolerance);
 
         return reachedGlobalGoal_;
@@ -224,7 +224,7 @@ namespace quad_gap
             
             trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, rclcpp::Time(0));
             tf2::doTransform(orig_pt, transformed_pt, trans);
-            // ROS_INFO_STREAM_NAMED("Scan", cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
+            // RCLCPP_INFO_STREAM(node_->logger(),  cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
 
             transRange = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
             transTheta = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
@@ -241,7 +241,7 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        ROS_INFO_STREAM_NAMED("Scan", "[laserScanCB()]");
+        RCLCPP_INFO_STREAM(node_->logger(),  "[laserScanCB()]");
 
         timeKeeper_->startTimer(SCAN);
 
@@ -250,8 +250,8 @@ namespace quad_gap
         /////////////////////////////////////
 
         currScanTime_ = scanSensorFrame->header.stamp;
-        ROS_INFO_STREAM_NAMED("Scan", "     Current scan time: " << currScanTime_);
-        ROS_INFO_STREAM_NAMED("Scan", "     Time since last scan: " << (currScanTime_ - lastScanTime_).toSec() << " seconds");
+        RCLCPP_INFO_STREAM(node_->logger(),  "     Current scan time: " << currScanTime_);
+        RCLCPP_INFO_STREAM(node_->logger(),  "     Time since last scan: " << (currScanTime_ - lastScanTime_).toSec() << " seconds");
 
         gapDetector_->preprocessScan(scanSensorFrame);
 
@@ -265,7 +265,7 @@ namespace quad_gap
 
         if (minScanDist < cfg_.rbt.r_inscr)
         {
-            ROS_INFO_STREAM_NAMED("Scan", "       in collision!");
+            RCLCPP_INFO_STREAM(node_->logger(),  "       in collision!");
             colliding_ = true;
             return;
         } else
@@ -286,7 +286,7 @@ namespace quad_gap
         for (Gap * rawGap : currRawGaps_)
         {
             assert(rawGap->getFrame() == cfg_.robot_frame_id);
-            // ROS_INFO_STREAM_NAMED("Planner", "raw gap: " << rawGap->getLeftX() << ", " << rawGap->getLeftY() << " | " << rawGap->getRightX() << ", " << rawGap->getRightY());
+            // RCLCPP_INFO_STREAM(node_->logger(),  "raw gap: " << rawGap->getLeftX() << ", " << rawGap->getLeftY() << " | " << rawGap->getRightX() << ", " << rawGap->getRightY());
         }
 
         gapVisualizer_->drawGaps(currRawGaps_, std::string("raw"));
@@ -302,12 +302,12 @@ namespace quad_gap
         for (Gap * simplifiedGap : currSimpGaps_)
         {
             assert(simplifiedGap->getFrame() == cfg_.robot_frame_id);
-            // ROS_INFO_STREAM_NAMED("Planner", "simp gap: " << simplifiedGap->getLeftX() << ", " << simplifiedGap->getLeftY() << " | " << simplifiedGap->getRightX() << ", " << simplifiedGap->getRightY());
+            // RCLCPP_INFO_STREAM(node_->logger(),  "simp gap: " << simplifiedGap->getLeftX() << ", " << simplifiedGap->getLeftY() << " | " << simplifiedGap->getRightX() << ", " << simplifiedGap->getRightY());
         }
 
         gapVisualizer_->drawGaps(currSimpGaps_, std::string("simp"));
 
-        // ROS_INFO_STREAM_NAMED("Planner", "currSimpGaps_ count:" << currSimpGaps_.size());
+        // RCLCPP_INFO_STREAM(node_->logger(),  "currSimpGaps_ count:" << currSimpGaps_.size());
 
         hasLaserScan_ = true;
 
@@ -354,8 +354,8 @@ namespace quad_gap
 
     void Planner::poseCB(const nav_msgs::msg::Odometry& rbtOdomMsg)
     {
-        // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
-        // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
+        // RCLCPP_INFO_STREAM(node_->logger(),  "[poseCB()]");
+        // RCLCPP_INFO_STREAM(node_->logger(),  "[poseCB()]");
 
         if (!haveTFs_)
             return;
@@ -367,7 +367,7 @@ namespace quad_gap
         // Transform the msg to odom frame
         if (rbtOdomMsg->header.frame_id != cfg_.odom_frame_id)
         {
-            ROS_WARN_STREAM_NAMED("Planner", "Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg_ odom frame:" << cfg_.odom_frame_id);
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Odom msg header frame (for ego-robot pose) " << rbtOdomMsg->header.frame_id << " not same as cfg_ odom frame:" << cfg_.odom_frame_id);
 
             geometry_msgs::msg::TransformStamped origFrame2OdomFrame = tfBuffer->lookupTransform(cfg_.odom_frame_id, 
                                                                                             rbtOdomMsg->header.frame_id, 
@@ -392,7 +392,7 @@ namespace quad_gap
         // if (rbtOdomMsg->child_frame_id != cfg_.robot_frame_id)
         // {
 
-        // ROS_WARN_STREAM_NAMED("Planner", "Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg_ rbt frame: " << cfg_.robot_frame_id);
+        // RCLCPP_WARN_STREAM(node_->get_logger(),  "Odom msg child frame (for ego-robot velocity) " << rbtOdomMsg->child_frame_id << " not same as cfg_ rbt frame: " << cfg_.robot_frame_id);
 
         geometry_msgs::Vector3Stamped velIn, velOut;
         velIn.header = rbtOdomMsg->header; // TODO: make sure this is correct frame
@@ -417,7 +417,7 @@ namespace quad_gap
 
     void Planner::setPlan(const std::vector<geometry_msgs::msg::PoseStamped> &incomingGlobalPlan)
     {
-        ROS_INFO_STREAM_NAMED("Planner", "[setPlan()]");
+        RCLCPP_INFO_STREAM(node_->logger(),  "[setPlan()]");
 
         if (incomingGlobalPlan.size() == 0) 
             return;
@@ -485,7 +485,7 @@ namespace quad_gap
     void Planner::tfCB(const tf2_msgs::msg::TFMessage& msg)
     {
         boost::mutex::scoped_lock tfset(tfMutex_);
-        // ROS_INFO_STREAM_NAMED("Planner", "[tfCB()]");
+        // RCLCPP_INFO_STREAM(node_->logger(),  "[tfCB()]");
 
         try 
         {
@@ -506,7 +506,7 @@ namespace quad_gap
             haveTFs_ = true;
         } catch (tf2::TransformException &ex) 
         {
-            ROS_WARN("%s", ex.what());
+            RCLCPP_WARN_STREAM(node_->get_logger(), ex.what());
             rclcpp::Duration::from_seconds(0.1).sleep();
             return;
         }
@@ -593,7 +593,7 @@ namespace quad_gap
         {
             for (size_t i = 0; i < gaps.size(); i++) 
             {
-                ROS_INFO_STREAM_NAMED("Planner", "   Generating trajectory for gap " << i);
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Generating trajectory for gap " << i);
 
                 Trajectory gapTraj;
 
@@ -610,18 +610,18 @@ namespace quad_gap
 
                 // std::chrono::steady_clock::time_point gen_traj_time = std::chrono::steady_clock::now();
                 
-                ROS_INFO_STREAM_NAMED("Planner", "   Trajectory size: " << gapTraj.size());
-                ROS_INFO_STREAM_NAMED("Planner", "   Trajectory:");
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Trajectory size: " << gapTraj.size());
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Trajectory:");
                 for (const auto & pose : gapTraj.getPathRbtFrame().poses)
                 {
-                    ROS_INFO_STREAM_NAMED("Planner", "      " << pose.position.x << ", " << pose.position.y);
+                    RCLCPP_INFO_STREAM(node_->logger(),  "      " << pose.position.x << ", " << pose.position.y);
                 }
 
                 gapTraj = gapTrajGenerator_->processTrajectory(gapTraj);
 
                 // std::chrono::steady_clock::time_point proc_traj_time = std::chrono::steady_clock::now();
 
-                ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 1");
+                RCLCPP_INFO_STREAM(node_->logger(),  "   orient decayed path 1");
                 gapTrajGenerator_->getOrientDecayedPath(gapTraj);
                 // virtualGapPaths.at(i) = orientedGapTraj;
 
@@ -637,9 +637,9 @@ namespace quad_gap
                 float averagedPoseCost = gapTraj.getAveragePosewiseCost();
                 float pathTerminalCost = gapTraj.getTerminalPoseCost();
                 float pathCost = pathTerminalCost + averagedPoseCost;
-                ROS_INFO_STREAM_NAMED("Planner", "   Trajectory averaged pose cost: " << averagedPoseCost);
-                ROS_INFO_STREAM_NAMED("Planner", "   Trajectory terminal pose cost: " << pathTerminalCost);
-                ROS_INFO_STREAM_NAMED("Planner", "   Trajectory total cost: " << pathCost);
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Trajectory averaged pose cost: " << averagedPoseCost);
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Trajectory terminal pose cost: " << pathTerminalCost);
+                RCLCPP_INFO_STREAM(node_->logger(),  "   Trajectory total cost: " << pathCost);
 
                 // std::chrono::steady_clock::time_point score_traj_time = std::chrono::steady_clock::now();
 
@@ -686,11 +686,11 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        ROS_INFO_STREAM_NAMED("Planner", "gapTrajs size:, " << gapTrajs.size());
+        RCLCPP_INFO_STREAM(node_->logger(),  "gapTrajs size:, " << gapTrajs.size());
 
         if (gapTrajs.size() == 0) 
         {
-            ROS_WARN_STREAM_NAMED("Planner", "No traj synthesized");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "No traj synthesized");
             // bestGapPath = geometry_msgs::msg::PoseArray();
             // bestVirtualGapPath = geometry_msgs::msg::PoseArray();
             return -1;
@@ -732,17 +732,17 @@ namespace quad_gap
 
         if (gapTrajCosts.at(candidateLowestCostTrajIdx) == std::numeric_limits<float>::infinity()) 
         {
-            ROS_WARN_STREAM_NAMED("Planner", "No executable trajectory, values: ");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "No executable trajectory, values: ");
             for (const float & gapTrajCost : gapTrajCosts) 
             {
-                ROS_INFO_STREAM_NAMED("Planner", "Cost: " << gapTrajCost);
+                RCLCPP_INFO_STREAM(node_->logger(),  "Cost: " << gapTrajCost);
             }
-            ROS_INFO_STREAM_NAMED("Planner", "------------------");
+            RCLCPP_INFO_STREAM(node_->logger(),  "------------------");
         }
 
         // bestGapPath = gapTrajs.at(idx);
         // bestVirtualGapPath = virtualGapPaths.at(idx);
-        ROS_INFO_STREAM_NAMED("Planner", "Picked [" << candidateLowestCostTrajIdx << "] traj" );
+        RCLCPP_INFO_STREAM(node_->logger(),  "Picked [" << candidateLowestCostTrajIdx << "] traj" );
 
         return candidateLowestCostTrajIdx;
     }
@@ -788,16 +788,16 @@ namespace quad_gap
             // Transform incoming traj into current robot frame //
             //        to score against the current scan         //
             //////////////////////////////////////////////////////
-            ROS_INFO_STREAM_NAMED("Planner", "    evaluating incoming trajectory");
+            RCLCPP_INFO_STREAM(node_->logger(),  "    evaluating incoming trajectory");
 
             // geometry_msgs::msg::PoseArray orientedIncomingPathRbtFrame = 
-            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 2");
+            RCLCPP_INFO_STREAM(node_->logger(),  "   orient decayed path 2");
             // gapTrajGenerator_->getOrientDecayedPath(incomingTraj);
             // std::vector<float> incomingPathPoseCosts;
             // float incomingPathTerminalCost;
             trajEvaluator_->evaluateTrajectory(incomingTraj); // orientedIncomingPathRbtFrame, incomingPathPoseCosts, incomingPathTerminalCost);
             
-            ROS_INFO_STREAM_NAMED("Planner", "    length of incoming path: " << incomingTraj.size());
+            RCLCPP_INFO_STREAM(node_->logger(),  "    length of incoming path: " << incomingTraj.size());
 
             // float averagedIncomingPoseCost = std::accumulate(incomingPathPoseCosts.begin(), 
             //                                                     incomingPathPoseCosts.end(), float(0)) / (incomingPathPoseCosts.size() + eps);
@@ -825,7 +825,7 @@ namespace quad_gap
 
             if (currTraj.size() == 0) 
             {
-                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ <<  
+                RCLCPP_INFO_STREAM(node_->logger(),  "        trajectory change " << trajectoryChangeCount_ <<  
                                                     ": current path is of length zero, " << incomingTrajStatus);   
 
                 return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);               
@@ -847,7 +847,7 @@ namespace quad_gap
 
             if (reducedCurrentTraj.size() < 2) 
             {
-                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ <<  
+                RCLCPP_INFO_STREAM(node_->logger(),  "        trajectory change " << trajectoryChangeCount_ <<  
                                                                 ": old path length less than 2, " << incomingTrajStatus);
 
                 return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);
@@ -858,18 +858,18 @@ namespace quad_gap
             /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // geometry_msgs::msg::PoseArray virtual_curr_score_path = getOrientDecayedPath(reducedCurrentPathRobotFrame);
-            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 3");            
+            RCLCPP_INFO_STREAM(node_->logger(),  "   orient decayed path 3");            
             gapTrajGenerator_->getOrientDecayedPath(reducedCurrentTraj);
 
             trajEvaluator_->evaluateTrajectory(reducedCurrentTraj); // reducedCurrentPathRobotFrame, reducedCurrentPathPoseCosts, reducedCurrentPathTerminalCost);
 
             float reducedCurrTrajCost = reducedCurrentTraj.getTerminalPoseCost() + reducedCurrentTraj.getAveragePosewiseCost(); // reducedCurrentPathTerminalCost + currAveragedPoseCost;
 
-            ROS_INFO_STREAM_NAMED("Planner", "Reduced curr score: " << reducedCurrTrajCost << ", incom Cost:" << incomingTrajCost);
+            RCLCPP_INFO_STREAM(node_->logger(),  "Reduced curr score: " << reducedCurrTrajCost << ", incom Cost:" << incomingTrajCost);
 
             if (reducedCurrTrajCost == std::numeric_limits<float>::infinity())
             {
-                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ << 
+                RCLCPP_INFO_STREAM(node_->logger(),  "        trajectory change " << trajectoryChangeCount_ << 
                                                             ": current trajectory is of cost infinity," << incomingTrajStatus);
 
                 return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);               
@@ -877,12 +877,12 @@ namespace quad_gap
 
             if (incomingTrajCost < reducedCurrTrajCost)  
             {
-                ROS_INFO_STREAM_NAMED("Planner", "        trajectory change " << trajectoryChangeCount_ << 
+                RCLCPP_INFO_STREAM(node_->logger(),  "        trajectory change " << trajectoryChangeCount_ << 
                                                             ": incoming trajectory is lower score");
                 return changeTrajectoryHelper(incomingTraj, ableToSwitchToIncomingPath);
             }
 
-            ROS_INFO_STREAM_NAMED("Planner", "   orient decayed path 4");
+            RCLCPP_INFO_STREAM(node_->logger(),  "   orient decayed path 4");
             // gapTrajGenerator_->getOrientDecayedPath(currTraj);
             // currTraj.setOrientedPathOdomFrame(gapTrajGenerator_->transformPath(currTraj.getOrientedPathRbtFrame(), rbt2odom_));
 
@@ -917,7 +917,7 @@ namespace quad_gap
     //         pt.x = orientedPathRbtFrame.poses[i].position.x;
     //         pt.y = orientedPathRbtFrame.poses[i].position.y;
 
-    //         // ROS_INFO_STREAM_NAMED("Planner", pt.x << " " << pt.y);
+    //         // RCLCPP_INFO_STREAM(node_->logger(),  pt.x << " " << pt.y);
 
     //         tf2::Quaternion quat_tf;
     //         tf2::convert(orientedPathRbtFrame.poses[i].orientation, quat_tf);
@@ -941,7 +941,7 @@ namespace quad_gap
     int Planner::getClosestTrajectoryPoseIdx(const geometry_msgs::msg::PoseArray & currTrajRbtFrame) 
     {
         std::vector<float> pathPoseNorms(currTrajRbtFrame.poses.size());
-        // ROS_INFO_STREAM_NAMED("Planner", "Ref_pose length: " << ref_pose.poses.size());
+        // RCLCPP_INFO_STREAM(node_->logger(),  "Ref_pose length: " << ref_pose.poses.size());
         for (size_t i = 0; i < pathPoseNorms.size(); i++) // i will always be positive, so this is fine
         {
             pathPoseNorms.at(i) = sqrt(pow(currTrajRbtFrame.poses.at(i).position.x, 2) + 
@@ -969,9 +969,9 @@ namespace quad_gap
         // currSimpGaps_.clear();
         setCurrentTraj(Trajectory());
 
-        ROS_INFO_STREAM_NAMED("Planner", "cmdVelBuffer size: " << cmdVelBuffer.size());
+        RCLCPP_INFO_STREAM(node_->logger(),  "cmdVelBuffer size: " << cmdVelBuffer.size());
         cmdVelBuffer.clear();
-        ROS_INFO_STREAM_NAMED("Planner", "cmdVelBuffer size after clear: " << cmdVelBuffer.size() << ", is full: " << cmdVelBuffer.capacity());
+        RCLCPP_INFO_STREAM(node_->logger(),  "cmdVelBuffer size after clear: " << cmdVelBuffer.size() << ", is full: " << cmdVelBuffer.capacity());
         return;
     }
 
@@ -993,7 +993,7 @@ namespace quad_gap
 
             if (pathOdomFrame.poses.size() < 1)
             {
-                ROS_WARN_STREAM_NAMED("Planner", "Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
+                RCLCPP_WARN_STREAM(node_->get_logger(),  "Available Execution Traj length: " << pathOdomFrame.poses.size() << " < 1");
                 if (cfg_.planning.holonomic)
                 {
                     rawCmdVel = trajController_->obstacleAvoidanceControlLaw();
@@ -1091,7 +1091,7 @@ namespace quad_gap
 
     Trajectory Planner::runPlanningLoop() 
     {
-        ROS_INFO_STREAM_NAMED("Planner", "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
+        RCLCPP_INFO_STREAM(node_->logger(),  "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
 
         currPlanTime_ = rclcpp::Time::now();
         ROS_INFO_STREAM_NAMED("Timing", "Current planning time: " << currPlanTime_);
@@ -1099,14 +1099,14 @@ namespace quad_gap
 
         if (!initialized_ || !hasLaserScan_ || !hasGlobalGoal_)
         {
-            ROS_WARN_STREAM_NAMED("Planner", "Not ready to plan, initialized: " << initialized_ << ", laser scan: " << hasLaserScan_ << ", global goal: " << hasGlobalGoal_);
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Not ready to plan, initialized: " << initialized_ << ", laser scan: " << hasLaserScan_ << ", global goal: " << hasGlobalGoal_);
             // chosenTraj = Trajectory();
             return Trajectory();            
         }
 
         if (colliding_)
         {
-            ROS_WARN_STREAM_NAMED("Planner", "In collision");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "In collision");
             // chosenTraj = Trajectory();
             return Trajectory();
         }
@@ -1130,12 +1130,12 @@ namespace quad_gap
         int gapCount = planningGaps.size();
         if (gapCount == 0)
         {
-            ROS_WARN_STREAM_NAMED("Planner", "No gaps found, planning loop will not continue.");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "No gaps found, planning loop will not continue.");
             // chosenTraj = Trajectory();
             return Trajectory();
         }
 
-        ROS_INFO_STREAM_NAMED("Planner", "Planning gaps:");
+        RCLCPP_INFO_STREAM(node_->logger(),  "Planning gaps:");
         for (int i = 0; i < gapCount; i++)
         {
             assert(planningGaps.at(i)->getFrame() == cfg_.robot_frame_id);
@@ -1144,9 +1144,9 @@ namespace quad_gap
             float leftX, leftY, rightX, rightY;
             gap->getLCartesian(leftX, leftY);
             gap->getRCartesian(rightX, rightY);
-            ROS_INFO_STREAM_NAMED("Planner", "Gap " << i);
-            ROS_INFO_STREAM_NAMED("Planner", "      Left polar: (" << gap->LIdx() << ", " << gap->LRange() << "), Right polar: (" << gap->RIdx() << ", " << gap->RRange() << ")");
-            ROS_INFO_STREAM_NAMED("Planner", "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
+            RCLCPP_INFO_STREAM(node_->logger(),  "Gap " << i);
+            RCLCPP_INFO_STREAM(node_->logger(),  "      Left polar: (" << gap->LIdx() << ", " << gap->LRange() << "), Right polar: (" << gap->RIdx() << ", " << gap->RRange() << ")");
+            RCLCPP_INFO_STREAM(node_->logger(),  "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
         }
 
         //////////////////////////////////////////////////////////////////////////////////////
@@ -1158,7 +1158,7 @@ namespace quad_gap
         timeKeeper_->stopTimer(GAP_MANIP);
 
 
-        ROS_INFO_STREAM_NAMED("Planner", "Manipulated gaps:");
+        RCLCPP_INFO_STREAM(node_->logger(),  "Manipulated gaps:");
         for (int i = 0; i < manipGaps.size(); i++)
         {
             assert(manipGaps.at(i)->getFrame() == cfg_.robot_frame_id);
@@ -1167,9 +1167,9 @@ namespace quad_gap
             float leftX, leftY, rightX, rightY;
             gap->getManipLCartesian(leftX, leftY);
             gap->getManipRCartesian(rightX, rightY);
-            ROS_INFO_STREAM_NAMED("Planner", "Gap " << i);
-            ROS_INFO_STREAM_NAMED("Planner", "      Left polar: (" << gap->manipLeftIdx() << ", " << gap->manipLeftRange() << "), Right polar: (" << gap->manipRightIdx() << ", " << gap->manipRightRange() << ")");
-            ROS_INFO_STREAM_NAMED("Planner", "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
+            RCLCPP_INFO_STREAM(node_->logger(),  "Gap " << i);
+            RCLCPP_INFO_STREAM(node_->logger(),  "      Left polar: (" << gap->manipLeftIdx() << ", " << gap->manipLeftRange() << "), Right polar: (" << gap->manipRightIdx() << ", " << gap->manipRightRange() << ")");
+            RCLCPP_INFO_STREAM(node_->logger(),  "      Left cartesian: (" << leftX << ", " << leftY << "), Right cartesian: (" << rightX << ", " << rightY << ")");
         }
 
 
@@ -1233,14 +1233,14 @@ namespace quad_gap
         //     // cc_results = checkCollision(chosenGapPath);
         //     // cc_results = checkCollision(chosenTraj); // chosenVirtualGapPath
 
-        //     ROS_INFO_STREAM_NAMED("Planner", "Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
+        //     RCLCPP_INFO_STREAM(node_->logger(),  "Current trajectory collision checked in " <<  (ros::WallTime::now() - start).toSec() * 1e3 << "ms");
         
         //     int cc_ite_min = 10;
         //     float cc_itc_ratio = 0.2;
 
         //     if(cc_results.collision_idx_ >= 0 && float(cc_results.collision_idx_) / cc_results.local_traj_.points.size() <= cc_itc_ratio)
         //     {
-        //         ROS_WARN_STREAM_NAMED("Planner", "Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
+        //         RCLCPP_WARN_STREAM(node_->get_logger(),  "Current trajectory collides! " << cc_results.collision_idx_ << " " << cc_results.local_traj_.points.size());
         //         setCurrentTraj(Trajectory()); // geometry_msgs::msg::PoseArray()
         //     }
         // }
