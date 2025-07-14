@@ -37,6 +37,8 @@ namespace quad_gap
 
         private: 
 
+            rclcpp::Node::SharedPtr node_; /**< Node handle for ROS communication */
+
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr trajSwitchIdxPublisher; /**< Publisher for planner trajectory switch count */
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr planLoopIdxPublisher; /**< Publisher for planning loop idx */
             

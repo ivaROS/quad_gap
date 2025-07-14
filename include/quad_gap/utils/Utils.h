@@ -6,7 +6,10 @@
 #include <Eigen/Geometry>
 #include <vector>
 // #include <tf/tf.h>
-
+#include <tf2/LinearMath/Quaternion.h>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+ 
 namespace quad_gap 
 {
 

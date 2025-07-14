@@ -4,6 +4,7 @@ namespace quad_gap
 {
 TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg)
     {
+        node_ = node;
         cfg_ = &cfg;
         trajSwitchIdxPublisher = node->create_publisher<visualization_msgs::msg::Marker>("trajectory_switch", 10);
         planLoopIdxPublisher = node->create_publisher<visualization_msgs::msg::Marker>("planning_loop_idx", 10);
@@ -28,7 +29,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
 
         if (traj.getPathRbtFrame().header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("Visualizer", "[drawCurrentTrajectory] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawCurrentTrajectory] Trajectory frame_id is empty");
             return;
         }
 
@@ -45,7 +46,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         trajMarker.color.g = 0.0;
         trajMarker.color.b = 0.0;
 
-        trajMarker.lifetime = ros::Duration(0);     
+        trajMarker.lifetime = rclcpp::Duration::from_seconds(0);     
         
         geometry_msgs::msg::PoseArray path = traj.getPathRbtFrame();
         for (const geometry_msgs::msg::Pose & pose : path.poses) 
@@ -55,7 +56,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
             trajMarkerArray.markers.push_back(trajMarker);
         }
     
-        currentTrajectoryPublisher_.publish(trajMarkerArray);
+        currentTrajectoryPublisher_->publish(trajMarkerArray);
     }
 
     void TrajectoryVisualizer::drawPlanningLoopIdx(const int & planningLoopIdx) 
@@ -67,12 +68,12 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
 
         if (cfg_->robot_frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("Visualizer", "[drawPlanningLoopIdx] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawPlanningLoopIdx] Trajectory frame_id is empty");
             return; 
         }
 
         trajSwitchIdxMarker.header.frame_id = cfg_->robot_frame_id;
-        trajSwitchIdxMarker.header.stamp = rclcpp::Time::now();
+        trajSwitchIdxMarker.header.stamp = node_->get_clock()->now();
 
         trajSwitchIdxMarker.ns = "planning_loop_idx";
         trajSwitchIdxMarker.id = 0;
@@ -92,7 +93,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         trajSwitchIdxMarker.color.g = 0.0;
         trajSwitchIdxMarker.color.b = 0.0;
         trajSwitchIdxMarker.text = "PLAN: " + std::to_string(planningLoopIdx);
-        planLoopIdxPublisher.publish(trajSwitchIdxMarker);
+        planLoopIdxPublisher->publish(trajSwitchIdxMarker);
     }
 
     void TrajectoryVisualizer::drawTrajectorySwitchCount(const int & trajSwitchIndex, const Trajectory & traj) 
@@ -107,7 +108,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
 
         if (path.header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("Visualizer", "[drawTrajectorySwitchCount] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawTrajectorySwitchCount] Trajectory frame_id is empty");
             return; 
         }
 
@@ -125,7 +126,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         trajSwitchIdxMarker.color.g = 0.0;
         trajSwitchIdxMarker.color.b = 0.0;
         trajSwitchIdxMarker.text = "SWITCH: " + std::to_string(trajSwitchIndex);
-        trajSwitchIdxPublisher.publish(trajSwitchIdxMarker);
+        trajSwitchIdxPublisher->publish(trajSwitchIdxMarker);
     }
 
     void TrajectoryVisualizer::drawGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlan) 
@@ -134,11 +135,11 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         clearMarkerArrayPublisher(globalPlanPublisher);
 
         if (globalPlan.empty()) 
-            ROS_WARN_STREAM_NAMED("Visualizer", "Goal Selector Returned Trajectory Size 0");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Goal Selector Returned Trajectory Size 0");
 
         if (globalPlan.at(0).header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("Visualizer", "[drawGlobalPlan] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGlobalPlan] Trajectory frame_id is empty");
             return;
         }
 
@@ -158,7 +159,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         globalPlanMarker.color.g = 0.0;
         globalPlanMarker.color.b = 0.0;
 
-        globalPlanMarker.lifetime = ros::Duration(0);     
+        globalPlanMarker.lifetime = rclcpp::Duration::from_seconds(0);  
         
         for (const geometry_msgs::msg::PoseStamped & poseStamped : globalPlan) 
         {
@@ -172,7 +173,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         // for (const geometry_msgs::msg::PoseStamped & pose : globalPlan) 
             // globalPlanPoseArray.poses.push_back(pose.pose);
 
-        globalPlanPublisher.publish(globalPlanMarkerArray);
+        globalPlanPublisher->publish(globalPlanMarkerArray);
     }
 
     void TrajectoryVisualizer::drawGapTrajectories(const std::vector<Trajectory> & trajs) 
@@ -181,7 +182,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         clearMarkerArrayPublisher(gapTrajectoriesPublisher);
         if (trajs.size() == 0)
         {
-            // ROS_WARN_STREAM_NAMED("Visualizer", "no trajectories to visualize");
+            // RCLCPP_WARN_STREAM(node_->get_logger(),  "no trajectories to visualize");
             return;
         }
         
@@ -192,7 +193,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
 
         if (traj.getPathRbtFrame().header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("Visualizer", "[drawGapTrajectories] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGapTrajectories] Trajectory frame_id is empty");
             return;
         }
 
@@ -208,7 +209,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         gapTrajMarker.color.a = 1;
         gapTrajMarker.color.b = 1.0;
         gapTrajMarker.color.g = 1.0;
-        gapTrajMarker.lifetime = ros::Duration(0);
+        gapTrajMarker.lifetime = rclcpp::Duration::from_seconds(0);
 
         for (const Trajectory & traj : trajs) 
         {
@@ -221,7 +222,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
             }
         }
 
-        gapTrajectoriesPublisher.publish(gapTrajMarkerArray);
+        gapTrajectoriesPublisher->publish(gapTrajMarkerArray);
     }
 
     void TrajectoryVisualizer::drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlanSnippet) 
@@ -231,13 +232,13 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
 
         if (globalPlanSnippet.empty())             // Should be safe with this check
         {
-            ROS_WARN_STREAM_NAMED("TrajectoryVisualizer", "Goal Selector Returned Trajectory Size " << globalPlanSnippet.size() << " < 1");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Goal Selector Returned Trajectory Size " << globalPlanSnippet.size() << " < 1");
             return;
         }    
         
         if (globalPlanSnippet.at(0).header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("TrajectoryVisualizer", "[drawRelevantGlobalPlanSnippet] Trajectory frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawRelevantGlobalPlanSnippet] Trajectory frame_id is empty");
             return;
         }
 
@@ -255,7 +256,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         globalPlanSnippetMarker.scale.z = 0.0001;
         globalPlanSnippetMarker.color.a = 1;
         globalPlanSnippetMarker.color.r = 1.0;
-        globalPlanSnippetMarker.lifetime = ros::Duration(0);
+        globalPlanSnippetMarker.lifetime = rclcpp::Duration::from_seconds(0);
 
         for (const geometry_msgs::msg::PoseStamped & poseStamped : globalPlanSnippet) 
         {
@@ -264,7 +265,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
             globalPlanSnippetMarkerArray.markers.push_back(globalPlanSnippetMarker);
         }
 
-        globalPlanSnippetPublisher.publish(globalPlanSnippetMarkerArray);
+        globalPlanSnippetPublisher->publish(globalPlanSnippetMarkerArray);
 
         // geometry_msgs::msg::PoseArray globalPlanSnippetPoseArray;
 
@@ -273,7 +274,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node,
         // for (const geometry_msgs::msg::PoseStamped & pose : globalPlanSnippet) 
         //     globalPlanSnippetPoseArray.poses.push_back(pose.pose);
 
-        // globalPlanSnippetPublisher.publish(globalPlanSnippetPoseArray);
+        // globalPlanSnippetPublisher->publish(globalPlanSnippetPoseArray);
     }
 
 }

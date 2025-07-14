@@ -4,11 +4,7 @@ namespace quad_gap
 {
     GapVisualizer::GapVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
     {
-        initialize(node, cfg);
-    }
-
-    void GapVisualizer::initialize(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
-    {
+        node_ = node;
         cfg_ = &cfg;
         rawGapsPublisher = node->create_publisher<visualization_msgs::msg::Marker>("raw_gaps", 10);
         simpGapsPublisher = node->create_publisher<visualization_msgs::msg::Marker>("simp_gaps", 10);
@@ -96,7 +92,7 @@ namespace quad_gap
         {
             if (gap->getFrame().empty())
             {
-                ROS_WARN_STREAM_NAMED("GapVisualizer", "[drawGap] Gap frame is empty");
+                RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGap] Gap frame is empty");
                 return;
             }
 
@@ -115,7 +111,7 @@ namespace quad_gap
             auto colorIter = colorMap.find(fullNamespace);
             if (colorIter == colorMap.end()) 
             {
-                ROS_FATAL_STREAM_NAMED("GapVisualizer", "Visualization Color not found, return without drawing");
+                RCLCPP_FATAL_STREAM(node_->get_logger(),  "Visualization Color not found, return without drawing");
                 return;
             }
     
@@ -140,7 +136,7 @@ namespace quad_gap
             float midGapTheta = 0.0;
             for (int i = 0; i < num_segments; i++)
             {
-                geometry_msgs::Point p1;
+                geometry_msgs::msg::Point p1;
                 midGapTheta = idx2theta(midGapIdx);
                 p1.x = midGapDist * cos(midGapTheta);
                 p1.y = midGapDist * sin(midGapTheta);
@@ -150,7 +146,7 @@ namespace quad_gap
                 midGapIdx = (midGapIdx + gapSpanResoln) % cfg_->scan.full_scan; // int(2*gap->half_scan);
                 midGapDist += distIncrement;
 
-                geometry_msgs::Point p2;
+                geometry_msgs::msg::Point p2;
                 midGapTheta = idx2theta(midGapIdx);
                 p2.x = midGapDist * cos(midGapTheta);
                 p2.y = midGapDist * sin(midGapTheta);
@@ -176,36 +172,36 @@ namespace quad_gap
         if (ns.find("raw") != std::string::npos) 
         {
             clearMarkerPublisher(rawGapsPublisher);
-            rawGapsPublisher.publish(marker);
+            rawGapsPublisher->publish(marker);
         } else if (ns.find("simp") != std::string::npos) 
         {
             clearMarkerPublisher(simpGapsPublisher);
-            simpGapsPublisher.publish(marker);
+            simpGapsPublisher->publish(marker);
         } else
         {
-            ROS_WARN_STREAM_NAMED("GapVisualizer", "Unknown gap namespace: " << ns);
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Unknown gap namespace: " << ns);
         }
     }
 
     void GapVisualizer::getline(const int & idx, 
                                 const float & dist,
                                 const Eigen::Vector2f & qB,
-                                // std::vector<geometry_msgs::Point>& lines,
-                                // geometry_msgs::Point& linel,
-                                // geometry_msgs::Point& liner,
+                                // std::vector<geometry_msgs::msg::Point>& lines,
+                                // geometry_msgs::msg::Point& linel,
+                                // geometry_msgs::msg::Point& liner,
                                 visualization_msgs::msg::Marker& marker,
                                 const std_msgs::msg::ColorRGBA & convex_color) 
     {
-        std::vector<geometry_msgs::Point> lines;                                        
+        std::vector<geometry_msgs::msg::Point> lines;                                        
         std::vector<std_msgs::msg::ColorRGBA> colors;
 
         // lines.clear();
-        geometry_msgs::Point linel;
+        geometry_msgs::msg::Point linel;
         linel.x = qB(0);
         linel.y = qB(1);
         linel.z = 0.1;
 
-        geometry_msgs::Point liner;        
+        geometry_msgs::msg::Point liner;        
         liner.x = dist * cos(idx2theta(idx));
         liner.y = dist * sin(idx2theta(idx));
         liner.z = 0.1;
@@ -250,7 +246,7 @@ namespace quad_gap
         auto colorIter = colorMap.find(ns);
         if (colorIter == colorMap.end()) 
         {
-            ROS_FATAL_STREAM_NAMED("GapVisualizer", "Visualization Color not found, return without drawing");
+            RCLCPP_FATAL_STREAM(node_->get_logger(),  "Visualization Color not found, return without drawing");
             return;
         }
 
@@ -258,7 +254,7 @@ namespace quad_gap
         {
             if (gap->getFrame().empty())
             {
-                ROS_WARN_STREAM_NAMED("GapVisualizer", "[drawManipGap] Gap frame is empty");
+                RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawManipGap] Gap frame is empty");
                 return;
             }
 
@@ -308,7 +304,7 @@ namespace quad_gap
             float midGapTheta = 0.0;
             for (int i = 0; i < num_segments; i++)
             {
-                geometry_msgs::Point p1;
+                geometry_msgs::msg::Point p1;
                 midGapTheta = idx2theta(midGapIdx);
                 p1.x = midGapDist * cos(midGapTheta);
                 p1.y = midGapDist * sin(midGapTheta);
@@ -321,7 +317,7 @@ namespace quad_gap
                 // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapIdx: " << midGapIdx);
                 // ROS_INFO_STREAM_NAMED("GapVisualizer", "midGapDist: " << midGapDist);
 
-                geometry_msgs::Point p2;
+                geometry_msgs::msg::Point p2;
                 midGapTheta = idx2theta(midGapIdx);
                 p2.x = midGapDist * cos(midGapTheta);
                 p2.y = midGapDist * sin(midGapTheta);
@@ -334,7 +330,7 @@ namespace quad_gap
             {
                 float r = gap->getMinSafeDist();
                 if (r < 0) {
-                    ROS_WARN_STREAM_NAMED("GapVisualizer", "Gap min safe dist not recorded");
+                    RCLCPP_WARN_STREAM(node_->get_logger(),  "Gap min safe dist not recorded");
                 }
     
                 // std_msgs::msg::ColorRGBA convex_color = colorMap["simp_extent"];
@@ -344,9 +340,9 @@ namespace quad_gap
                 // The Circle
                 if (circle) 
                 {
-                    std::vector<geometry_msgs::Point> lines;
-                    geometry_msgs::Point linel;
-                    geometry_msgs::Point liner;
+                    std::vector<geometry_msgs::msg::Point> lines;
+                    geometry_msgs::msg::Point linel;
+                    geometry_msgs::msg::Point liner;
 
                     float pi_over_25 = M_PI / 25;
                     for (int i = 0; i < 50; i++) 
@@ -430,6 +426,6 @@ namespace quad_gap
         visualization_msgs::msg::Marker marker;
         drawManipGap(marker, gaps, circle, sides); // , true);
 
-        manipGapsPublisher.publish(marker);
+        manipGapsPublisher->publish(marker);
     }
 }

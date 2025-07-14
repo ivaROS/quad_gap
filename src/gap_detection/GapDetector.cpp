@@ -122,7 +122,7 @@ namespace quad_gap
         scan_ = *scanPtr.get();
 
         fullScanRayCount_ = scan_.ranges.size();
-        ROS_WARN_STREAM_COND_NAMED(fullScanRayCount_ != cfg_->scan.full_scan, "GapDetector", "Scan is wrong size, should be " << cfg_->scan.full_scan);
+        // ROS_WARN_STREAM_NAMED("GapDetector", "Scan is wrong size, should be " << cfg_->scan.full_scan);
 
         halfScanRayCount_ = float(0.5 * fullScanRayCount_);
 

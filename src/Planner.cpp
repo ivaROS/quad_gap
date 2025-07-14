@@ -208,7 +208,7 @@ namespace quad_gap
 
         float origRange = 0.0;
         float origAng = 0.0;
-        geometry_msgs::PointStamped orig_pt, transformed_pt;
+        geometry_msgs::msg::PointStamped orig_pt, transformed_pt;
         geometry_msgs::msg::TransformStamped trans;
         float transRange = 0.0;
         float transTheta = 0.0;
@@ -507,7 +507,7 @@ namespace quad_gap
         } catch (tf2::TransformException &ex) 
         {
             ROS_WARN("%s", ex.what());
-            ros::Duration(0.1).sleep();
+            rclcpp::Duration::from_seconds(0.1).sleep();
             return;
         }
     }

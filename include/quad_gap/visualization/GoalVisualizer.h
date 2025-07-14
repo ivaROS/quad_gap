@@ -26,6 +26,8 @@ namespace quad_gap
     
             void drawGapGoal(visualization_msgs::msg::Marker & marker, Gap * gap);  
 
+            rclcpp::Node::SharedPtr node_; /**< Node handle for ROS communication */
+
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalPathLocalWaypointPublisher; /**< Publisher for global path local waypoint */
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalGoalPublisher; /**< Publisher for global goal */
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr gapGoalPublisher;

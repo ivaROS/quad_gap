@@ -987,7 +987,7 @@ namespace quad_gap
         {
             orientedPath.header = rawPath.header;
             geometry_msgs::msg::Pose first_pose = rawPath.poses[0];
-            geometry_msgs::Quaternion init_quat;
+            geometry_msgs::msg::Quaternion init_quat;
             init_quat.w = 1;
             first_pose.orientation = init_quat;
             orientedPath.poses.push_back(first_pose);

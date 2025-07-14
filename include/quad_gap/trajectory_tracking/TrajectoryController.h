@@ -161,7 +161,7 @@ namespace quad_gap
                                                 const float & minRangeTheta, 
                                                 const float & minRange);
 
-            // std::vector<geometry_msgs::Point> findLocalLine(const int & idx);
+            // std::vector<geometry_msgs::msg::Point> findLocalLine(const int & idx);
             // float polDist(const float & l1, const float & t1, const float & l2, const float & t2);
 
             // bool geqThres(const float dist);

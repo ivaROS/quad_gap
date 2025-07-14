@@ -133,7 +133,7 @@ namespace quad_gap
 
             } collision_checker;
 
-            void loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node);
+            void loadRosParamFromNodeHandle(const rclcpp::Node::SharedPtr & node);
 
             // void reconfigure(qgConfig& cfg);
 

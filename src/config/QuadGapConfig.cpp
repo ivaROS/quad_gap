@@ -2,14 +2,14 @@
 
 namespace quad_gap 
 {
-    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node)
+    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp::Node::SharedPtr & node)
     {
         // ros::NodeHandle nh("~/" + name);
 
-        auto node = node_.lock();
-        logger_ = node->get_logger();
+        // auto node = node_.lock();
+        rclcpp::Logger logger_ = node->get_logger();
 
-        RCLCPP_INFO_STREAM(logger_, "Setting nh to: " << "~/" << name);
+        // RCLCPP_INFO_STREAM(logger_, "Setting nh to: " << "~/" << name);
 
         std::string model;
         node->get_parameter("/model", model);

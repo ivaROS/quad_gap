@@ -34,7 +34,7 @@ namespace quad_gap
             //     return *this;
             // };
             
-            Visualizer(const Visualizer &t) {cfg_ = t.cfg_;};
+            // Visualizer(const Visualizer &t) {cfg_ = t.cfg_;};
 
         protected:
 

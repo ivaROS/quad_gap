@@ -20,13 +20,13 @@ namespace quad_gap
     }
 
     // [[deprecated("Not Used, Deemed Unnecessary")]]
-    // std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
+    // std::vector<geometry_msgs::msg::Point> TrajectoryController::findLocalLine(const int & idx) 
     // {
     //     sensor_msgs::msg::LaserScan egocircle = *scan_.get();
     //     std::vector<float> dist(egocircle.ranges.size());
 
     //     if (!scan_) {
-    //         return std::vector<geometry_msgs::Point>(0);
+    //         return std::vector<geometry_msgs::msg::Point>(0);
     //     }
         
     //     if (egocircle.ranges.size() < 500) {
@@ -57,7 +57,7 @@ namespace quad_gap
         
 
     //     if (res_rev == dist.rend()) {
-    //         return std::vector<geometry_msgs::Point>(0);
+    //         return std::vector<geometry_msgs::msg::Point>(0);
     //     }
 
     //     int idx_fwd = std::distance(dist.begin(), std::prev(result_fwd));
@@ -66,7 +66,7 @@ namespace quad_gap
     //     int min_idx_range = 0;
     //     int max_idx_range = int(egocircle.ranges.size() - 1);
     //     if (idx_fwd < min_idx_range || idx_fwd > max_idx_range || idx_rev < min_idx_range || idx_rev > max_idx_range) {
-    //         return std::vector<geometry_msgs::Point>(0);
+    //         return std::vector<geometry_msgs::msg::Point>(0);
     //     }
         
     //     float dist_fwd = egocircle.ranges.at(idx_fwd);
@@ -77,7 +77,7 @@ namespace quad_gap
     //     float angle_rev = float(idx_rev) * egocircle.angle_increment + egocircle.angle_min;
         
     //     if (idx_fwd < idx || idx_rev > idx) {
-    //         return std::vector<geometry_msgs::Point>(0);
+    //         return std::vector<geometry_msgs::msg::Point>(0);
     //     }
 
     //     Eigen::Vector2f fwd_pol(dist_fwd, angle_fwd);
@@ -103,16 +103,16 @@ namespace quad_gap
     //         pr = rev_car;
     //     }
 
-    //     geometry_msgs::Point lower_point;
+    //     geometry_msgs::msg::Point lower_point;
     //     lower_point.x = pf(0);
     //     lower_point.y = pf(1);
     //     lower_point.z = 3;
-    //     geometry_msgs::Point upper_point;
+    //     geometry_msgs::msg::Point upper_point;
     //     upper_point.x = pr(0);
     //     upper_point.y = pr(1);
     //     upper_point.z = 3;
     //     // if form convex hull
-    //     std::vector<geometry_msgs::Point> retArr(0);
+    //     std::vector<geometry_msgs::msg::Point> retArr(0);
     //     retArr.push_back(lower_point);
     //     retArr.push_back(upper_point);
     //     return retArr;
@@ -155,17 +155,17 @@ namespace quad_gap
         geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
-        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        geometry_msgs::msg::Quaternion currOrient = currentPoseOdomFrame.orientation;
         tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
         float currYaw = quaternionToYaw(currQuat); 
 
         // get current x,y,theta
-        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        geometry_msgs::msg::Point currPosn = currentPoseOdomFrame.position;
         Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
         // obtaining RPY of desired orientation
-        geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
-        geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        geometry_msgs::msg::Point desPosn = desiredPoseOdomFrame.position;
+        geometry_msgs::msg::Quaternion desOrient = desiredPoseOdomFrame.orientation;
         tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
 
         float desYaw = quaternionToYaw(desQuat);
@@ -244,19 +244,19 @@ namespace quad_gap
         geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
-        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        geometry_msgs::msg::Quaternion currOrient = currentPoseOdomFrame.orientation;
         tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
         float currYaw = quaternionToYaw(currQuat); 
 
         // get current x,y,theta
-        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        geometry_msgs::msg::Point currPosn = currentPoseOdomFrame.position;
         Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
         ROS_INFO_STREAM_NAMED("Controller", "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
 
         // obtaining RPY of desired orientation
-        geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
-        geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        geometry_msgs::msg::Point desPosn = desiredPoseOdomFrame.position;
+        geometry_msgs::msg::Quaternion desOrient = desiredPoseOdomFrame.orientation;
         tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
         float desYaw = quaternionToYaw(desQuat);
 
@@ -462,19 +462,19 @@ namespace quad_gap
         ROS_INFO_STREAM_NAMED("Controller", "    [processCmdVelNonHolonomic()]");
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
-        geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
+        geometry_msgs::msg::Quaternion currOrient = currentPoseOdomFrame.orientation;
         tf::Quaternion currQuat(currOrient.x, currOrient.y, currOrient.z, currOrient.w);
         float currYaw = quaternionToYaw(currQuat); 
 
         // get current x,y,theta
-        geometry_msgs::Point currPosn = currentPoseOdomFrame.position;
+        geometry_msgs::msg::Point currPosn = currentPoseOdomFrame.position;
         Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
         ROS_INFO_STREAM_NAMED("Controller", "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
 
         // // obtaining RPY of desired orientation
-        // geometry_msgs::Point desPosn = desiredPoseOdomFrame.position;
-        // geometry_msgs::Quaternion desOrient = desiredPoseOdomFrame.orientation;
+        // geometry_msgs::msg::Point desPosn = desiredPoseOdomFrame.position;
+        // geometry_msgs::msg::Quaternion desOrient = desiredPoseOdomFrame.orientation;
         // tf::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
         // float desYaw = quaternionToYaw(desQuat);
 
@@ -618,7 +618,7 @@ namespace quad_gap
         projOpMarker.color.r = 0.0;
         projOpMarker.color.g = 0.0;
         projOpMarker.color.b = 0.0;
-        projOpMarker.lifetime = ros::Duration(0);
+        projOpMarker.lifetime = rclcpp::Duration::from_seconds(0);
 
         projOpPublisher_.publish(projOpMarker);
     }

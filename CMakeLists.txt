@@ -60,11 +60,11 @@ include_directories(
 ###########
 
 add_library(quad_gap
-  # src/gap_detection/GapDetector.cpp
-  # src/config/QuadGapConfig.cpp
-  # src/visualization/GapVisualizer.cpp
-  # src/visualization/GoalVisualizer.cpp
-  # src/visualization/TrajectoryVisualizer.cpp
+  src/gap_detection/GapDetector.cpp
+  src/config/QuadGapConfig.cpp
+  src/visualization/GapVisualizer.cpp
+  src/visualization/GoalVisualizer.cpp
+  src/visualization/TrajectoryVisualizer.cpp
   # src/global_plan_management/GlobalPlanManager.cpp
   # src/trajectory_evaluation/TrajectoryEvaluator.cpp
   # src/trajectory_generation/GapGoalPlacer.cpp

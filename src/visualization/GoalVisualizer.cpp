@@ -4,6 +4,7 @@ namespace quad_gap
 {
     GoalVisualizer::GoalVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg)
     {
+        node_ = node;
         cfg_ = &cfg;
         globalGoalPublisher = node->create_publisher<visualization_msgs::msg::Marker>("global_goal", 10);
         globalPathLocalWaypointPublisher = node->create_publisher<visualization_msgs::msg::Marker>("global_path_local_waypoint", 10);
@@ -34,7 +35,7 @@ namespace quad_gap
 
         if (globalGoalOdomFrame.header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("GoalVisualizer", "[drawGlobalGoal] Global goal frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGlobalGoal] Global goal frame_id is empty");
             return;
         }
 
@@ -52,7 +53,7 @@ namespace quad_gap
         globalGoalMarker.scale.y = 0.1;
         globalGoalMarker.scale.z = 0.1;
         globalGoalMarker.color = globalGoalColor;
-        globalGoalPublisher.publish(globalGoalMarker);        
+        globalGoalPublisher->publish(globalGoalMarker);        
     }
 
     void GoalVisualizer::drawGlobalPathLocalWaypoint(const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint)
@@ -64,7 +65,7 @@ namespace quad_gap
 
         if (globalPathLocalWaypoint.header.frame_id.empty())
         {
-            ROS_WARN_STREAM_NAMED("GoalVisualizer", "[drawGlobalPathLocalWaypoint] Global path local waypoint frame_id is empty");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGlobalPathLocalWaypoint] Global path local waypoint frame_id is empty");
             return;
         }
 
@@ -82,7 +83,7 @@ namespace quad_gap
         globalPathLocalWaypointMarker.scale.y = 0.1;
         globalPathLocalWaypointMarker.scale.z = 0.1;
         globalPathLocalWaypointMarker.color = globalPathLocalWaypointColor;
-        globalPathLocalWaypointPublisher.publish(globalPathLocalWaypointMarker);
+        globalPathLocalWaypointPublisher->publish(globalPathLocalWaypointMarker);
     }
 
 
@@ -90,19 +91,19 @@ namespace quad_gap
     {
         if (!gap->isGoalSet()) 
         {
-            ROS_INFO_STREAM_NAMED("GoalVisualizer", "[drawGapGoal] Gap goal is not set");
-            ROS_WARN_STREAM_NAMED("GoalVisualizer", "[drawGapGoal] Gap goal is not set");
+            RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal is not set");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal is not set");
             return;
         }
 
         // visualization_msgs::msg::Marker lg_marker;
 
-        geometry_msgs::Point lg_point;
+        geometry_msgs::msg::Point lg_point;
         lg_point.x = gap->getGoalX(); // gap->goal.x;
         lg_point.y = gap->getGoalY(); // gap->goal.y;
         lg_point.z = 0.0;
 
-        ROS_INFO_STREAM_NAMED("GoalVisualizer", "[drawGapGoal] Gap goal position: " << lg_point.x << ", " << lg_point.y);
+        RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal position: " << lg_point.x << ", " << lg_point.y);
 
         marker.points.push_back(lg_point);
         // marker.colors.push_back(gapGoalsColor);
@@ -119,8 +120,8 @@ namespace quad_gap
 
         if (gaps.empty()) 
         {
-            ROS_INFO_STREAM_NAMED("GoalVisualizer", "[drawGapGoals] No gaps to visualize");
-            ROS_WARN_STREAM_NAMED("GoalVisualizer", "[drawGapGoals] No gaps to visualize");
+            RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoals] No gaps to visualize");
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGapGoals] No gaps to visualize");
             return;
         }
 
@@ -147,7 +148,7 @@ namespace quad_gap
             drawGapGoal(marker, gap);
         }
 
-        gapGoalPublisher.publish(marker);
+        gapGoalPublisher->publish(marker);
         return;
     }
 }
