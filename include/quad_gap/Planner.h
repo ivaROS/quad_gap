@@ -37,8 +37,8 @@
 //////////////
 // ROS MSGS //
 //////////////
-#include <visualization_msgs/msg/marker.h>
-#include <visualization_msgs/msg/marker_array.h>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 //////////
 // MISC //
@@ -52,11 +52,11 @@
 #include <math.h>
 #include <chrono>
 
-#include <geometry_msgs/msg/transform_stamped.h>
-#include <geometry_msgs/msg/pose_array.h>
-#include <sensor_msgs/msg/laser_scan.h>
-#include <std_msgs/msg/header.h>
-#include <nav_msgs/msg/odometry.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <std_msgs/msg/header.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -67,38 +67,38 @@
 
 #include <omp.h>
 
-#include <dynamic_reconfigure/server.h>
+// #include <dynamic_reconfigure/server.h>
 // #include <quad_gap/qgConfig.h>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
 
-#include <turtlebot_trajectory_testing/turtlebot_trajectory_tester.h>
-// #include <pips_trajectory_testing/pips_trajectory_tester.h>
-#include <pips_trajectory_msgs/trajectory_points.h>
-#include <pips_trajectory_testing/pips_cc_wrapper.h>
-#include <pips_trajectory_testing/depth_image_cc_wrapper.h>
-#include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
-#include <pips_egocircle/egocircle_cc_wrapper.h>
+// #include <turtlebot_trajectory_testing/turtlebot_trajectory_tester.h>
+// // #include <pips_trajectory_testing/pips_trajectory_tester.h>
+// #include <pips_trajectory_msgs/trajectory_points.h>
+// #include <pips_trajectory_testing/pips_cc_wrapper.h>
+// #include <pips_trajectory_testing/depth_image_cc_wrapper.h>
+// #include <pips_egocylindrical/egocylindrical_image_cc_wrapper.h>
+// #include <pips_egocircle/egocircle_cc_wrapper.h>
 
 namespace quad_gap
 {
-    struct CollisionResults
-    {
-        int collision_idx_ = -1;
-        pips_trajectory_msgs::trajectory_points local_traj_;
+    // struct CollisionResults
+    // {
+    //     int collision_idx_ = -1;
+    //     pips_trajectory_msgs::trajectory_points local_traj_;
         
-        CollisionResults()
-        {
-            collision_idx_ = -1;
-        }
+    //     CollisionResults()
+    //     {
+    //         collision_idx_ = -1;
+    //     }
 
-        CollisionResults(int collision_idx, pips_trajectory_msgs::trajectory_points local_traj)
-        {
-            collision_idx_ = collision_idx;
-            local_traj_ = local_traj;
-        }
-    };
+    //     CollisionResults(int collision_idx, pips_trajectory_msgs::trajectory_points local_traj)
+    //     {
+    //         collision_idx_ = collision_idx;
+    //         local_traj_ = local_traj;
+    //     }
+    // };
 
     class Planner
     {
@@ -111,7 +111,7 @@ namespace quad_gap
             * \param name planner name (used for ROS namespaces) 
             * \return initialization success / failure
             */
-            bool initialize(const std::string & name);
+            bool initialize(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node);
 
             /**
             * \brief Indicator for if planner has been initialized
@@ -131,27 +131,27 @@ namespace quad_gap
             * @param msg laser scan msg
             * @return None, laser scan msg stored locally
             */
-            void laserScanCB(boost::shared_ptr<sensor_msgs::LaserScan> msg);
+            void laserScanCB(boost::shared_ptr<sensor_msgs::msg::LaserScan> msg);
 
             /**
             * call back function to pose, pose information obtained here only used when a new goal is used
             * @param msg pose msg
             * @return None
             */
-            void poseCB(const nav_msgs::Odometry::ConstPtr& msg);
+            void poseCB(const nav_msgs::msg::Odometry::ConstPtr& msg);
 
             /**
             * \brief Function for updating all tf transform at the beginning of every planning cycle
             * \param msg incoming agent odometry message
             */
-            void tfCB(const tf2_msgs::TFMessage& msg);
+            void tfCB(const tf2_msgs::msg::TFMessage& msg);
 
             /**
             * Interface function for receiving global plan
             * @param plan, vector of PoseStamped
             * @return boolean type on whether successfully registered goal
             */
-            bool setPlan(const std::vector<geometry_msgs::PoseStamped> &plan);
+            void setPlan(const std::vector<geometry_msgs::msg::PoseStamped> &plan);
 
             // /**
             // * update all tf transform at the beginning of every planning cycle
@@ -174,7 +174,7 @@ namespace quad_gap
             * @param pose_arr_odom
             * @return cmd_vel by assigning to pass by reference
             */
-            geometry_msgs::Twist ctrlGeneration(const Trajectory & traj);
+            geometry_msgs::msg::Twist ctrlGeneration(const Trajectory & traj);
             
             /**
             * Take current observed gaps and perform gap conversion
@@ -215,16 +215,16 @@ namespace quad_gap
             */
             Trajectory compareToCurrentTraj(Trajectory & incomingTraj);
 
-            // geometry_msgs::PoseArray getOrientDecayedPath(const geometry_msgs::PoseArray & orig_path);
+            // geometry_msgs::msg::PoseArray getOrientDecayedPath(const geometry_msgs::msg::PoseArray & orig_path);
 
-            CollisionResults checkCollision(const Trajectory & traj);
+            // CollisionResults checkCollision(const Trajectory & traj);
 
             /**
             * \brief Function for getting index of closest pose in trajectory
             * \param currTrajRbtFrame current trajectory in robot frame
             * \return index of closest pose in trajectory
             */
-            int getClosestTrajectoryPoseIdx(const geometry_msgs::PoseArray & currTrajRbtFrame);
+            int getClosestTrajectoryPoseIdx(const geometry_msgs::msg::PoseArray & currTrajRbtFrame);
 
             /**
             * Setter and Getter of Current Trajectory, this is performed in the compareToCurrentTraj function
@@ -249,17 +249,17 @@ namespace quad_gap
             * @param command velocity
             * @return False if robot has been stuck for the past cfg.planning.halt_size iterations
             */
-            bool recordAndCheckVel(const geometry_msgs::Twist & cmd_vel);
+            bool recordAndCheckVel(const geometry_msgs::msg::TwistStamped & cmd_vel);
             
-            void setCCWrapper(const std::shared_ptr<pips_trajectory_testing::PipsCCWrapper>& cc_wrapper)
-            {
-                cc_wrapper_ = cc_wrapper;
-            }
+            // void setCCWrapper(const std::shared_ptr<pips_trajectory_testing::PipsCCWrapper>& cc_wrapper)
+            // {
+            //     cc_wrapper_ = cc_wrapper;
+            // }
 
-            std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> getCCWrapper()
-            {
-                return cc_wrapper_;
-            }
+            // std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> getCCWrapper()
+            // {
+            //     return cc_wrapper_;
+            // }
 
             // bool ccEnabled()
             // {
@@ -271,10 +271,10 @@ namespace quad_gap
             // typedef TurtlebotGenAndTest::traj_func_ptr traj_func_ptr;
             // typedef TurtlebotGenAndTest::trajectory_points trajectory_points;
             // typedef TurtlebotGenAndTest::TrajBridge TrajBridge;
-            typedef std::shared_ptr<TurtlebotGenAndTest> GenAndTest_ptr;
+            // typedef std::shared_ptr<TurtlebotGenAndTest> GenAndTest_ptr;
 
-            std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> cc_wrapper_;
-            GenAndTest_ptr traj_tester_;
+            // std::shared_ptr<pips_trajectory_testing::PipsCCWrapper> cc_wrapper_;
+            // GenAndTest_ptr traj_tester_;
 
             // bool collision_checker_enable_ = false;
             // int cc_type_ = -1;
@@ -299,43 +299,43 @@ namespace quad_gap
 
             std::vector<Gap *> deepCopyCurrentSimplifiedGaps();
 
-            boost::shared_ptr<sensor_msgs::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
 
             // Transforms
-            geometry_msgs::TransformStamped map2rbt_;
-            geometry_msgs::TransformStamped rbt2map_;
-            geometry_msgs::TransformStamped odom2rbt_;
-            geometry_msgs::TransformStamped rbt2odom_;
-            geometry_msgs::TransformStamped map2odom_;
-            geometry_msgs::TransformStamped cam2odom_;
-            geometry_msgs::TransformStamped odom2cam_;
-            geometry_msgs::TransformStamped rbt2cam_;
-            geometry_msgs::TransformStamped cam2rbt_;
+            geometry_msgs::msg::TransformStamped map2rbt_;
+            geometry_msgs::msg::TransformStamped rbt2map_;
+            geometry_msgs::msg::TransformStamped odom2rbt_;
+            geometry_msgs::msg::TransformStamped rbt2odom_;
+            geometry_msgs::msg::TransformStamped map2odom_;
+            geometry_msgs::msg::TransformStamped cam2odom_;
+            geometry_msgs::msg::TransformStamped odom2cam_;
+            geometry_msgs::msg::TransformStamped rbt2cam_;
+            geometry_msgs::msg::TransformStamped cam2rbt_;
 
             // Robot poses
-            geometry_msgs::PoseStamped rbtPoseInRbtFrame_;
-            geometry_msgs::PoseStamped rbtPoseInSensorFrame_;
-            geometry_msgs::PoseStamped rbtPoseInOdomFrame_;
+            geometry_msgs::msg::PoseStamped rbtPoseInRbtFrame_;
+            geometry_msgs::msg::PoseStamped rbtPoseInSensorFrame_;
+            geometry_msgs::msg::PoseStamped rbtPoseInOdomFrame_;
             
             std::shared_ptr<tf2_ros::Buffer> tfBuffer;
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
 
-            ros::NodeHandle nh, pnh;
+            // ros::NodeHandle nh, pnh;
             // ros::Publisher trajectory_pub;
 
-            ros::Publisher transformed_laser_pub;
+            rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr transformed_laser_pub;
 
             bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */
             bool hasLaserScan_ = false;
             bool initialized_ = false;
 
             // Goals and stuff
-            geometry_msgs::PoseStamped globalGoalOdomFrame_; /**< Global goal in odometry frame */
-            geometry_msgs::PoseStamped globalGoalRobotFrame_; /**< Global goal in robot frame */
-            geometry_msgs::PoseStamped globalPathLocalWaypointOdomFrame_; /**< Global path local waypoint in odometry frame */
+            geometry_msgs::msg::PoseStamped globalGoalOdomFrame_; /**< Global goal in odometry frame */
+            geometry_msgs::msg::PoseStamped globalGoalRobotFrame_; /**< Global goal in robot frame */
+            geometry_msgs::msg::PoseStamped globalPathLocalWaypointOdomFrame_; /**< Global path local waypoint in odometry frame */
 
-            // geometry_msgs::PoseStamped local_waypoint_odom; // local_waypoint, 
-            // geometry_msgs::PoseStamped final_goal_odom;
+            // geometry_msgs::msg::PoseStamped local_waypoint_odom; // local_waypoint, 
+            // geometry_msgs::msg::PoseStamped final_goal_odom;
 
             // Gaps:
             std::vector<Gap *> currRawGaps_;
@@ -363,15 +363,15 @@ namespace quad_gap
 
             bool colliding_ = false;
 
-            // geometry_msgs::PoseArray pose_arr;
-            // geometry_msgs::PoseArray pose_arr_odom;
+            // geometry_msgs::msg::PoseArray pose_arr;
+            // geometry_msgs::msg::PoseArray pose_arr_odom;
 
             // std::vector<turtlebot_trajectory_generator::ni_state> ctrl;
             // int ctrl_idx = 0;
 
-            geometry_msgs::TwistStamped rbtVelRbtFrame_;
+            geometry_msgs::msg::TwistStamped rbtVelRbtFrame_;
 
-            boost::shared_ptr<sensor_msgs::LaserScan const> scanRbtFrame_;
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanRbtFrame_;
 
             int trajectoryChangeCount_ = 0; /**< Counter for how many times the trajectory has been changed */
 
@@ -384,10 +384,12 @@ namespace quad_gap
 
             // bool replan = true;
 
-            ros::Time lastScanTime_;
-            ros::Time currScanTime_;
-            ros::Time lastPlanTime_;
-            ros::Time currPlanTime_;
+            rclcpp::Time lastScanTime_;
+            rclcpp::Time currScanTime_;
+            rclcpp::Time lastPlanTime_;
+            rclcpp::Time currPlanTime_;
+
+            rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
             
             QuadGapConfig cfg_;
 
@@ -398,9 +400,9 @@ namespace quad_gap
 
             boost::circular_buffer<float> cmdVelBuffer;
 
-            ros::Subscriber tfSub_; /**< Subscriber to TF tree */
-            ros::Subscriber laserSub_; /**< Subscriber to robot laser */
-            ros::Subscriber poseSub_; /**< Subscriber to robot pose */
+            rclcpp::Subscription<tf2_msgs::msg::TFMessage>::SharedPtr tfSub_; /**< Subscriber to TF tree */
+            rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserSub_; /**< Subscriber to robot laser */
+            rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr poseSub_; /**< Subscriber to robot pose */
             // ros::Subscriber accSub_; /**< Subscriber to robot acceleration */
 
             bool haveTFs_ = false; /**< Flag to indicate if TFs have been received */

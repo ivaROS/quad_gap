@@ -31,12 +31,12 @@ namespace quad_gap
 
                 if (! checkPtIdx(orig.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 1]: Gap index is not valid: " << orig.idx_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 1]: Gap index is not valid: " << orig.idx_);
                     orig.idx_ = 0;
                 }
                 if (! checkPtRange(orig.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 1]: Gap range is not valid: " << orig.range_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 1]: Gap range is not valid: " << orig.range_);
                     orig.range_ = 0.0;
                 }
             }
@@ -49,13 +49,13 @@ namespace quad_gap
 
                 if (! checkPtIdx(orig.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 2]: Gap index is not valid: " << orig.idx_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 2]: Gap index is not valid: " << orig.idx_);
                     orig.idx_ = 0;
                 }
 
                 if (! checkPtRange(orig.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 2]: Gap range is not valid: " << orig.range_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 2]: Gap range is not valid: " << orig.range_);
                     orig.range_ = 0.0;
                 }
 
@@ -64,13 +64,13 @@ namespace quad_gap
 
                 if (! checkPtIdx(manip.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 2]: Gap index is not valid: " << manip.idx_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 2]: Gap index is not valid: " << manip.idx_);
                     manip.idx_ = 0;
                 }
 
                 if (! checkPtRange(manip.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "[GapPoint constructor 2]: Gap range is not valid: " << manip.range_);
+                    RCLCPP_WARN_STREAM(logger_,  "[GapPoint constructor 2]: Gap range is not valid: " << manip.range_);
                     manip.range_ = 0.0;
                 }
             }
@@ -79,51 +79,51 @@ namespace quad_gap
             {
                 if (std::isnan(orig.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has NaN range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has NaN range");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has NaN range");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN range");
 
                     return false;
                 }
 
                 if (std::isinf(orig.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has Inf range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has Inf range");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has Inf range");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has Inf range");
                     return false;
                 }
 
                 if (std::isnan(orig.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has NaN index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has NaN index");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has NaN index");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN index");
                     return false;
                 }
 
                 if (std::isinf(orig.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has negative or Inf index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has negative or Inf index");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has negative or Inf index");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has negative or Inf index");
                     return false;
                 }
 
                 if (orig.idx_ < 0)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has a negative index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has a negative index");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has a negative index");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative index");
                     return false;
                 }
 
                 if (orig.range_ < 0)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has a negative range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has a negative range");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has a negative range");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative range");
                     return false;
                 }
 
                 if (orig.idx_ >= 2*half_num_scan)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap point has an index out of bounds");
-                    ROS_INFO_STREAM_NAMED("Gap", "Gap point has an index out of bounds");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap point has an index out of bounds");
+                    RCLCPP_INFO_STREAM(logger_,  "Gap point has an index out of bounds");
                     return false;
                 }
 
@@ -134,50 +134,50 @@ namespace quad_gap
             {
                 if (std::isnan(manip.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has NaN range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has NaN range");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has NaN range");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN range");
                     return false;
                 }
 
                 if (std::isinf(manip.range_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has Inf range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has Inf range");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has Inf range");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has Inf range");
                     return false;
                 }
 
                 if (std::isnan(manip.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has NaN index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has NaN index");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has NaN index");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN index");
                     return false;
                 }
 
                 if (std::isinf(manip.idx_))
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has negative or Inf index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has negative or Inf index");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has negative or Inf index");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has negative or Inf index");
                     return false;
                 }
 
                 if (manip.idx_ < 0)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has a negative index");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has a negative index");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has a negative index");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative index");
                     return false;
                 }
 
                 if (manip.range_ < 0)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has a negative range");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has a negative range");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has a negative range");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative range");
                     return false;
                 }
 
                 if (manip.idx_ >= 2*half_num_scan)
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Manip gap point has an index out of bounds");
-                    ROS_INFO_STREAM_NAMED("Gap", "Manip gap point has an index out of bounds");
+                    RCLCPP_WARN_STREAM(logger_,  "Manip gap point has an index out of bounds");
+                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has an index out of bounds");
                     return false;
                 }
 
@@ -226,9 +226,9 @@ namespace quad_gap
 
             void getOrigCartesian(float &x, float &y) const
             {
-                // ROS_INFO_STREAM_NAMED("Gap", "getOrigCartesian");
-                // ROS_INFO_STREAM_NAMED("Gap", "  orig.idx_: " << orig.idx_);
-                // ROS_INFO_STREAM_NAMED("Gap", "  orig.range_: " << orig.range_);
+                // RCLCPP_INFO_STREAM(logger_,  "getOrigCartesian");
+                // RCLCPP_INFO_STREAM(logger_,  "  orig.idx_: " << orig.idx_);
+                // RCLCPP_INFO_STREAM(logger_,  "  orig.range_: " << orig.range_);
                 
                 float theta = idx2theta(orig.idx_);
                 x = (orig.range_) * std::cos(theta);
@@ -283,5 +283,7 @@ namespace quad_gap
                 int idx_ = -1; /**< Manipulated gap point index */
                 float range_ = -1.0; /**< Manipulated gap point range */
             } manip;
+
+            rclcpp::Logger logger_ {rclcpp::get_logger("QuadGapPlanner")};
     };
 }

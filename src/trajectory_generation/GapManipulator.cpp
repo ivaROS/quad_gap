@@ -2,7 +2,7 @@
 
 namespace quad_gap 
 {
-    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
+    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(egolock);
         scan_ = msg;
@@ -10,7 +10,7 @@ namespace quad_gap
     }
 
     // In place modification
-    void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypoint) 
+    void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint) 
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [reduceGap()]");
 
@@ -120,7 +120,7 @@ namespace quad_gap
     {
         ROS_INFO_STREAM_NAMED("GapManipulator", "    [convertRadialGap()]");
 
-        sensor_msgs::LaserScan desScan = *scan_.get();
+        sensor_msgs::msg::LaserScan desScan = *scan_.get();
         
         bool right = gap->isRightType();
         // Extend of rotation to the radial gap 

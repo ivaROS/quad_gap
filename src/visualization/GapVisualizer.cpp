@@ -2,26 +2,26 @@
 
 namespace quad_gap
 {
-    GapVisualizer::GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
+    GapVisualizer::GapVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
     {
-        initialize(nh, cfg);
+        initialize(node, cfg);
     }
 
-    void GapVisualizer::initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
+    void GapVisualizer::initialize(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
     {
         cfg_ = &cfg;
-        rawGapsPublisher = nh.advertise<visualization_msgs::Marker>("raw_gaps", 10);
-        simpGapsPublisher = nh.advertise<visualization_msgs::Marker>("simp_gaps", 10);
-        manipGapsPublisher = nh.advertise<visualization_msgs::Marker>("manip_gaps", 10);
+        rawGapsPublisher = node->create_publisher<visualization_msgs::msg::Marker>("raw_gaps", 10);
+        simpGapsPublisher = node->create_publisher<visualization_msgs::msg::Marker>("simp_gaps", 10);
+        manipGapsPublisher = node->create_publisher<visualization_msgs::msg::Marker>("manip_gaps", 10);
 
-        // std_msgs::ColorRGBA std_color;
-        std_msgs::ColorRGBA raw_radial;
-        std_msgs::ColorRGBA raw_swept;
-        std_msgs::ColorRGBA simp_radial;
-        std_msgs::ColorRGBA simp_swept;
-        // std_msgs::ColorRGBA extent;
-        // std_msgs::ColorRGBA agc;
-        std_msgs::ColorRGBA manip;
+        // std_msgs::msg::ColorRGBA std_color;
+        std_msgs::msg::ColorRGBA raw_radial;
+        std_msgs::msg::ColorRGBA raw_swept;
+        std_msgs::msg::ColorRGBA simp_radial;
+        std_msgs::msg::ColorRGBA simp_swept;
+        // std_msgs::msg::ColorRGBA extent;
+        // std_msgs::msg::ColorRGBA agc;
+        std_msgs::msg::ColorRGBA manip;
 
         // Raw Therefore Alpha halved
         raw_radial.a = 1.0;
@@ -59,27 +59,27 @@ namespace quad_gap
         manip.g = 1.0;
         manip.b = 0.0;
 
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_radial", raw_radial));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("raw_swept", raw_swept));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_radial", simp_radial));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_swept", simp_swept));
-        colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("manip", manip));
-        // colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_extent", extent));
-        // colorMap.insert(std::pair<std::string, std_msgs::ColorRGBA>("simp_agc", agc));
+        colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("raw_radial", raw_radial));
+        colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("raw_swept", raw_swept));
+        colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("simp_radial", simp_radial));
+        colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("simp_swept", simp_swept));
+        colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("manip", manip));
+        // colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("simp_extent", extent));
+        // colorMap.insert(std::pair<std::string, std_msgs::msg::ColorRGBA>("simp_agc", agc));
 
     }
 
-    void GapVisualizer::drawGap(visualization_msgs::Marker & marker, 
+    void GapVisualizer::drawGap(visualization_msgs::msg::Marker & marker, 
                                 const std::vector<Gap *> & gaps, 
                                 const std::string & ns) // , const bool & initial)     
     {
         // ROS_INFO_STREAM_NAMED("GapVisualizer", "[drawGap] start");
 
-        // visualization_msgs::Marker marker;
-        // marker.header.stamp = ros::Time();
+        // visualization_msgs::msg::Marker marker;
+        // marker.header.stamp = rclcpp::Time();
         marker.ns = ns;
-        marker.type = visualization_msgs::Marker::LINE_LIST;
-        marker.action = visualization_msgs::Marker::ADD;
+        marker.type = visualization_msgs::msg::Marker::LINE_LIST;
+        marker.action = visualization_msgs::msg::Marker::ADD;
 
         marker.pose.position.x = 0.0;
         marker.pose.position.y = 0.0;
@@ -165,7 +165,7 @@ namespace quad_gap
     {
         // First, clearing topic.
 
-        visualization_msgs::Marker marker;
+        visualization_msgs::msg::Marker marker;
         drawGap(marker, gaps, ns); // , true);
 
         // for (const Gap & gap : g) 
@@ -193,11 +193,11 @@ namespace quad_gap
                                 // std::vector<geometry_msgs::Point>& lines,
                                 // geometry_msgs::Point& linel,
                                 // geometry_msgs::Point& liner,
-                                visualization_msgs::Marker& marker,
-                                const std_msgs::ColorRGBA & convex_color) 
+                                visualization_msgs::msg::Marker& marker,
+                                const std_msgs::msg::ColorRGBA & convex_color) 
     {
         std::vector<geometry_msgs::Point> lines;                                        
-        std::vector<std_msgs::ColorRGBA> colors;
+        std::vector<std_msgs::msg::ColorRGBA> colors;
 
         // lines.clear();
         geometry_msgs::Point linel;
@@ -223,16 +223,16 @@ namespace quad_gap
         // vis_arr.markers.push_back(this_marker);
     };
 
-    void GapVisualizer::drawManipGap(visualization_msgs::Marker & marker, 
+    void GapVisualizer::drawManipGap(visualization_msgs::msg::Marker & marker, 
                                         const std::vector<Gap *> & gaps, 
                                         // const std::string & ns,
                                         const bool & circle,
                                         const bool & sides)
     {
-        // marker.header.stamp = ros::Time();
+        // marker.header.stamp = rclcpp::Time();
         marker.ns = "manip_gaps";
-        marker.type = visualization_msgs::Marker::LINE_LIST;
-        marker.action = visualization_msgs::Marker::ADD;
+        marker.type = visualization_msgs::msg::Marker::LINE_LIST;
+        marker.action = visualization_msgs::msg::Marker::ADD;
 
         marker.pose.position.x = 0.0;
         marker.pose.position.y = 0.0;
@@ -337,7 +337,7 @@ namespace quad_gap
                     ROS_WARN_STREAM_NAMED("GapVisualizer", "Gap min safe dist not recorded");
                 }
     
-                // std_msgs::ColorRGBA convex_color = colorMap["simp_extent"];
+                // std_msgs::msg::ColorRGBA convex_color = colorMap["simp_extent"];
     
                 // this_marker.ns = "simp_extent";
     
@@ -427,7 +427,7 @@ namespace quad_gap
         bool circle = false;
         bool sides = false;
 
-        visualization_msgs::Marker marker;
+        visualization_msgs::msg::Marker marker;
         drawManipGap(marker, gaps, circle, sides); // , true);
 
         manipGapsPublisher.publish(marker);

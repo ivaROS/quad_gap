@@ -2,18 +2,18 @@
 
 namespace quad_gap
 {
-    TrajectoryController::TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg) 
+    TrajectoryController::TrajectoryController(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
     {
-        projOpPublisher_ = nh.advertise<visualization_msgs::Marker>("po_dir", 10);
+        projOpPublisher_ = node->create_publisher<visualization_msgs::msg::Marker>("po_dir", 10);
         cfg_ = & cfg;
 
         // thres = 0.1;
-        // last_time = ros::Time::now();
+        // last_time = rclcpp::Time::now();
 
         l_ = cfg_->rbt.r_inscr * cfg_->traj.inf_ratio; // error.norm();
     }
 
-    void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan)
+    void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan)
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = scan;
@@ -22,7 +22,7 @@ namespace quad_gap
     // [[deprecated("Not Used, Deemed Unnecessary")]]
     // std::vector<geometry_msgs::Point> TrajectoryController::findLocalLine(const int & idx) 
     // {
-    //     sensor_msgs::LaserScan egocircle = *scan_.get();
+    //     sensor_msgs::msg::LaserScan egocircle = *scan_.get();
     //     std::vector<float> dist(egocircle.ranges.size());
 
     //     if (!scan_) {
@@ -129,10 +129,10 @@ namespace quad_gap
     // }
 
     // ,
-    // const sensor_msgs::LaserScan & inflated_egocircle, 
-    // const geometry_msgs::PoseStamped & init_pose    
-    geometry_msgs::Twist TrajectoryController::controlLawHolonomic(const geometry_msgs::Pose & currentPoseOdomFrame, 
-                                                                    const geometry_msgs::Pose & desiredPoseOdomFrame) 
+    // const sensor_msgs::msg::LaserScan & inflated_egocircle, 
+    // const geometry_msgs::msg::PoseStamped & init_pose    
+    geometry_msgs::msg::Twist TrajectoryController::controlLawHolonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame, 
+                                                                    const geometry_msgs::msg::Pose & desiredPoseOdomFrame) 
     {
         // Setup Vars
         boost::mutex::scoped_lock lock(scanMutex_);
@@ -152,7 +152,7 @@ namespace quad_gap
         // float k_po_turn_ = cfg_->projection.k_po_turn;
 
         // auto inflated_egocircle = *scan_.get();
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
         geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
@@ -234,14 +234,14 @@ namespace quad_gap
     }
 
 
-    geometry_msgs::Twist TrajectoryController::controlLawNonholonomic(const geometry_msgs::Pose & currentPoseOdomFrame, 
-                                                                        const geometry_msgs::Pose & desiredPoseOdomFrame) 
+    geometry_msgs::msg::Twist TrajectoryController::controlLawNonholonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame, 
+                                                                        const geometry_msgs::msg::Pose & desiredPoseOdomFrame) 
     { 
         ROS_INFO_STREAM_NAMED("Controller", "    [constantVelocityControlLawNonHolonomicLookahead()]");
         // Setup Vars
         // boost::mutex::scoped_lock lock(scanMutex_);
 
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
         geometry_msgs::Quaternion currOrient = currentPoseOdomFrame.orientation;
@@ -308,7 +308,7 @@ namespace quad_gap
     /*
     Taken from the code provided in stdr_simulator repo. Probably does not perform too well.
     */
-    geometry_msgs::Twist TrajectoryController::obstacleAvoidanceControlLaw() 
+    geometry_msgs::msg::Twist TrajectoryController::obstacleAvoidanceControlLaw() 
     {
         ROS_INFO_STREAM_NAMED("Controller", "obstacle avoidance control");
         float safeDirX = 0;
@@ -339,7 +339,7 @@ namespace quad_gap
 
         ROS_INFO_STREAM_NAMED("Controller", "final safe vels: " << cmdVelX << ", " << cmdVelY);
 
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
         cmdVel.linear.x = cmdVelX;
         cmdVel.linear.y = cmdVelY; 
         cmdVel.angular.z = cmdVelTheta;    
@@ -350,7 +350,7 @@ namespace quad_gap
     /*
     Taken from the code provided in stdr_simulator repo. Probably does not perform too well.
     */
-    geometry_msgs::Twist TrajectoryController::obstacleAvoidanceControlLawNonHolonomic() 
+    geometry_msgs::msg::Twist TrajectoryController::obstacleAvoidanceControlLawNonHolonomic() 
     {
         ROS_INFO_STREAM_NAMED("Controller", "obstacle avoidance control");
         float safeDirX = 0;
@@ -373,7 +373,7 @@ namespace quad_gap
 
         // clipRobotVelocity(cmdVelX, cmdVelY, cmdVelTheta);
 
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         float clippedCmdVelX = 0.0;
         if (std::abs(safeDirX) < cfg_->rbt.vx_absmax)
@@ -393,12 +393,12 @@ namespace quad_gap
         return cmdVel;
     }
 
-    geometry_msgs::Twist TrajectoryController::processCmdVelHolonomic(const geometry_msgs::Twist & rawCmdVel,
-                                                                        const geometry_msgs::PoseStamped & rbtPoseInSensorFrame) 
+    geometry_msgs::msg::Twist TrajectoryController::processCmdVelHolonomic(const geometry_msgs::msg::Twist & rawCmdVel,
+                                                                        const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame) 
     {
         ROS_INFO_STREAM_NAMED("Controller", "    [processCmdVel()]");
 
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
         float velLinXFeedback = rawCmdVel.linear.x;
         float velLinYFeedback = rawCmdVel.linear.y;
@@ -454,10 +454,10 @@ namespace quad_gap
     }
 
 
-    geometry_msgs::Twist TrajectoryController::processCmdVelNonholonomic(const geometry_msgs::Pose & currentPoseOdomFrame,
-                                                                            const geometry_msgs::Pose & desiredPoseOdomFrame,
-                                                                            const geometry_msgs::Twist & nonholoCmdVel,
-                                                                            const geometry_msgs::PoseStamped & rbtPoseInSensorFrame) 
+    geometry_msgs::msg::Twist TrajectoryController::processCmdVelNonholonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame,
+                                                                            const geometry_msgs::msg::Pose & desiredPoseOdomFrame,
+                                                                            const geometry_msgs::msg::Twist & nonholoCmdVel,
+                                                                            const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame) 
     {
         ROS_INFO_STREAM_NAMED("Controller", "    [processCmdVelNonHolonomic()]");
 
@@ -496,7 +496,7 @@ namespace quad_gap
         // float l_adj = l; // 0.5 * l;
 
         // Map nonholonomic command velocities to holonomic command velocities
-        geometry_msgs::Twist holoCmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist holoCmdVel = geometry_msgs::msg::Twist();
         holoCmdVel.linear.x = nonholoCmdVel.linear.x;
         holoCmdVel.linear.y = l_ * nonholoCmdVel.angular.z;
         holoCmdVel.angular.z = 0.0;
@@ -569,7 +569,7 @@ namespace quad_gap
             clippedVelLinXFeedback = cfg_->rbt.vx_absmax * epsilonDivide(velLinXFeedback, std::abs(velLinXFeedback));
         }
 
-        geometry_msgs::Twist cmdVel = geometry_msgs::Twist();
+        geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
         cmdVel.linear.x = clippedVelLinXFeedback;
         cmdVel.linear.y = 0.0;
         cmdVel.angular.z = std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, velAngFeedback));
@@ -593,13 +593,13 @@ namespace quad_gap
             return;
         }
 
-        visualization_msgs::Marker projOpMarker;
+        visualization_msgs::msg::Marker projOpMarker;
         projOpMarker.header.frame_id = cfg_->robot_frame_id;
-        projOpMarker.header.stamp = ros::Time();
+        projOpMarker.header.stamp = rclcpp::Time();
         projOpMarker.id = 0;
 
-        projOpMarker.type = visualization_msgs::Marker::ARROW;
-        projOpMarker.action = visualization_msgs::Marker::ADD;
+        projOpMarker.type = visualization_msgs::msg::Marker::ARROW;
+        projOpMarker.action = visualization_msgs::msg::Marker::ADD;
         projOpMarker.pose.position.x = minRange * std::cos(minRangeTheta);
         projOpMarker.pose.position.y = minRange * std::sin(minRangeTheta);
         projOpMarker.pose.position.z = 0.01;
@@ -641,7 +641,7 @@ namespace quad_gap
         return;
     }
 
-    void TrajectoryController::runProjectionOperator(const geometry_msgs::PoseStamped & rbtPoseInSensorFrame,
+    void TrajectoryController::runProjectionOperator(const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame,
                                                      Eigen::Vector2f & cmdVelFeedback,
                                                      float & velLinXSafe, float & velLinYSafe,
                                                      float & minRangeTheta, float & minRange) 
@@ -764,7 +764,7 @@ namespace quad_gap
         return g;
     }
 
-    int TrajectoryController::extractTargetPoseIdx(const geometry_msgs::Pose & currPose, const geometry_msgs::PoseArray & localTrajectory) 
+    int TrajectoryController::extractTargetPoseIdx(const geometry_msgs::msg::Pose & currPose, const geometry_msgs::msg::PoseArray & localTrajectory) 
     {
         // Find pose right ahead
         std::vector<float> localTrajectoryDeviations(localTrajectory.poses.size());
@@ -798,7 +798,7 @@ namespace quad_gap
         return std::min(targetPose, int(localTrajectory.poses.size() - 1));
     }
 
-    // float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    // float TrajectoryController::dist2Pose(const float & theta, const float & dist, const geometry_msgs::msg::Pose & pose) 
     // {
     //     float x = dist * std::cos(theta);
     //     float y = dist * std::sin(theta);

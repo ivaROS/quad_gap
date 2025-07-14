@@ -10,20 +10,20 @@
 #include <vector>
 #include <map>
 #include <numeric>
-#include <visualization_msgs/msg/marker_array.h>
-#include <visualization_msgs/msg/marker.h>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <geometry_msgs/msg/pose_stamped.h>
-#include <geometry_msgs/msg/pose_array.h>
-#include <sensor_msgs/msg/laser_scan.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
 #include <omp.h>
 #include <boost/thread/mutex.hpp>
-#include "tf/transform_datatypes.h"
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+// #include "tf/transform_datatypes.h"
+// #include <tf2_ros/transform_listener.h>
+// #include <tf2_ros/transform_broadcaster.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <quad_gap/utils/RobotGeometryStorage.h>
 #include <quad_gap/utils/RobotGeometryProcessor.h>
@@ -55,7 +55,7 @@ namespace quad_gap
             * \brief receive new laser scan and update member variable accordingly
             * \param scan new laser scan
             */            
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
             
             
             /**
@@ -63,15 +63,15 @@ namespace quad_gap
             * \param globalPathLocalWaypointOdomFrame Current local waypoint along global plan in robot frame
             * \param odom2rbt transformation from odom frame to robot frame
             */            
-            void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
-                                                            const geometry_msgs::TransformStamped & odom2rbt);
+            void transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::msg::PoseStamped & globalPathLocalWaypointOdomFrame, 
+                                                            const geometry_msgs::msg::TransformStamped & odom2rbt);
             
             // std::vector<float> scoreGaps();
             // Gap * returnAndScoreGaps();
             
             // Full Scoring
-            // std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj);
-            // geometry_msgs::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
+            // std::vector<float> scoreTrajectories(const std::vector<geometry_msgs::msg::PoseArray> & sample_traj);
+            // geometry_msgs::msg::PoseStamped getLocalGoal() {return globalPathLocalWaypointRobotFrame_; }; // in robot frame
             
             // std::vector<float> & posewiseCosts,
             // float & terminalPoseCost    
@@ -90,12 +90,12 @@ namespace quad_gap
             * \param scan current laser scan
             * \return intermediate cost of pose
             */        
-            float evaluatePose(const geometry_msgs::Pose & pose, const sensor_msgs::LaserScan & scan);
+            float evaluatePose(const geometry_msgs::msg::Pose & pose, const sensor_msgs::msg::LaserScan & scan);
 
-            // int searchIdx(geometry_msgs::Pose pose);
+            // int searchIdx(geometry_msgs::msg::Pose pose);
             
             
-            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::msg::Pose & pose);
 
             /**
             * \brief function for calculating intermediate trajectory cost (in static environment)
@@ -109,12 +109,12 @@ namespace quad_gap
             * \param pose final pose in candidate trajectory to check against terminal waypoint
             * \return terminal waypoint cost for candidate trajectory
             */            
-            float terminalGoalCost(const geometry_msgs::Pose & pose);
+            float terminalGoalCost(const geometry_msgs::msg::Pose & pose);
 
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             // std::vector<Gap *> gaps;
-            geometry_msgs::PoseStamped globalPathLocalWaypointRobotFrame_;
+            geometry_msgs::msg::PoseStamped globalPathLocalWaypointRobotFrame_;
 
             boost::mutex globalPlanMutex_; /**< mutex locking thread for updating current global plan */
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */

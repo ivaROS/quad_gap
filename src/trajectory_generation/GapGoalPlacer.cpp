@@ -2,14 +2,14 @@
 
 namespace quad_gap 
 {
-    void GapGoalPlacer::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
+    void GapGoalPlacer::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = msg;
         // num_of_scan = (int)(scan_.get()->ranges.size());
     }
 
-    void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypointRobotFrame)
+    void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypointRobotFrame)
     {
         ROS_INFO_STREAM_NAMED("GapGoalPlacer", "[setGapWaypoint()]");
 
@@ -216,7 +216,7 @@ namespace quad_gap
         // with robot as 0,0 (globalGoal in robot frame as well)
         float dist2goal = globalGoal.norm(); // sqrt(pow(globalGoal.pose.position.x, 2) + pow(globalGoal.pose.position.y, 2));
 
-        sensor_msgs::LaserScan scan = *scan_.get();
+        sensor_msgs::msg::LaserScan scan = *scan_.get();
         auto minScanRange = *std::min_element(scan.ranges.begin(), scan.ranges.end());
 
         // If sufficiently close to robot

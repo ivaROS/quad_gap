@@ -360,7 +360,7 @@ namespace quad_gap
     */
     inline float dist2Pose(const float & theta, 
                             const float & range, 
-                            const geometry_msgs::Pose & pose) 
+                            const geometry_msgs::msg::Pose & pose) 
     {
         // ego circle point in local frame, pose in local frame
         // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "   theta: " << theta << ", range: " << range);

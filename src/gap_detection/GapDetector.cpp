@@ -10,7 +10,7 @@ namespace quad_gap
 
     ///////////// SCAN PRE-PROCESSING ///////////////////////
 
-    void GapDetector::preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan)
+    void GapDetector::preprocessScan(boost::shared_ptr<sensor_msgs::msg::LaserScan> scan)
     {
         // pre-process scan (turning nan's and inf's into max ranges)
         float eps = 0.00001f;
@@ -114,7 +114,7 @@ namespace quad_gap
         return firstAndLastGapsBorder;
     }
 
-    std::vector<Gap *> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr)
+    std::vector<Gap *> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr)
     {
         std::vector<Gap *> rawGaps;
         // rawGaps.clear();
@@ -131,7 +131,7 @@ namespace quad_gap
         // ROS_INFO_STREAM_NAMED("GapDetector", "gapDetection min_dist: " << minScanDist_);
 
         std::string frame = scan_.header.frame_id;
-        ros::Time timeStamp = scan_.header.stamp;
+        rclcpp::Time timeStamp = scan_.header.stamp;
 
         int gapRIdx = 0;
         float gapRRange = scan_.ranges[0];
@@ -308,7 +308,7 @@ namespace quad_gap
         // float right_dist = 3; // TODO: Make this reconfigurable
         // int observed_size = (int) rawGaps.size();
 
-        // sensor_msgs::LaserScan scan_ = *scanPtr.get();
+        // sensor_msgs::msg::LaserScan scan_ = *scanPtr.get();
         // Termination Condition
 
         // Insert first

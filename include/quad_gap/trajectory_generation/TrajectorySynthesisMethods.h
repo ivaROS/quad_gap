@@ -6,9 +6,9 @@
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <vector>
-#include "geometry_msgs/msg/pose_array.h"
-#include <geometry_msgs/msg/pose_stamped.h>
-#include "geometry_msgs/msg/twist.h"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include "geometry_msgs/msg/twist.hpp"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -172,16 +172,16 @@ namespace quad_gap
 
     struct write_trajectory
     {
-        geometry_msgs::PoseArray& _posearr;
+        geometry_msgs::msg::PoseArray& _posearr;
         std::string _frame_id;
         float _coefs;
 
-        write_trajectory(geometry_msgs::PoseArray& posearr, std::string frame_id)
+        write_trajectory(geometry_msgs::msg::PoseArray& posearr, std::string frame_id)
         : _posearr(posearr), _frame_id(frame_id) { }
 
         void operator() (const state_type &x , float t)
         {
-            geometry_msgs::PoseStamped pose;
+            geometry_msgs::msg::PoseStamped pose;
             pose.header.frame_id = _frame_id;
             pose.pose.position.x = x[0];
             pose.pose.position.y = x[1];

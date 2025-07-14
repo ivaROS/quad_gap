@@ -4,10 +4,10 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include <math.h>
-#include <geometry_msgs/msg/point.h>
-#include <visualization_msgs/msg/marker_array.h>
-#include <visualization_msgs/msg/marker.h>
-#include <std_msgs/msg/color_rgba.h>
+#include <geometry_msgs/msg/point.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -23,7 +23,7 @@ namespace quad_gap
 
             // Only called during gap detection
             Gap(const std::string & frame,
-                const ros::Time & timeStamp, 
+                const rclcpp::Time & timeStamp, 
                 const int & leftIdx,
                 const float & leftRange,
                 const int & rightIdx, 
@@ -38,14 +38,14 @@ namespace quad_gap
                 if (! checkPtIdx(rightIdx))
                 {
                     // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
-                    ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
+                    RCLCPP_WARN_STREAM(logger_,  "[Gap constructor 1]: Gap right index is not valid: " << rightIdx);
                     // rightIdx = 0;
                 }
 
                 if (! checkPtRange(rightRange))
                 {
                     // ROS_INFO_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
-                    ROS_WARN_STREAM_NAMED("Gap", "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
+                    RCLCPP_WARN_STREAM(logger_,  "[Gap constructor 1]: Gap right range is not valid: " << rightRange);
                     // rightRange = 0.0;
                 }                
 
@@ -63,7 +63,7 @@ namespace quad_gap
 
                 if (frame_.empty())
                 {
-                    ROS_WARN_STREAM_NAMED("Gap", "Gap frame is empty");
+                    RCLCPP_WARN_STREAM(logger_,  "Gap frame is empty");
                 }
             };
 
@@ -381,7 +381,7 @@ namespace quad_gap
                 return frame_;
             }
 
-            ros::Time getTimeStamp() const
+            rclcpp::Time getTimeStamp() const
             {
                 return timeStamp_;
             }
@@ -435,10 +435,11 @@ namespace quad_gap
 
         private:
 
+            rclcpp::Logger logger_ {rclcpp::get_logger("QuadGapPlanner")};
             std::string frame_ = "";
             bool radial_ = false;
             bool rightType_ = false;
-            ros::Time timeStamp_ = ros::Time(0);
+            rclcpp::Time timeStamp_ = rclcpp::Time(0);
 
             GapPoint * leftGapPt_ = NULL; /**< Left gap point */
             GapPoint * rightGapPt_ = NULL; /**< Right gap point */

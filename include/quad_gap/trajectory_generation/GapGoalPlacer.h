@@ -7,8 +7,8 @@
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 
-#include <geometry_msgs/msg/pose_stamped.h>
-#include <sensor_msgs/msg/laser_scan.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -46,14 +46,14 @@ namespace quad_gap
             * \brief update current scan
             * \param scan incoming scan
             */
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
 
             /**
             * \brief Place goal in the gap
             * \param gap the gap to place goal in
             * \param localgoal the local goal to place in the gap
             */
-            void setGapWaypoint(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypoint);
+            void setGapWaypoint(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint);
 
         private:
             /**
@@ -70,7 +70,7 @@ namespace quad_gap
             float setBiasedGapGoalTheta(const float & leftTheta, const float & rightTheta, const float & globalGoalTheta,
                                         const float & leftToRightAngle, const float & leftToWaypointAngle,  const float & rightToWaypointAngle);
 
-            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             const QuadGapConfig* cfg_;        
             // int num_of_scan;
             boost::mutex scanMutex_;

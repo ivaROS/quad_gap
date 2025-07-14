@@ -8,10 +8,10 @@ namespace quad_gap
     {
             using Visualizer::Visualizer;
         public: 
-            TrajectoryVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            void drawGlobalPlan(const std::vector<geometry_msgs::PoseStamped> & globalPlan);
+            TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            void drawGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlan);
 
-            // void pubAllTraj(const std::vector<geometry_msgs::PoseArray> & prr);
+            // void pubAllTraj(const std::vector<geometry_msgs::msg::PoseArray> & prr);
             void drawCurrentTrajectory(const Trajectory & traj);
 
             /**
@@ -33,17 +33,17 @@ namespace quad_gap
             * \brief Visualize snippet of global plan that is within current robot view
             * \param globalPlanSnippet visible snippet of global plan
             */
-            void drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::PoseStamped> & globalPlanSnippet);
+            void drawRelevantGlobalPlanSnippet(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlanSnippet);
 
         private: 
 
-            ros::Publisher trajSwitchIdxPublisher; /**< Publisher for planner trajectory switch count */
-            ros::Publisher planLoopIdxPublisher; /**< Publisher for planning loop idx */
-            ros::Publisher currentTrajectoryPublisher_; /**< ROS publisher for currently tracked trajectory */
-
-            ros::Publisher globalPlanPublisher;
-            ros::Publisher gapTrajectoriesPublisher;
-            ros::Publisher globalPlanSnippetPublisher; /**< Publisher for visible snippet of global plan */
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr trajSwitchIdxPublisher; /**< Publisher for planner trajectory switch count */
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr planLoopIdxPublisher; /**< Publisher for planning loop idx */
             
+            rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr currentTrajectoryPublisher_; /**< ROS publisher for currently tracked trajectory */
+            rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr globalPlanPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr gapTrajectoriesPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr globalPlanSnippetPublisher; /**< Publisher for visible snippet of global plan */
+
     };
 }

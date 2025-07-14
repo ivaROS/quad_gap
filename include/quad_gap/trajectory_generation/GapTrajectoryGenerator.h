@@ -7,27 +7,27 @@
 
 // #include <traj_generator.h>
 // #include <turtlebot_trajectory_generator/near_identity.h>
-#include <geometry_msgs/msg/pose_array.h>
-#include <geometry_msgs/msg/twist_stamped.h>
+#include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
 #include <quad_gap/trajectory_generation/TrajectorySynthesisMethods.h>
 #include <math.h>
 #include <quad_gap/utils/Trajectory.h>
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include "tf/transform_datatypes.h"
-#include <tf/LinearMath/Matrix3x3.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <sensor_msgs/msg/laser_scan.h>
+// #include "tf/transform_datatypes.h"
+// #include <tf/LinearMath/Matrix3x3.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+// #include <tf2/LinearMath/Quaternion.h>
+// #include <tf2_ros/transform_listener.h>
+// #include <tf2_ros/transform_broadcaster.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
-#include <nav_msgs/msg/odometry.h>
+#include <nav_msgs/msg/odometry.hpp>
 #include <quad_gap/trajectory_generation/Bezier.h>
 
 #include <quad_gap/utils/RobotGeometryProcessor.h>
@@ -57,25 +57,25 @@ namespace quad_gap
                 robotGeoProc_ = t.robotGeoProc_;
             }
 
-            // void updateTF(const geometry_msgs::TransformStamped & tf) {planning2odom = tf;};
+            // void updateTF(const geometry_msgs::msg::TransformStamped & tf) {planning2odom = tf;};
 
-            Trajectory generateTrajectory(Gap * gap, const geometry_msgs::PoseStamped & curr_pose);
+            Trajectory generateTrajectory(Gap * gap, const geometry_msgs::msg::PoseStamped & curr_pose);
 
             bool findBezierControlPts(Gap * selectedGap, 
                                         Bezier::Bezier<2>&, 
-                                        const geometry_msgs::TwistStamped & rbtVelRbtFrame);
+                                        const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame);
 
             Trajectory generateBezierTrajectory(Gap * selectedGap, 
-                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame);
+                                                const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame);
             
-            // std::vector<geometry_msgs::PoseArray> generateTrajectory(std::vector<Gap>);
+            // std::vector<geometry_msgs::msg::PoseArray> generateTrajectory(std::vector<Gap>);
 
             Trajectory processTrajectory(const Trajectory & traj);
 
             void getOrientDecayedPath(Trajectory & traj);
 
-            geometry_msgs::PoseArray transformPath(const geometry_msgs::PoseArray & poseArrayIn, 
-                                                    const geometry_msgs::TransformStamped & trans);
+            geometry_msgs::msg::PoseArray transformPath(const geometry_msgs::msg::PoseArray & poseArrayIn, 
+                                                    const geometry_msgs::msg::TransformStamped & trans);
 
 
         private: 

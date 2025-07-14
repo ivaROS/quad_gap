@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry_msgs/msg/pose_array.h>
+#include <geometry_msgs/msg/pose_array.hpp>
 #include <vector>
 #include <numeric>
 
@@ -14,11 +14,11 @@ namespace quad_gap
         public:
             Trajectory()
             {
-                pathRbtFrame_ = geometry_msgs::PoseArray();
-                pathOdomFrame_ = geometry_msgs::PoseArray();
+                pathRbtFrame_ = geometry_msgs::msg::PoseArray();
+                pathOdomFrame_ = geometry_msgs::msg::PoseArray();
             }
 
-            Trajectory(const geometry_msgs::PoseArray & pathRbtFrame)
+            Trajectory(const geometry_msgs::msg::PoseArray & pathRbtFrame)
             {
                 pathRbtFrame_ = pathRbtFrame;
                 // pathTiming_ = pathTiming;
@@ -38,13 +38,13 @@ namespace quad_gap
                 //     ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path and timing size mismatch");
                 // }
 
-                if (pathRbtFrame_.header.frame_id.empty())
-                {
-                    ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path frame id is empty");
-                }
+                // if (pathRbtFrame_.header.frame_id.empty())
+                // {
+                //     ROS_WARN_STREAM_NAMED("Trajectory", "Trajectory path frame id is empty");
+                // }
             }
 
-            void setRbtFrameDefaultHeader(const std_msgs::Header & header)
+            void setRbtFrameDefaultHeader(const std_msgs::msg::Header & header)
             {
                 pathRbtFrame_.header = header;
                 orientedPathRbtFrame_.header = header;
@@ -54,33 +54,33 @@ namespace quad_gap
             * \brief Setter for trajectory path in robot frame
             * \param pathRbtFrame trajectory path in robot frame
             */
-            void setPathRbtFrame(const geometry_msgs::PoseArray & pathRbtFrame) { pathRbtFrame_ = pathRbtFrame; }
+            void setPathRbtFrame(const geometry_msgs::msg::PoseArray & pathRbtFrame) { pathRbtFrame_ = pathRbtFrame; }
             
             /**
             * \brief Getter for trajectory path in robot frame
             * \return trajectory path in robot frame
             */
-            geometry_msgs::PoseArray getPathRbtFrame() const { return pathRbtFrame_; }
+            geometry_msgs::msg::PoseArray getPathRbtFrame() const { return pathRbtFrame_; }
 
-            void setOrientedPathRbtFrame(const geometry_msgs::PoseArray & orientedPathRbtFrame) { orientedPathRbtFrame_ = orientedPathRbtFrame; }
+            void setOrientedPathRbtFrame(const geometry_msgs::msg::PoseArray & orientedPathRbtFrame) { orientedPathRbtFrame_ = orientedPathRbtFrame; }
 
-            geometry_msgs::PoseArray getOrientedPathRbtFrame() const { return orientedPathRbtFrame_; }
+            geometry_msgs::msg::PoseArray getOrientedPathRbtFrame() const { return orientedPathRbtFrame_; }
 
             /**
             * \brief Setter for trajectory path in odom frame
             * \param pathOdomFrame trajectory path in odom frame
             */
-            void setPathOdomFrame(const geometry_msgs::PoseArray & pathOdomFrame) { pathOdomFrame_ = pathOdomFrame; }
+            void setPathOdomFrame(const geometry_msgs::msg::PoseArray & pathOdomFrame) { pathOdomFrame_ = pathOdomFrame; }
             
             /**
             * \brief Getter for trajectory path in odom frame
             * \return trajectory path in odom frame
             */            
-            geometry_msgs::PoseArray getPathOdomFrame() const { return pathOdomFrame_; }
+            geometry_msgs::msg::PoseArray getPathOdomFrame() const { return pathOdomFrame_; }
 
-            void setOrientedPathOdomFrame(const geometry_msgs::PoseArray & orientedPathOdomFrame) { orientedPathOdomFrame_ = orientedPathOdomFrame; }
+            void setOrientedPathOdomFrame(const geometry_msgs::msg::PoseArray & orientedPathOdomFrame) { orientedPathOdomFrame_ = orientedPathOdomFrame; }
 
-            geometry_msgs::PoseArray getOrientedPathOdomFrame() const { return orientedPathOdomFrame_; }
+            geometry_msgs::msg::PoseArray getOrientedPathOdomFrame() const { return orientedPathOdomFrame_; }
 
             /**
             * \brief Setter for trajectory path timing
@@ -122,10 +122,10 @@ namespace quad_gap
             }
 
         private:
-            geometry_msgs::PoseArray pathRbtFrame_; /**< trajectory path in robot frame */
-            geometry_msgs::PoseArray pathOdomFrame_; /**< trajectory path in odom frame */
-            geometry_msgs::PoseArray orientedPathRbtFrame_; /**< trajectory path in robot frame with orientation decay */
-            geometry_msgs::PoseArray orientedPathOdomFrame_; /**< trajectory path in odom frame with orientation decay */
+            geometry_msgs::msg::PoseArray pathRbtFrame_; /**< trajectory path in robot frame */
+            geometry_msgs::msg::PoseArray pathOdomFrame_; /**< trajectory path in odom frame */
+            geometry_msgs::msg::PoseArray orientedPathRbtFrame_; /**< trajectory path in robot frame with orientation decay */
+            geometry_msgs::msg::PoseArray orientedPathOdomFrame_; /**< trajectory path in odom frame with orientation decay */
             std::vector<float> posewiseCosts_; /**< trajectory path costs */
             float terminalPoseCost_; /**< trajectory terminal pose cost */
     };

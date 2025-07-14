@@ -9,17 +9,18 @@ namespace quad_gap
             using Visualizer::Visualizer;
         public: 
 
-            GapVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
-            void initialize(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            GapVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            void initialize(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
 
             void drawGaps(const std::vector<Gap *> & gaps, const std::string & ns);
             void drawManipGaps(const std::vector<Gap *> & gaps);
 
         private:
-            void drawGap(visualization_msgs::Marker & marker, 
+            void drawGap(visualization_msgs::msg::Marker & marker, 
                             const std::vector<Gap *> & gaps, 
                             const std::string & ns);
-            void drawManipGap(visualization_msgs::Marker & marker, 
+                            
+            void drawManipGap(visualization_msgs::msg::Marker & marker, 
                                 const std::vector<Gap *> & gaps, 
                                 const bool & circle,
                                 const bool & sides);
@@ -30,14 +31,14 @@ namespace quad_gap
                             // std::vector<geometry_msgs::Point>& lines,
                             // geometry_msgs::Point& linel,
                             // geometry_msgs::Point& liner,
-                            visualization_msgs::Marker& marker,
-                            const std_msgs::ColorRGBA & convex_color);                     
+                            visualization_msgs::msg::Marker& marker,
+                            const std_msgs::msg::ColorRGBA & convex_color);                     
 
-            std::map<std::string, std_msgs::ColorRGBA> colorMap;
+            std::map<std::string, std_msgs::msg::ColorRGBA> colorMap;
 
-            ros::Publisher rawGapsPublisher;
-            ros::Publisher simpGapsPublisher;
-            ros::Publisher manipGapsPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr rawGapsPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr simpGapsPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr manipGapsPublisher;
 
             int gapSpanResoln = 2;
             float invGapSpanResoln = 0.5;            

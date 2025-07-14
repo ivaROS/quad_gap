@@ -2,12 +2,12 @@
 
 namespace quad_gap
 {
-    GoalVisualizer::GoalVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg)
+    GoalVisualizer::GoalVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg)
     {
         cfg_ = &cfg;
-        globalGoalPublisher = nh.advertise<visualization_msgs::Marker>("global_goal", 10);
-        globalPathLocalWaypointPublisher = nh.advertise<visualization_msgs::Marker>("global_path_local_waypoint", 10);
-        gapGoalPublisher = nh.advertise<visualization_msgs::Marker>("gap_goals", 1000);
+        globalGoalPublisher = node->create_publisher<visualization_msgs::msg::Marker>("global_goal", 10);
+        globalPathLocalWaypointPublisher = node->create_publisher<visualization_msgs::msg::Marker>("global_path_local_waypoint", 10);
+        gapGoalPublisher = node->create_publisher<visualization_msgs::msg::Marker>("gap_goals", 1000);
 
         gapGoalsColor.r = 1.0;
         gapGoalsColor.g = 0.5;
@@ -25,12 +25,12 @@ namespace quad_gap
         globalGoalColor.b = 0.;
     }
 
-    void GoalVisualizer::drawGlobalGoal(const geometry_msgs::PoseStamped & globalGoalOdomFrame)
+    void GoalVisualizer::drawGlobalGoal(const geometry_msgs::msg::PoseStamped & globalGoalOdomFrame)
     {
         // First, clearing topic.
         clearMarkerPublisher(globalGoalPublisher);
 
-        visualization_msgs::Marker globalGoalMarker;
+        visualization_msgs::msg::Marker globalGoalMarker;
 
         if (globalGoalOdomFrame.header.frame_id.empty())
         {
@@ -42,8 +42,8 @@ namespace quad_gap
         globalGoalMarker.header.stamp = globalGoalOdomFrame.header.stamp;
         globalGoalMarker.ns = "global_goal";
         globalGoalMarker.id = 0;
-        globalGoalMarker.type = visualization_msgs::Marker::SPHERE;
-        globalGoalMarker.action = visualization_msgs::Marker::ADD;
+        globalGoalMarker.type = visualization_msgs::msg::Marker::SPHERE;
+        globalGoalMarker.action = visualization_msgs::msg::Marker::ADD;
         globalGoalMarker.pose.position.x = globalGoalOdomFrame.pose.position.x;
         globalGoalMarker.pose.position.y = globalGoalOdomFrame.pose.position.y;
         globalGoalMarker.pose.position.z = 0.0005;
@@ -55,12 +55,12 @@ namespace quad_gap
         globalGoalPublisher.publish(globalGoalMarker);        
     }
 
-    void GoalVisualizer::drawGlobalPathLocalWaypoint(const geometry_msgs::PoseStamped & globalPathLocalWaypoint)
+    void GoalVisualizer::drawGlobalPathLocalWaypoint(const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint)
     {
         // First, clearing topic.
         clearMarkerPublisher(globalPathLocalWaypointPublisher);
 
-        visualization_msgs::Marker globalPathLocalWaypointMarker;
+        visualization_msgs::msg::Marker globalPathLocalWaypointMarker;
 
         if (globalPathLocalWaypoint.header.frame_id.empty())
         {
@@ -72,8 +72,8 @@ namespace quad_gap
         globalPathLocalWaypointMarker.header.stamp = globalPathLocalWaypoint.header.stamp;
         globalPathLocalWaypointMarker.ns = "local_goal";
         globalPathLocalWaypointMarker.id = 0;
-        globalPathLocalWaypointMarker.type = visualization_msgs::Marker::SPHERE;
-        globalPathLocalWaypointMarker.action = visualization_msgs::Marker::ADD;
+        globalPathLocalWaypointMarker.type = visualization_msgs::msg::Marker::SPHERE;
+        globalPathLocalWaypointMarker.action = visualization_msgs::msg::Marker::ADD;
         globalPathLocalWaypointMarker.pose.position.x = globalPathLocalWaypoint.pose.position.x;
         globalPathLocalWaypointMarker.pose.position.y = globalPathLocalWaypoint.pose.position.y;
         globalPathLocalWaypointMarker.pose.position.z = 0.0005;
@@ -86,7 +86,7 @@ namespace quad_gap
     }
 
 
-    void GoalVisualizer::drawGapGoal(visualization_msgs::Marker & marker, Gap * gap) 
+    void GoalVisualizer::drawGapGoal(visualization_msgs::msg::Marker & marker, Gap * gap) 
     {
         if (!gap->isGoalSet()) 
         {
@@ -95,7 +95,7 @@ namespace quad_gap
             return;
         }
 
-        // visualization_msgs::Marker lg_marker;
+        // visualization_msgs::msg::Marker lg_marker;
 
         geometry_msgs::Point lg_point;
         lg_point.x = gap->getGoalX(); // gap->goal.x;
@@ -124,14 +124,14 @@ namespace quad_gap
             return;
         }
 
-        visualization_msgs::Marker marker;
+        visualization_msgs::msg::Marker marker;
 
         marker.header.frame_id = gaps.at(0)->getFrame();
         marker.header.stamp = gaps.at(0)->getTimeStamp();
         marker.ns = "gap_goal";
         marker.id = 0;
-        marker.type = visualization_msgs::Marker::SPHERE_LIST;
-        marker.action = visualization_msgs::Marker::ADD;
+        marker.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+        marker.action = visualization_msgs::msg::Marker::ADD;
         marker.pose.position.x = 0.0;
         marker.pose.position.y = 0.0;
         marker.pose.position.z = 0.02;

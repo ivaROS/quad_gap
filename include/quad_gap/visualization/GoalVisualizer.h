@@ -8,9 +8,9 @@ namespace quad_gap
     {
         public: 
             using Visualizer::Visualizer;
-            GoalVisualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            GoalVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
 
-            // void localGoal(const geometry_msgs::PoseStamped);
+            // void localGoal(const geometry_msgs::msg::PoseStamped);
 
             void drawGapGoals(const std::vector<Gap *> & gaps);
 
@@ -18,20 +18,20 @@ namespace quad_gap
             * \brief Visualize global goal
             * \param globalGoalOdomFrame global goal in odom frame
             */
-            void drawGlobalGoal(const geometry_msgs::PoseStamped & globalGoalOdomFrame);
+            void drawGlobalGoal(const geometry_msgs::msg::PoseStamped & globalGoalOdomFrame);
 
-            void drawGlobalPathLocalWaypoint(const geometry_msgs::PoseStamped & globalPathLocalWaypoint);
+            void drawGlobalPathLocalWaypoint(const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint);
 
         private: 
     
-            void drawGapGoal(visualization_msgs::Marker & marker, Gap * gap);  
+            void drawGapGoal(visualization_msgs::msg::Marker & marker, Gap * gap);  
 
-            ros::Publisher globalPathLocalWaypointPublisher; /**< Publisher for global path local waypoint */
-            ros::Publisher globalGoalPublisher; /**< Publisher for global goal */
-            ros::Publisher gapGoalPublisher;
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalPathLocalWaypointPublisher; /**< Publisher for global path local waypoint */
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalGoalPublisher; /**< Publisher for global goal */
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr gapGoalPublisher;
 
-            std_msgs::ColorRGBA gapGoalsColor;
-            std_msgs::ColorRGBA globalPathLocalWaypointColor; /**< Color to visualize global path local waypoint with */
-            std_msgs::ColorRGBA globalGoalColor; /**< Color to visualize global goal with */
+            std_msgs::msg::ColorRGBA gapGoalsColor;
+            std_msgs::msg::ColorRGBA globalPathLocalWaypointColor; /**< Color to visualize global path local waypoint with */
+            std_msgs::msg::ColorRGBA globalGoalColor; /**< Color to visualize global goal with */
     };
 }

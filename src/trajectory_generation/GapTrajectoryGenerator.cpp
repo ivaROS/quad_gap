@@ -3,10 +3,10 @@
 namespace quad_gap
 {
     Trajectory GapTrajGenerator::generateTrajectory(Gap * gap, 
-                                                    const geometry_msgs::PoseStamped & curr_pose) 
+                                                    const geometry_msgs::msg::PoseStamped & curr_pose) 
     {
-        // return geometry_msgs::PoseArray();
-        geometry_msgs::PoseArray pathRbtFrame;
+        // return geometry_msgs::msg::PoseArray();
+        geometry_msgs::msg::PoseArray pathRbtFrame;
         pathRbtFrame.header.stamp = gap->getTimeStamp();
         
         write_trajectory corder(pathRbtFrame, cfg_->robot_frame_id);
@@ -85,7 +85,7 @@ namespace quad_gap
 
         if (gap->isExtended()) 
         {
-            for (geometry_msgs::Pose & p : pathRbtFrame.poses) 
+            for (geometry_msgs::msg::Pose & p : pathRbtFrame.poses) 
             {
                 p.position.x += qB(0);
                 p.position.y += qB(1);
@@ -98,7 +98,7 @@ namespace quad_gap
 
     bool GapTrajGenerator::findBezierControlPts(Gap * gap, 
                                                 Bezier::Bezier<2>& BezierCurve, 
-                                                const geometry_msgs::TwistStamped & rbtVelRbtFrame)
+                                                const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame)
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[findBezierControlPts()]");
 
@@ -756,10 +756,10 @@ namespace quad_gap
     // }
 
     Trajectory GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
-                                                            const geometry_msgs::TwistStamped & rbtVelRbtFrame)
+                                                            const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame)
     {
         ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "[generateBezierTrajectory()]");
-        geometry_msgs::PoseArray pathRbtFrame;
+        geometry_msgs::msg::PoseArray pathRbtFrame;
         pathRbtFrame.header.stamp = gap->getTimeStamp();
         pathRbtFrame.header.frame_id = gap->getFrame();
 
@@ -791,7 +791,7 @@ namespace quad_gap
             {
                 for (float t = 0; t <= 1; t+=0.02)
                 {
-                    geometry_msgs::Pose pose;
+                    geometry_msgs::msg::Pose pose;
                     pose.position.x = quadraBezier.valueAt(t, 0);
                     pose.position.y = quadraBezier.valueAt(t, 1);
                     pathRbtFrame.poses.push_back(pose);
@@ -837,7 +837,7 @@ namespace quad_gap
                     if (std::abs(currPtToPtArclength - desPtToPtArclength) < ptToPtArclengthErrorThresh)
                     {
                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "Adding point at t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
-                        geometry_msgs::Pose pose;
+                        geometry_msgs::msg::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_k, 0);
                         pose.position.y = quadraBezier.valueAt(t_k, 1);
                         pathRbtFrame.poses.push_back(pose);
@@ -874,7 +874,7 @@ namespace quad_gap
                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "exit");
 
                         // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "t_interp: " << t_interp << " t_kmin1: " << t_kmin1 << " dist: " << interm_arclength);
-                        geometry_msgs::Pose pose;
+                        geometry_msgs::msg::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
                         pathRbtFrame.poses.push_back(pose);
@@ -886,7 +886,7 @@ namespace quad_gap
                 if (pathRbtFrame.poses.size() < numCurvePts)
                 {
                     // ROS_INFO_STREAM_NAMED("GapTrajectoryGenerator", "The number of points in the bezier curve is less than the desired number of points. [ " << pathRbtFrame.poses.size() << " < " << numCurvePts << " ]");
-                    geometry_msgs::Pose pose;
+                    geometry_msgs::msg::Pose pose;
                     pose.position.x = quadraBezier.valueAt(1, 0);
                     pose.position.y = quadraBezier.valueAt(1, 1);
                     pathRbtFrame.poses.push_back(pose);
@@ -900,14 +900,14 @@ namespace quad_gap
 
     Trajectory GapTrajGenerator::processTrajectory(const Trajectory & traj)
     {
-        // geometry_msgs::PoseArray new_pose_arr;
+        // geometry_msgs::msg::PoseArray new_pose_arr;
 
-        geometry_msgs::PoseArray rawPath = traj.getPathRbtFrame();
+        geometry_msgs::msg::PoseArray rawPath = traj.getPathRbtFrame();
         
-        geometry_msgs::PoseArray processedPath;
+        geometry_msgs::msg::PoseArray processedPath;
         processedPath.header = rawPath.header;
 
-        geometry_msgs::Pose old_pose;
+        geometry_msgs::msg::Pose old_pose;
         old_pose.position.x = 0;
         old_pose.position.y = 0;
         old_pose.position.z = 0;
@@ -918,10 +918,10 @@ namespace quad_gap
         float dx, dy, result;
 
         float delta = 0.05;
-        geometry_msgs::Pose back_pose;
-        // std::vector<geometry_msgs::Pose> shortened;
+        geometry_msgs::msg::Pose back_pose;
+        // std::vector<geometry_msgs::msg::Pose> shortened;
         processedPath.poses.push_back(old_pose);
-        for (const geometry_msgs::Pose & pose : rawPath.poses)
+        for (const geometry_msgs::msg::Pose & pose : rawPath.poses)
         {
             back_pose = processedPath.poses.back();
             dx = pose.position.x - back_pose.position.x;
@@ -937,7 +937,7 @@ namespace quad_gap
 
         // Fix rotation
         Eigen::Quaternionf q;
-        geometry_msgs::Pose new_pose;
+        geometry_msgs::msg::Pose new_pose;
         for (int idx = 1; idx < processedPath.poses.size(); idx++)
         {
             new_pose = processedPath.poses[idx];
@@ -965,12 +965,12 @@ namespace quad_gap
 
     void GapTrajGenerator::getOrientDecayedPath(Trajectory & traj)
     {
-        geometry_msgs::PoseArray rawPath = traj.getPathRbtFrame();
+        geometry_msgs::msg::PoseArray rawPath = traj.getPathRbtFrame();
 
         // The original path should be in robot frame
         assert(rawPath.header.frame_id == cfg_->robot_frame_id);
 
-        geometry_msgs::PoseArray orientedPath;
+        geometry_msgs::msg::PoseArray orientedPath;
 
         if (rawPath.poses.size() <= 1)
         {
@@ -986,7 +986,7 @@ namespace quad_gap
         } else if (robotGeoProc_->robot_.shape == RobotShape::box)
         {
             orientedPath.header = rawPath.header;
-            geometry_msgs::Pose first_pose = rawPath.poses[0];
+            geometry_msgs::msg::Pose first_pose = rawPath.poses[0];
             geometry_msgs::Quaternion init_quat;
             init_quat.w = 1;
             first_pose.orientation = init_quat;
@@ -996,13 +996,13 @@ namespace quad_gap
             {
                 if (!cfg_->planning.robot_path_orient_linear_decay)
                 {
-                    geometry_msgs::Pose curr_pose = rawPath.poses[i];
+                    geometry_msgs::msg::Pose curr_pose = rawPath.poses[i];
                     curr_pose.orientation = init_quat;
                     orientedPath.poses.push_back(curr_pose);
                 } else
                 {
-                    geometry_msgs::Pose curr_pose = rawPath.poses[i];
-                    geometry_msgs::Pose prev_pose = rawPath.poses[i-1];
+                    geometry_msgs::msg::Pose curr_pose = rawPath.poses[i];
+                    geometry_msgs::msg::Pose prev_pose = rawPath.poses[i-1];
                     float x_diff = curr_pose.position.x - prev_pose.position.x;
                     float y_diff = curr_pose.position.y - prev_pose.position.y;
                     float dist = sqrt(pow(x_diff, 2) + pow(y_diff, 2));
@@ -1049,17 +1049,17 @@ namespace quad_gap
         return;
     }
 
-    geometry_msgs::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::PoseArray & poseArrayIn,
-                                                                const geometry_msgs::TransformStamped & trans)
+    geometry_msgs::msg::PoseArray GapTrajGenerator::transformPath(const geometry_msgs::msg::PoseArray & poseArrayIn,
+                                                                const geometry_msgs::msg::TransformStamped & trans)
     {
-        geometry_msgs::PoseArray poseArrayOut;
-        geometry_msgs::PoseStamped outplaceholder;
+        geometry_msgs::msg::PoseArray poseArrayOut;
+        geometry_msgs::msg::PoseStamped outplaceholder;
         // outplaceholder.header.frame_id = cfg_->odom_frame_id;
         outplaceholder.header.frame_id = trans.header.frame_id;
-        geometry_msgs::PoseStamped inplaceholder;
+        geometry_msgs::msg::PoseStamped inplaceholder;
         // inplaceholder.header.frame_id = cfg_->robot_frame_id;
         inplaceholder.header.frame_id = trans.child_frame_id;
-        for (const geometry_msgs::Pose & pose : poseArrayIn.poses)
+        for (const geometry_msgs::msg::Pose & pose : poseArrayIn.poses)
         {
             inplaceholder.pose = pose;
             tf2::doTransform(inplaceholder, outplaceholder, trans);

@@ -7,10 +7,10 @@
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
-#include <geometry_msgs/msg/pose_stamped.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <sensor_msgs/msg/laser_scan.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <quad_gap/utils/Utils.h>
@@ -45,14 +45,14 @@ namespace quad_gap
             * \brief update current scan
             * \param scan incoming scan
             */            
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
 
             /**
             * \brief function for reducing gap's angle to ensure that gap is convex (angle < 180 degrees)
             * \param gap queried gap
             * \param globalPathLocalWaypoint local waypoint along global path in robot frame
             */            
-            void reduceGap(Gap * gap, const geometry_msgs::PoseStamped & globalPathLocalWaypoint);
+            void reduceGap(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint);
 
             /**
             * \brief function for convering radial gaps into swept gaps to allow maneuvering around corners
@@ -73,7 +73,7 @@ namespace quad_gap
             void inflateGapSides(Gap * gap);            
         
         private:
-            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             const QuadGapConfig* cfg_;
             // int num_of_scan;
             boost::mutex egolock;

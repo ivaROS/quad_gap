@@ -8,7 +8,7 @@
 #include <Eigen/Core>
 #include <boost/thread/mutex.hpp>
 
-#include <sensor_msgs/msg/laser_scan.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <quad_gap/utils/Utils.h>  
@@ -133,7 +133,7 @@ namespace quad_gap
 
             } collision_checker;
 
-            void loadRosParamFromNodeHandle(const std::string & name);
+            void loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::WeakPtr & node);
 
             // void reconfigure(qgConfig& cfg);
 
@@ -142,7 +142,7 @@ namespace quad_gap
             /**
             * \brief Load in hyperparameters from current laser scan
             */
-            void updateParamFromScan(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);            
+            void updateParamFromScan(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr);            
 
         private: 
             boost::mutex config_mutex; 

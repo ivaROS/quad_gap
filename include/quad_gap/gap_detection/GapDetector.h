@@ -4,10 +4,9 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include <geometry_msgs/msg/point_stamped.h>
-#include <geometry_msgs/msg/transform_stamped.h>
-#include <sensor_msgs/msg/laser_scan.h>
-
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 
 // ROS
 // #include <ros/ros.h>
@@ -56,7 +55,7 @@ namespace quad_gap
             *
             * \param scan pointer to incoming laser scan
             */
-            void preprocessScan(boost::shared_ptr<sensor_msgs::LaserScan> scan);
+            void preprocessScan(boost::shared_ptr<sensor_msgs::msg::LaserScan> scan);
 
             /**
             * \brief Detect raw set of gaps from incoming laser scan.
@@ -64,7 +63,7 @@ namespace quad_gap
             * \param scanPtr pointer to incoming laser scan
             * \return raw set of gaps
             */            
-            std::vector<Gap *> gapDetection(boost::shared_ptr<sensor_msgs::LaserScan const> scanPtr);
+            std::vector<Gap *> gapDetection(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr);
 
             /**
             * \brief Condense raw set of gaps into a smaller set of simplified gaps more amenable for navigation.
@@ -161,7 +160,7 @@ namespace quad_gap
                                     const int & prevIdx,
                                     const float & prevRange);
 
-            sensor_msgs::LaserScan scan_; /**< Current laser scan */
+            sensor_msgs::msg::LaserScan scan_; /**< Current laser scan */
             const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */
             RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */
             float minScanDist_ = 0.0; /**< Minimum distance within current laser scan */

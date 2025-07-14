@@ -8,14 +8,14 @@ namespace quad_gap
         robotGeoProc_ = & robot_geo_proc;
     }
 
-    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> msg) 
+    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = msg;
     }
 
-    void TrajectoryEvaluator::transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::PoseStamped & globalPathLocalWaypointOdomFrame, 
-                                                                            const geometry_msgs::TransformStamped & odom2rbt) 
+    void TrajectoryEvaluator::transformGlobalPathLocalWaypointToRbtFrame(const geometry_msgs::msg::PoseStamped & globalPathLocalWaypointOdomFrame, 
+                                                                            const geometry_msgs::msg::TransformStamped & odom2rbt) 
     {
         boost::mutex::scoped_lock lock(globalPlanMutex_);
         tf2::doTransform(globalPathLocalWaypointOdomFrame, globalPathLocalWaypointRobotFrame_, odom2rbt);
@@ -49,7 +49,7 @@ namespace quad_gap
     // }
 
     // Again, in rbt frame
-    // std::vector<float> TrajectoryEvaluator::scoreTrajectories(const std::vector<geometry_msgs::PoseArray> & sample_traj) 
+    // std::vector<float> TrajectoryEvaluator::scoreTrajectories(const std::vector<geometry_msgs::msg::PoseArray> & sample_traj) 
     // {
     //     // This will be in robot frame
         
@@ -65,9 +65,9 @@ namespace quad_gap
         // Requires LOCAL FRAME
         // Should be no racing condition
 
-        geometry_msgs::PoseArray pathRbtFrame = traj.getPathRbtFrame();
+        geometry_msgs::msg::PoseArray pathRbtFrame = traj.getPathRbtFrame();
 
-        sensor_msgs::LaserScan scan = *scan_.get();
+        sensor_msgs::msg::LaserScan scan = *scan_.get();
 
         std::vector<float> posewiseCosts(pathRbtFrame.poses.size());
         for (int i = 0; i < posewiseCosts.size(); i++) 
@@ -97,7 +97,7 @@ namespace quad_gap
         return;
     }
 
-    float TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::Pose & pose) 
+    float TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::msg::Pose & pose) 
     {
         boost::mutex::scoped_lock planlock(globalPlanMutex_);
         // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", pose);
@@ -106,14 +106,14 @@ namespace quad_gap
         return sqrt(pow(dx, 2) + pow(dy, 2));
     }
 
-    // float TrajectoryEvaluator::dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose) 
+    // float TrajectoryEvaluator::dist2Pose(const float & theta, const float & dist, const geometry_msgs::msg::Pose & pose) 
     // {
     //     float x = dist * std::cos(theta);
     //     float y = dist * std::sin(theta);
     //     return sqrt(pow(pose.position.x - x, 2) + pow(pose.position.y - y, 2));
     // }
 
-    float TrajectoryEvaluator::evaluatePose(const geometry_msgs::Pose & poseRbtFrame, const sensor_msgs::LaserScan & scan) 
+    float TrajectoryEvaluator::evaluatePose(const geometry_msgs::msg::Pose & poseRbtFrame, const sensor_msgs::msg::LaserScan & scan) 
     {
         // boost::mutex::scoped_lock lock(scanMutex_);
 

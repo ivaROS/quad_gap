@@ -9,13 +9,13 @@
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
-#include <visualization_msgs/msg/marker_array.h>
-#include <visualization_msgs/msg/marker.h>
-#include <std_msgs/msg/color_rgba.h>
+#include <visualization_msgs/msg/marker_array.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <geometry_msgs/msg/pose_stamped.h>
-#include <geometry_msgs/msg/pose_array.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_array.hpp>
 
 namespace quad_gap
 {
@@ -25,37 +25,37 @@ namespace quad_gap
             Visualizer() {};
             ~Visualizer() {};
 
-            Visualizer(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            Visualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
             
-            Visualizer& operator=(Visualizer other)
-            {
-                cfg_ = other.cfg_;
+            // Visualizer& operator=(Visualizer other)
+            // {
+            //     cfg_ = other.cfg_;
                 
-                return *this;
-            };
+            //     return *this;
+            // };
             
             Visualizer(const Visualizer &t) {cfg_ = t.cfg_;};
 
         protected:
 
-            void clearMarkerPublisher(const ros::Publisher & publisher)
+            void clearMarkerPublisher(const rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr & publisher)
             {
-                visualization_msgs::Marker clearMarker;
+                visualization_msgs::msg::Marker clearMarker;
                 clearMarker.id = 0;
                 clearMarker.ns =  "clear";
-                clearMarker.action = visualization_msgs::Marker::DELETEALL;
-                publisher.publish(clearMarker);
+                clearMarker.action = visualization_msgs::msg::Marker::DELETEALL;
+                publisher->publish(clearMarker);
             }
 
-            void clearMarkerArrayPublisher(const ros::Publisher & publisher)
+            void clearMarkerArrayPublisher(const rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr & publisher)
             {
-                visualization_msgs::MarkerArray clearMarkerArray;
-                visualization_msgs::Marker clearMarker;
+                visualization_msgs::msg::MarkerArray clearMarkerArray;
+                visualization_msgs::msg::Marker clearMarker;
                 clearMarker.id = 0;
                 clearMarker.ns =  "clear";
-                clearMarker.action = visualization_msgs::Marker::DELETEALL;
+                clearMarker.action = visualization_msgs::msg::Marker::DELETEALL;
                 clearMarkerArray.markers.push_back(clearMarker);
-                publisher.publish(clearMarkerArray);
+                publisher->publish(clearMarkerArray);
             }
 
             const QuadGapConfig* cfg_;

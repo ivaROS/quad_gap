@@ -6,20 +6,20 @@
 #include <quad_gap/config/QuadGapConfig.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include "geometry_msgs/msg/twist.h"
-#include "geometry_msgs/msg/pose.h"
-#include "geometry_msgs/msg/pose_array.h"
-#include "geometry_msgs/msg/transform_stamped.h"
-#include "nav_msgs/msg/odometry.h"
-#include <sensor_msgs/msg/laser_scan.h>
-#include <tf/tf.h>
+#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include <sensor_msgs/msg/laser_scan.hpp>
+// #include <tf/tf.h>
 #include <quad_gap/utils/Gap.h>
 // #include "quad_gap/TrajPlan.h"
 #include <quad_gap/trajectory_generation/GapTrajectoryGenerator.h>
-#include <visualization_msgs/msg/marker.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2/LinearMath/Quaternion.h>
+#include <visualization_msgs/msg/marker.hpp>
+// #include <tf2/LinearMath/Quaternion.h>
+// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+// #include <tf2/LinearMath/Quaternion.h>
 
 namespace quad_gap 
 {
@@ -27,18 +27,18 @@ namespace quad_gap
     {
         public:
 
-            TrajectoryController(ros::NodeHandle& nh, const QuadGapConfig& cfg);
+            TrajectoryController(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
 
             /**
             * \brief receive new laser scan and update member variable accordingly
             * \param scan new laser scan
             */
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::LaserScan const> scan);
+            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
 
-            // geometry_msgs::Twist controlLaw(const geometry_msgs::Pose & current, 
-            //                                 const geometry_msgs::Pose & desired,
-            //                                 const sensor_msgs::LaserScan & inflated_egocircle, 
-            //                                 const geometry_msgs::PoseStamped & init_pose);
+            // geometry_msgs::msg::Twist controlLaw(const geometry_msgs::msg::Pose & current, 
+            //                                 const geometry_msgs::msg::Pose & desired,
+            //                                 const sensor_msgs::msg::LaserScan & inflated_egocircle, 
+            //                                 const geometry_msgs::msg::PoseStamped & init_pose);
             
 
             /**
@@ -47,8 +47,8 @@ namespace quad_gap
             * \param desired desired robot pose
             * \return command velocity for robot
             */
-            geometry_msgs::Twist controlLawHolonomic(const geometry_msgs::Pose & currentPoseOdomFrame, 
-                                                        const geometry_msgs::Pose & desiredPoseOdomFrame);
+            geometry_msgs::msg::Twist controlLawHolonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame, 
+                                                        const geometry_msgs::msg::Pose & desiredPoseOdomFrame);
 
             /**
             * \brief Control law for trajectory tracking
@@ -56,8 +56,8 @@ namespace quad_gap
             * \param desired desired robot pose
             * \return command velocity for robot
             */
-            geometry_msgs::Twist controlLawNonholonomic(const geometry_msgs::Pose & current, 
-                                                        const geometry_msgs::Pose & desired);                                                            
+            geometry_msgs::msg::Twist controlLawNonholonomic(const geometry_msgs::msg::Pose & current, 
+                                                        const geometry_msgs::msg::Pose & desired);                                                            
 
             /**
             * \brief Apply post-processing steps to command velocity including robot kinematic limits
@@ -68,8 +68,8 @@ namespace quad_gap
             * \param currRbtAcc current robot acceleration
             * \return processed command velocity
             */
-            geometry_msgs::Twist processCmdVelHolonomic(const geometry_msgs::Twist & rawCmdVel,
-                                                        const geometry_msgs::PoseStamped & rbtPoseInSensorFrame);
+            geometry_msgs::msg::Twist processCmdVelHolonomic(const geometry_msgs::msg::Twist & rawCmdVel,
+                                                        const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame);
                                                          
             /**
             * \brief Apply post-processing steps to command velocity including robot kinematic limits
@@ -80,22 +80,22 @@ namespace quad_gap
             * \param currRbtAcc current robot acceleration
             * \return processed command velocity
             */
-            geometry_msgs::Twist processCmdVelNonholonomic(const geometry_msgs::Pose & currentPoseOdomFrame,
-                                                            const geometry_msgs::Pose & desiredPoseOdomFrame,
-                                                            const geometry_msgs::Twist & rawCmdVel,
-                                                            const geometry_msgs::PoseStamped & rbtPoseInSensorFrame);
+            geometry_msgs::msg::Twist processCmdVelNonholonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame,
+                                                            const geometry_msgs::msg::Pose & desiredPoseOdomFrame,
+                                                            const geometry_msgs::msg::Twist & rawCmdVel,
+                                                            const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame);
 
             /**
             * \brief Control law for pure obstacle avoidance
             * \return command velocity for robot
             */
-            geometry_msgs::Twist obstacleAvoidanceControlLaw();
+            geometry_msgs::msg::Twist obstacleAvoidanceControlLaw();
 
             /**
             * \brief Control law for pure obstacle avoidance
             * \return command velocity for robot
             */
-            geometry_msgs::Twist obstacleAvoidanceControlLawNonHolonomic();
+            geometry_msgs::msg::Twist obstacleAvoidanceControlLawNonHolonomic();
 
             /**
             * \brief Extract pose within target trajectory that we should track
@@ -103,13 +103,13 @@ namespace quad_gap
             * \param localTrajectory selected local trajectory to track
             * \return index along local trajectory for which pose the robot should drive towards
             */
-            int extractTargetPoseIdx(const geometry_msgs::Pose & currPose, 
-                                        const geometry_msgs::PoseArray & localTrajectory);
+            int extractTargetPoseIdx(const geometry_msgs::msg::Pose & currPose, 
+                                        const geometry_msgs::msg::PoseArray & localTrajectory);
 
         private:
             Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & quat_w, const float & quat_z);
             Eigen::Matrix2cf getComplexMatrix(const float & x, const float & y, const float & theta);
-            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::Pose & pose);
+            // float dist2Pose(const float & theta, const float & dist, const geometry_msgs::msg::Pose & pose);
 
             /**
             * \brief Helper function for clipping velocities to maximum allowed velocities
@@ -132,7 +132,7 @@ namespace quad_gap
             * \param minDistTheta orientation of minimum distance scan point
             * \param minDist range of minimum distance scan point
             */
-            void runProjectionOperator(const geometry_msgs::PoseStamped & rbtPoseInSensorFrame,
+            void runProjectionOperator(const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame,
                                         Eigen::Vector2f & cmdVelFeedback,
                                         // float & Psi, 
                                         // Eigen::Vector2f & dPsiDx,
@@ -174,9 +174,9 @@ namespace quad_gap
 
             // float thres;
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::LaserScan const> scan_;
+            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             boost::mutex scanMutex_;
-            ros::Publisher projOpPublisher_;
-            // ros::Time last_time;
+            rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr projOpPublisher_;
+            // rclcpp::Time last_time;
     };
 }
