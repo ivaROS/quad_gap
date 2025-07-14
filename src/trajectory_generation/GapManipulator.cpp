@@ -12,7 +12,7 @@ namespace quad_gap
     // In place modification
     void GapManipulator::reduceGap(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint) 
     {
-        ROS_INFO_STREAM_NAMED("GapManipulator", "    [reduceGap()]");
+        RCLCPP_INFO_STREAM(logger_,  "    [reduceGap()]");
 
         int leftIdx = gap->manipLeftIdx();
         float leftRange = gap->manipLeftRange();
@@ -26,13 +26,13 @@ namespace quad_gap
         float xRight = rightRange * cos(rightTheta);
         float yRight = rightRange * sin(rightTheta);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-reduce gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-reduce gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");    
+        RCLCPP_INFO_STREAM(logger_,  "        pre-reduce gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-reduce gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");    
 
         if (!scan_) 
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "No scan available, cannot reduce gap.");
-            ROS_WARN_STREAM_NAMED("GapManipulator", "No scan available, cannot reduce gap.");
+            RCLCPP_INFO_STREAM(logger_,  "No scan available, cannot reduce gap.");
+            RCLCPP_WARN_STREAM(logger_,  "No scan available, cannot reduce gap.");
             return; 
         }
 
@@ -44,7 +44,7 @@ namespace quad_gap
 
         if (gapAngle < cfg_->gap_manip.reduction_threshold)
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "Gap is convex, not reducing.");
+            RCLCPP_INFO_STREAM(logger_,  "Gap is convex, not reducing.");
             return;
         }
 
@@ -55,7 +55,7 @@ namespace quad_gap
 
         float globalPathLocalWaypointTheta = std::atan2(globalPathLocalWaypoint.pose.position.y, globalPathLocalWaypoint.pose.position.x);
         int globalPathLocalWaypointIdx = theta2idx(globalPathLocalWaypointTheta); // globalPathLocalWaypointTheta / (M_PI / gap->half_scan) + gap->half_scan;
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        globalPathLocalWaypointIdx: " << globalPathLocalWaypointIdx);
+        RCLCPP_INFO_STREAM(logger_,  "        globalPathLocalWaypointIdx: " << globalPathLocalWaypointIdx);
         int halfTargetGapIdxSpan = 0.5 * targetGapIdxSpan; // distance in scan indices
         
         leftIdxBiasedRight = subtractAndWrapScanIndices(leftIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
@@ -71,26 +71,26 @@ namespace quad_gap
         {
             newLeftIdx = leftIdx;
             newRightIdx = leftIdxBiasedRight;   
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating left-biased gap: " << newLeftIdx << ", " << newRightIdx);
+            RCLCPP_INFO_STREAM(logger_,  "        creating left-biased gap: " << newLeftIdx << ", " << newRightIdx);
         } else if (isLocalWaypointRightBiased) // right biased
         {
             newLeftIdx = rightIdxBiasedLeft;
             newRightIdx = rightIdx;
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating right-biased gap: " << newLeftIdx << ", " << newRightIdx);
+            RCLCPP_INFO_STREAM(logger_,  "        creating right-biased gap: " << newLeftIdx << ", " << newRightIdx);
         } else // Lingering in center 
         { 
-            //ROS_INFO_STREAM_NAMED("GapManipulator",  "central gap" << std::endl;
+            //RCLCPP_INFO_STREAM(logger_,   "central gap" << std::endl;
             newLeftIdx = (globalPathLocalWaypointIdx + halfTargetGapIdxSpan) % cfg_->scan.full_scan;
             newRightIdx = subtractAndWrapScanIndices(globalPathLocalWaypointIdx - halfTargetGapIdxSpan, cfg_->scan.full_scan);
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        creating goal-centered gap: " << newLeftIdx << ", " << newRightIdx);
+            RCLCPP_INFO_STREAM(logger_,  "        creating goal-centered gap: " << newLeftIdx << ", " << newRightIdx);
         }
 
         // removed some float casting here
         float leftToNewLeftIdxSpan = subtractAndWrapScanIndices(leftIdx - newLeftIdx, cfg_->scan.full_scan);
         float leftToNewRightIdxSpan = subtractAndWrapScanIndices(leftIdx - newRightIdx, cfg_->scan.full_scan);
 
-        // ROS_INFO_STREAM_NAMED("GapManipulator", "orig_gap_size: " << orig_gap_size);
-        // ROS_INFO_STREAM_NAMED("GapManipulator", "leftToNewRightIdxSpan: " << leftToNewRightIdxSpan << ", leftToNewLeftIdxSpan: " << leftToNewLeftIdxSpan);
+        // RCLCPP_INFO_STREAM(logger_,  "orig_gap_size: " << orig_gap_size);
+        // RCLCPP_INFO_STREAM(logger_,  "leftToNewRightIdxSpan: " << leftToNewRightIdxSpan << ", leftToNewLeftIdxSpan: " << leftToNewLeftIdxSpan);
 
         float newLeftRange = leftRange + (rightRange - leftRange) * epsilonDivide(leftToNewLeftIdxSpan, gapIdxSpan);
         float newRightRange = leftRange +  (rightRange - leftRange) * epsilonDivide(leftToNewRightIdxSpan, gapIdxSpan);
@@ -109,8 +109,8 @@ namespace quad_gap
         float newXRight = (newRightRange) * cos(newRightTheta);
         float newYRight = (newRightRange) * sin(newRightTheta);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-reduce gap in cart. left: (" << newXLeft << ", " << newYLeft << "), right: (" << newXRight << ", " << newYRight << ")");    
+        RCLCPP_INFO_STREAM(logger_,  "        post-reduce gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        post-reduce gap in cart. left: (" << newXLeft << ", " << newYLeft << "), right: (" << newXRight << ", " << newYRight << ")");    
 
         gap->setReduced();
         return;
@@ -118,7 +118,7 @@ namespace quad_gap
 
     void GapManipulator::convertRadialGap(Gap * gap) 
     {
-        ROS_INFO_STREAM_NAMED("GapManipulator", "    [convertRadialGap()]");
+        RCLCPP_INFO_STREAM(logger_,  "    [convertRadialGap()]");
 
         sensor_msgs::msg::LaserScan desScan = *scan_.get();
         
@@ -139,25 +139,25 @@ namespace quad_gap
         float xRight = rightRange * cos(rightTheta);
         float yRight = rightRange * sin(rightTheta);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-RGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-RGC gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-RGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
         // Return if not radial gap or disabled
         if (!gap->isRadial()) 
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap is not radial, no conversion needed");
+            RCLCPP_INFO_STREAM(logger_,  "        gap is not radial, no conversion needed");
             return;
         }
 
         if (gap->isReduced()) 
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap has been reduced, no conversion needed");
+            RCLCPP_INFO_STREAM(logger_,  "        gap has been reduced, no conversion needed");
             return;
         }
 
         if (!cfg_->gap_manip.radial_convert)
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        gap radial conversion disabled, no conversion needed");
+            RCLCPP_INFO_STREAM(logger_,  "        gap radial conversion disabled, no conversion needed");
             return;
         }
 
@@ -220,8 +220,8 @@ namespace quad_gap
         float nomPivotedTheta = std::atan2(pivotedPt[1], pivotedPt[0]);
         int nomPivotedIdx = theta2idx(nomPivotedTheta);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        nomPivotedTheta: " << nomPivotedTheta);
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        nomPivotedIdx: " << nomPivotedIdx);
+        RCLCPP_INFO_STREAM(logger_,  "        nomPivotedTheta: " << nomPivotedTheta);
+        RCLCPP_INFO_STREAM(logger_,  "        nomPivotedIdx: " << nomPivotedIdx);
 
         // Rotation Completed
         // Get minimum dist range val from start to target index location
@@ -264,7 +264,7 @@ namespace quad_gap
 
         if (scanSearchSize == 0)
         {
-            ROS_WARN_STREAM_NAMED("GapManipulator", "        scanSearchSize is 0, SHOULD NOT BE HAPPENING");
+            RCLCPP_WARN_STREAM(logger_,  "        scanSearchSize is 0, SHOULD NOT BE HAPPENING");
             return;
         } else if (scanSearchSize < 0)
         {
@@ -291,7 +291,7 @@ namespace quad_gap
             checkIdxSpan = gapIdxSpan + (scanSearchSize - i);
             nearPtToScanDists.at(i) = sqrt(pow(nearRange, 2) + pow(checkRange, 2) -
                                         2.0 * nearRange * checkRange * cos(checkIdxSpan * cfg_->scan.angle_increment));
-            // ROS_INFO_STREAM_NAMED("GapManipulator", "checking idx: " << checkIdx << ", range of: " << range << ", diff in idx: " << checkIdxSpan << ", dist of " << dist.at(i));
+            // RCLCPP_INFO_STREAM(logger_,  "checking idx: " << checkIdx << ", range of: " << range << ", diff in idx: " << checkIdxSpan << ", dist of " << dist.at(i));
         }
 
         auto minDistIter = std::min_element(nearPtToScanDists.begin(), nearPtToScanDists.end());
@@ -299,7 +299,7 @@ namespace quad_gap
         
         float minDist = *minDistIter;
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        from " << scanSearchStartIdx << " to " << scanSearchEndIdx << ", min dist of " << minDist << " at " << minDistIdx);         
+        RCLCPP_INFO_STREAM(logger_,  "        from " << scanSearchStartIdx << " to " << scanSearchEndIdx << ", min dist of " << minDist << " at " << minDistIdx);         
 
         // Eigen::Vector2f rotatedNearToFarVector = rotatedNearToFarTranslationMatrix.col(2).head(2);
         // Eigen::Vector2f rotatedNearToFarDirection = rotatedNearToFarVector.normalized();    
@@ -309,13 +309,13 @@ namespace quad_gap
 
         Eigen::Vector2f adjustedNearToFar = pivotedPt - nearPt; 
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        adjustedNearToFar: " << adjustedNearToFar[0] << ", " << adjustedNearToFar[1]);
+        RCLCPP_INFO_STREAM(logger_,  "        adjustedNearToFar: " << adjustedNearToFar[0] << ", " << adjustedNearToFar[1]);
         Eigen::Vector2f adjustedNearToFarDirection = adjustedNearToFar.normalized();
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        adjustedNearToFarDirection: " << adjustedNearToFarDirection[0] << ", " << adjustedNearToFarDirection[1]);
+        RCLCPP_INFO_STREAM(logger_,  "        adjustedNearToFarDirection: " << adjustedNearToFarDirection[0] << ", " << adjustedNearToFarDirection[1]);
 
         Eigen::Vector2f convertedPt = nearPt + adjustedNearToFarDirection * minDist;
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        convertedPt: " << convertedPt[0] << ", " << convertedPt[1]);
+        RCLCPP_INFO_STREAM(logger_,  "        convertedPt: " << convertedPt[0] << ", " << convertedPt[1]);
 
         float convertedPtTheta = std::atan2(convertedPt[1], convertedPt[0]);
         int convertedPtIdx = theta2idx(convertedPtTheta);
@@ -338,7 +338,7 @@ namespace quad_gap
 
         // Eigen::Matrix3f far_near = near_rbt.inverse() * far_rbt;
         // float coefs = far_near.block<2, 1>(0, 2).norm();
-        // // ROS_INFO_STREAM_NAMED("GapManipulator", )
+        // // RCLCPP_INFO_STREAM(logger_,  )
         // far_near(0, 2) *= farside / coefs;
         // far_near(1, 2) *= farside / coefs;
         // Eigen::Matrix3f short_pt = near_rbt * (rot_mat * far_near);
@@ -389,17 +389,17 @@ namespace quad_gap
         // xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
         // yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
             
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-RGC gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-AGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        post-RGC gap in polar. left: (" << newLeftIdx << ", " << newLeftRange << "), right: (" << newRightIdx << ", " << newRightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        post-AGC gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
     }
 
     void GapManipulator::radialExtendGap(Gap * gap) 
     {
-        ROS_INFO_STREAM_NAMED("GapManipulator", "    [radialExtendGap()]");
+        RCLCPP_INFO_STREAM(logger_,  "    [radialExtendGap()]");
 
         if (!cfg_->gap_manip.radial_extend) 
         {
-            ROS_DEBUG_STREAM_THROTTLE(1, "Radial Extension is off");
+            RCLCPP_DEBUG_STREAM(logger_, "Radial Extension is off");
             return;
         }
         // TODO: check if the idx are correct when they cross the 0.
@@ -416,8 +416,8 @@ namespace quad_gap
         float xRight = rightRange * cos(rightTheta);
         float yRight = rightRange * sin(rightTheta);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-radial extend gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-radial extend gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-radial extend gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
         // Eigen::Vector2f ptLeft(xLeft, yLeft);
         // Eigen::Vector2f ptRight(xRight, yRight);
@@ -470,7 +470,7 @@ namespace quad_gap
 
         // middle of gap direction
         Eigen::Vector2f eB(std::cos(thetaCenter), std::sin(thetaCenter));
-        // ROS_INFO_STREAM_NAMED("GapManipulator", "eB: (" << eB[0] << ", " << eB[1] << ")");
+        // RCLCPP_INFO_STREAM(logger_,  "eB: (" << eB[0] << ", " << eB[1] << ")");
 
         Eigen::Vector2f norm_eB = eB.normalized();         
 
@@ -496,11 +496,11 @@ namespace quad_gap
         xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
         yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
         
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in polar. left: (" << gap->manipLeftIdx() << ", " 
+        RCLCPP_INFO_STREAM(logger_,  "        post-radial extend gap in polar. left: (" << gap->manipLeftIdx() << ", " 
                                                                                                     << gap->manipLeftRange() << "), right: (" 
                                                                                                     << gap->manipRightIdx() << ", " 
                                                                                                     << gap->manipRightRange() << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-radial extend gap in cart. left: (" << xLeft << ", " 
+        RCLCPP_INFO_STREAM(logger_,  "        post-radial extend gap in cart. left: (" << xLeft << ", " 
                                                                                                     << yLeft << "), right: (" 
                                                                                                     << xRight << ", " 
                                                                                                     << yRight << ")");
@@ -532,15 +532,15 @@ namespace quad_gap
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
         float epl = robotGeoProc_->getLinearDecayEquivalentPL(midPt);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "    [inflateGapSides()]");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        pre-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+        RCLCPP_INFO_STREAM(logger_,  "    [inflateGapSides()]");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-inflate gap in polar. left: (" << leftIdx << ", " << leftRange << "), right: (" << rightIdx << ", " << rightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        pre-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
         Eigen::Vector2f leftUnitNorm = leftPt.normalized();
         Eigen::Vector2f rightUnitNorm = rightPt.normalized();
         float leftToRightAngle = getSweptLeftToRightAngle(leftUnitNorm, rightUnitNorm);
 
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        leftToRightAngle: " << leftToRightAngle);;
+        RCLCPP_INFO_STREAM(logger_,  "        leftToRightAngle: " << leftToRightAngle);;
 
         float epl_radius = 0.5 * epl;
         float newLeftToRightAngle = leftToRightAngle;
@@ -556,11 +556,11 @@ namespace quad_gap
             ///////////////////////
             // ANGULAR INFLATION //
             ///////////////////////
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflating gap sides with ratio: " << inf_ratio);
+            RCLCPP_INFO_STREAM(logger_,  "        inflating gap sides with ratio: " << inf_ratio);
     
             if (epl_radius * inf_ratio > leftRange)
             {
-                ROS_WARN_STREAM_NAMED("GapManipulator", "        inflation ratio is too large, aborting");
+                RCLCPP_WARN_STREAM(logger_,  "        inflation ratio is too large, aborting");
 
                 gap->setManipPoints(leftIdx, leftRange, rightIdx, rightRange);
 
@@ -580,15 +580,15 @@ namespace quad_gap
             Eigen::Vector2f leftAngularInflDir = Rnegpi2 * leftUnitNorm;
             Eigen::Vector2f rightAngularInflDir = Rpi2 * rightUnitNorm;
     
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        leftAngularInflDir: (" << leftAngularInflDir.transpose() << ")");
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        rightAngularInflDir: (" << rightAngularInflDir.transpose() << ")");
+            RCLCPP_INFO_STREAM(logger_,  "        leftAngularInflDir: (" << leftAngularInflDir.transpose() << ")");
+            RCLCPP_INFO_STREAM(logger_,  "        rightAngularInflDir: (" << rightAngularInflDir.transpose() << ")");
     
             // perform inflation
             Eigen::Vector2f inflatedLeftPt = leftPt + leftAngularInflDir * r_infl_left;
             Eigen::Vector2f inflatedRightPt = rightPt + rightAngularInflDir * r_infl_right;
     
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflatedLeftPt: (" << inflatedLeftPt.transpose() << ")");
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflatedRightPt: (" << inflatedRightPt.transpose() << ")");
+            RCLCPP_INFO_STREAM(logger_,  "        inflatedLeftPt: (" << inflatedLeftPt.transpose() << ")");
+            RCLCPP_INFO_STREAM(logger_,  "        inflatedRightPt: (" << inflatedRightPt.transpose() << ")");
     
             inflatedLeftTheta = std::atan2(inflatedLeftPt[1], inflatedLeftPt[0]);
             inflatedRightTheta = std::atan2(inflatedRightPt[1], inflatedRightPt[0]);
@@ -610,20 +610,20 @@ namespace quad_gap
             // if gap is too small, mark it to be discarded
             if (newLeftToRightAngle > leftToRightAngle)
             {
-                ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation has failed, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+                RCLCPP_INFO_STREAM(logger_,  "        inflation has failed, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
     
                 inf_ratio -= 0.1; // = std::max(1.0, inf_ratio - 0.1);
 
             } else
             {
                 successful_inflation = true;
-                ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation succeeded, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+                RCLCPP_INFO_STREAM(logger_,  "        inflation succeeded, new points in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
             }
         }
 
         if (! successful_inflation)
         {
-            ROS_INFO_STREAM_NAMED("GapManipulator", "        inflation has failed for good.");
+            RCLCPP_INFO_STREAM(logger_,  "        inflation has failed for good.");
          
             gap->setManipPoints(leftIdx, leftRange, rightIdx, rightRange);
 
@@ -631,7 +631,7 @@ namespace quad_gap
             // return false;
         }
 
-        if (inflatedRightIdx == inflatedLeftIdx) // // ROS_INFO_STREAM_NAMED("GapManipulator", "manipulated indices are same");
+        if (inflatedRightIdx == inflatedLeftIdx) // // RCLCPP_INFO_STREAM(logger_,  "manipulated indices are same");
             inflatedLeftIdx++;
 
         gap->setManipPoints(inflatedLeftIdx, inflatedLeftRange, inflatedRightIdx, inflatedRightRange);
@@ -644,8 +644,8 @@ namespace quad_gap
         xRight = pRight[0];            // (gap->convex.rightRange_) * cos(idx2theta(gap->convex.rightIdx_));
         yRight = pRight[1];            // (gap->convex.rightRange_) * sin(idx2theta(gap->convex.rightIdx_));
         
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-inflate gap in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
-        ROS_INFO_STREAM_NAMED("GapManipulator", "        post-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        post-inflate gap in polar. left: (" << inflatedLeftIdx << ", " << inflatedLeftRange << "), right: (" << inflatedRightIdx << ", " << inflatedRightRange << ")");
+        RCLCPP_INFO_STREAM(logger_,  "        post-inflate gap in cart. left: (" << xLeft << ", " << yLeft << "), right: (" << xRight << ", " << yRight << ")");
 
         return;
         // return true;

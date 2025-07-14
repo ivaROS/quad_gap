@@ -85,6 +85,6 @@ namespace quad_gap
 
             RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */
 
-
+            rclcpp::Logger logger_ {rclcpp::get_logger("GapManipulator")};
     };
 }
