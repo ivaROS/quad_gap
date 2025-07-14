@@ -15,6 +15,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
@@ -23,7 +24,7 @@
 // #include "tf/transform_datatypes.h"
 // #include <tf2_ros/transform_listener.h>
 // #include <tf2_ros/transform_broadcaster.h>
-// #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 #include <quad_gap/utils/RobotGeometryStorage.h>
 #include <quad_gap/utils/RobotGeometryProcessor.h>
@@ -121,5 +122,7 @@ namespace quad_gap
             boost::mutex gap_mutex;
 
             RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */
+
+            rclcpp::Logger logger_ {rclcpp::get_logger("TrajectoryEvaluator")};
     };
 }

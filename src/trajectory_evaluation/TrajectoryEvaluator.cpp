@@ -60,7 +60,7 @@ namespace quad_gap
     // float & terminalPoseCost    
     void TrajectoryEvaluator::evaluateTrajectory(Trajectory & traj) 
     {
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[evaluateTrajectory()]");
+        RCLCPP_INFO_STREAM(logger_,  "[evaluateTrajectory()]");
 
         // Requires LOCAL FRAME
         // Should be no racing condition
@@ -72,7 +72,7 @@ namespace quad_gap
         std::vector<float> posewiseCosts(pathRbtFrame.poses.size());
         for (int i = 0; i < posewiseCosts.size(); i++) 
         {
-            ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose " << i);
+            RCLCPP_INFO_STREAM(logger_,  "  Pose " << i);
             posewiseCosts.at(i) = evaluatePose(pathRbtFrame.poses.at(i), scan);
         }
         traj.setPathPosewiseCosts(posewiseCosts);
@@ -100,7 +100,7 @@ namespace quad_gap
     float TrajectoryEvaluator::terminalGoalCost(const geometry_msgs::msg::Pose & pose) 
     {
         boost::mutex::scoped_lock planlock(globalPlanMutex_);
-        // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", pose);
+        // RCLCPP_INFO_STREAM(logger_,  pose);
         float dx = pose.position.x - globalPathLocalWaypointRobotFrame_.pose.position.x;
         float dy = pose.position.y - globalPathLocalWaypointRobotFrame_.pose.position.y;
         return sqrt(pow(dx, 2) + pow(dy, 2));
@@ -117,7 +117,7 @@ namespace quad_gap
     {
         // boost::mutex::scoped_lock lock(scanMutex_);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "[evaluatePose()]");
+        RCLCPP_INFO_STREAM(logger_,  "[evaluatePose()]");
 
         // Eigen::Quaternionf q(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z);
         // Eigen::Vector3f euler = q.toRotationMatrix().eulerAngles(0, 1, 2);
@@ -125,17 +125,17 @@ namespace quad_gap
         Eigen::Vector2f poseHeading(cos(yaw), sin(yaw));
         Eigen::Vector2f poseRbtFrameVec(poseRbtFrame.position.x, poseRbtFrame.position.y);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose: " << poseRbtFrameVec.transpose() << 
+        RCLCPP_INFO_STREAM(logger_,  "  Pose: " << poseRbtFrameVec.transpose() << 
                                                      ", Orientation: " << poseHeading.transpose());
 
         float poseRbtFrameTheta = atan2(poseRbtFrameVec[1], poseRbtFrameVec[0]);
         int poseRbtFrameIdx = theta2idx(poseRbtFrameTheta);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Index: " << poseRbtFrameIdx << ", Pose Theta: " << poseRbtFrameTheta);
+        RCLCPP_INFO_STREAM(logger_,  "  Pose Index: " << poseRbtFrameIdx << ", Pose Theta: " << poseRbtFrameTheta);
 
         float poseRbtFrameIdxRange = scan.ranges.at(poseRbtFrameIdx);
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Pose Idx Range: " << poseRbtFrameIdxRange);
+        RCLCPP_INFO_STREAM(logger_,  "  Pose Idx Range: " << poseRbtFrameIdxRange);
 
         if (poseRbtFrameVec.norm() >= poseRbtFrameIdxRange)
             return std::numeric_limits<float>::infinity();
@@ -163,11 +163,11 @@ namespace quad_gap
             // {
             //     nearest_dist = scan2RbtDists.at(i);
             // }
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Relative Point: " << rel_pt_vec.transpose());
-            // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan to Robot Dist: " << scan2RbtDists.at(i));
+            // RCLCPP_INFO_STREAM(logger_,  "  Scan Index: " << i);
+            // RCLCPP_INFO_STREAM(logger_,  "  Theta: " << theta_i << ", Range: " << range_i);
+            // RCLCPP_INFO_STREAM(logger_,  "  Scan Point: " << scanPt.transpose());
+            // RCLCPP_INFO_STREAM(logger_,  "  Relative Point: " << rel_pt_vec.transpose());
+            // RCLCPP_INFO_STREAM(logger_,  "  Scan to Robot Dist: " << scan2RbtDists.at(i));
         }
         // for (int i = 0; i < scan2RbtDists.size(); i++) 
         // {
@@ -175,9 +175,9 @@ namespace quad_gap
         //     float theta_i = idx2theta(i);
         //     Eigen::Vector2f scanPt(range_i * cos(theta_i), range_i * sin(theta_i));
             
-        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Index: " << i);
-        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Theta: " << theta_i << ", Range: " << range_i);
-        //     ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Scan Point: " << scanPt.transpose());
+        //     RCLCPP_INFO_STREAM(logger_,  "  Scan Index: " << i);
+        //     RCLCPP_INFO_STREAM(logger_,  "  Theta: " << theta_i << ", Range: " << range_i);
+        //     RCLCPP_INFO_STREAM(logger_,  "  Scan Point: " << scanPt.transpose());
 
         //     // range_i = range_i == 3 ? range_i + cfg_->traj.rmax : range_i;
 
@@ -202,7 +202,7 @@ namespace quad_gap
         auto iter = std::min_element(scan2RbtDists.begin(), scan2RbtDists.end());
         float nearest_dist = *iter;
 
-        ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "  Min dist: " << nearest_dist);
+        RCLCPP_INFO_STREAM(logger_,  "  Min dist: " << nearest_dist);
 
         // float rmax_offset_val = rmax_offset[iter - dist.begin()];
         return chapterCost(nearest_dist);
@@ -226,7 +226,7 @@ namespace quad_gap
     //     std::vector<float> cost = scoreGaps();
     //     auto decision_iter = std::min_element(cost.begin(), cost.end());
     //     int gap_idx = std::distance(cost.begin(), decision_iter);
-    //     // ROS_INFO_STREAM_NAMED("TrajectoryEvaluator", "Selected Gap Index " << gap_idx);
+    //     // RCLCPP_INFO_STREAM(logger_,  "Selected Gap Index " << gap_idx);
     //     Gap * selected_gap = gaps.at(gap_idx);
     //     return selected_gap;
     // }

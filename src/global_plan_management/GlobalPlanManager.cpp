@@ -78,7 +78,7 @@ namespace quad_gap
 
         if (closestPlanPose == scanMinusPlanPoseNormDiffs.end()) 
         {
-            ROS_ERROR_STREAM_NAMED("GlobalPlanManager", "No Global Plan pose within Robot scan");
+            // ROS_ERROR_STREAM_NAMED("GlobalPlanManager", "No Global Plan pose within Robot scan");
             return std::vector<geometry_msgs::msg::PoseStamped>(0);
         }
 

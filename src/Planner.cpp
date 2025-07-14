@@ -1,7 +1,7 @@
 #include <quad_gap/Planner.h>
 #include "tf/transform_datatypes.h"
 #include <tf/LinearMath/Matrix3x3.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -352,7 +352,7 @@ namespace quad_gap
         trajController_->updateEgoCircle(scanRbtFrame_);
     }
 
-    void Planner::poseCB(const nav_msgs::msg::Odometry::ConstPtr& rbtOdomMsg)
+    void Planner::poseCB(const nav_msgs::msg::Odometry& rbtOdomMsg)
     {
         // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");
         // ROS_INFO_STREAM_NAMED("Planner", "[poseCB()]");

@@ -61,7 +61,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 // #include <tf2_utils/transform_manager.h>
 
@@ -138,7 +138,7 @@ namespace quad_gap
             * @param msg pose msg
             * @return None
             */
-            void poseCB(const nav_msgs::msg::Odometry::ConstPtr& msg);
+            void poseCB(const nav_msgs::msg::Odometry& msg);
 
             /**
             * \brief Function for updating all tf transform at the beginning of every planning cycle

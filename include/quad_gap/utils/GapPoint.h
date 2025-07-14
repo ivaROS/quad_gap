@@ -284,6 +284,6 @@ namespace quad_gap
                 float range_ = -1.0; /**< Manipulated gap point range */
             } manip;
 
-            rclcpp::Logger logger_ {rclcpp::get_logger("QuadGapPlanner")};
+            rclcpp::Logger logger_ {rclcpp::get_logger("GapPoint")};
     };
 }

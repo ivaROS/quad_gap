@@ -78,6 +78,7 @@ namespace quad_gap
             Eigen::Vector2f car2pol(const Eigen::Vector2f & a);
 
             RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor, used to get robot radius and inscribed radius */
+            rclcpp::Logger logger_ {rclcpp::get_logger("GapGoalPlacer")};
 
     };
 }
