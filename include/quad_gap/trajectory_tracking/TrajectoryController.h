@@ -178,5 +178,6 @@ namespace quad_gap
             boost::mutex scanMutex_;
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr projOpPublisher_;
             // rclcpp::Time last_time;
+            rclcpp::Logger logger_ {rclcpp::get_logger("TrajectoryController")};
     };
 }
