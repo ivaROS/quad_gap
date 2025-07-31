@@ -61,7 +61,7 @@ namespace quad_gap
         //     delete tfListener_;
     }
 
-    bool Planner::initialize(const rclcpp::Node::SharedPtr & node)
+    bool Planner::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
     {
         node_ = node;
 
@@ -101,7 +101,7 @@ namespace quad_gap
         transformed_laser_pub = node_->create_publisher<sensor_msgs::msg::LaserScan>("transformed_laserscan", 5);
 
         // TF Lookup setup
-        tfBuffer = std::make_shared<tf2_ros::Buffer>();
+        tfBuffer = std::make_shared<tf2_ros::Buffer>(node_->get_clock());
         tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
         initialized_ = true;
 

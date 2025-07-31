@@ -2,7 +2,7 @@
 
 namespace quad_gap 
 {
-    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp::Node::SharedPtr & node)
+    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
     {
         // ros::NodeHandle nh("~/" + name);
 

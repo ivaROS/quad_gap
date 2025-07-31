@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg)
+TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg)
     {
         node_ = node;
         cfg_ = &cfg;

@@ -33,6 +33,7 @@
 // #include <ros/ros.h>
 // #include <ros/package.h>
 #include "rclcpp/rclcpp.hpp"
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 //////////////
 // ROS MSGS //
@@ -112,7 +113,7 @@ namespace quad_gap
             * \param name planner name (used for ROS namespaces) 
             * \return initialization success / failure
             */
-            bool initialize(const rclcpp::Node::SharedPtr & node);
+            bool initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
 
             /**
             * \brief Indicator for if planner has been initialized
@@ -391,7 +392,7 @@ namespace quad_gap
             rclcpp::Time lastPlanTime_;
             rclcpp::Time currPlanTime_;
 
-            rclcpp::Node::SharedPtr node_;
+            rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
             
             QuadGapConfig cfg_;
 

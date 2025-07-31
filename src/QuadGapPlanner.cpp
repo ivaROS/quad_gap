@@ -29,11 +29,11 @@ namespace quad_gap
         // RCLCPP_INFO_STREAM(logger_,  "Initializing Planner with name: " << name);
         
         lifecycle_node_ = parent;
-        // node_ = lifecycle_node_.get_node_base_interface();
-        logger_ = lifecycle_node_->get_logger();
+        rclcpp_lifecycle::LifecycleNode::SharedPtr node = lifecycle_node_.lock();
+        // logger_ = lifecycle_node_->get_logger();
 
         // planner_name = name;
-        planner.initialize(lifecycle_node_);
+        planner.initialize(node);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 

@@ -2,6 +2,8 @@
 
 // #include <ros/ros.h>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <vector>
@@ -31,7 +33,7 @@ namespace quad_gap
     //     }
     // }
     
-    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, bool & param)
+    inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, bool & param)
     {
         // format: key, value, default value
 
@@ -45,7 +47,7 @@ namespace quad_gap
         }
     }
     
-    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, std::string & param)
+    inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, std::string & param)
     {
         if (!node->get_parameter(param_name, param))
         {
@@ -57,7 +59,7 @@ namespace quad_gap
         }
     }
 
-    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, float & param)
+    inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, float & param)
     {
         if (!node->get_parameter(param_name, param))
         {
@@ -69,7 +71,7 @@ namespace quad_gap
         }
     }
 
-    inline void ros_throw_param_load(const rclcpp::Node::SharedPtr & node, const std::string & param_name, int & param)
+    inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, int & param)
     {
         if (!node->get_parameter(param_name, param))
         {

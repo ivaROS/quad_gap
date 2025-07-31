@@ -61,7 +61,7 @@ namespace quad_gap
 
         private:
 
-            rclcpp::Node::SharedPtr node_;
+            rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
             rclcpp_lifecycle::LifecycleNode::WeakPtr lifecycle_node_;
 
             rclcpp::Logger logger_ {rclcpp::get_logger("QuadGapPlanner")};

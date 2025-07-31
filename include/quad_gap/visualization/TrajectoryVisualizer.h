@@ -8,7 +8,7 @@ namespace quad_gap
     {
             using Visualizer::Visualizer;
         public: 
-            TrajectoryVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
             void drawGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlan);
 
             // void pubAllTraj(const std::vector<geometry_msgs::msg::PoseArray> & prr);
@@ -37,7 +37,7 @@ namespace quad_gap
 
         private: 
 
-            rclcpp::Node::SharedPtr node_; /**< Node handle for ROS communication */
+            rclcpp_lifecycle::LifecycleNode::SharedPtr node_; /**< Node handle for ROS communication */
 
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr trajSwitchIdxPublisher; /**< Publisher for planner trajectory switch count */
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr planLoopIdxPublisher; /**< Publisher for planning loop idx */

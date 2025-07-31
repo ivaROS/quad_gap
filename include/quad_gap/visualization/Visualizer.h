@@ -25,7 +25,7 @@ namespace quad_gap
             Visualizer() {};
             ~Visualizer() {};
 
-            Visualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            Visualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
             
             // Visualizer& operator=(Visualizer other)
             // {

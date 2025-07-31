@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    GoalVisualizer::GoalVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg)
+    GoalVisualizer::GoalVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg)
     {
         node_ = node;
         cfg_ = &cfg;

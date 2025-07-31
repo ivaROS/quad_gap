@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    GapVisualizer::GapVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
+    GapVisualizer::GapVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg) 
     {
         node_ = node;
         cfg_ = &cfg;

@@ -24,7 +24,7 @@ namespace quad_gap
         Robot(){};
 
 
-        Robot(const rclcpp::Node::SharedPtr & node,
+        Robot(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
                 const RobotShape & in_shape, 
                 const float & robot_length, 
                 const float & robot_width=0, 

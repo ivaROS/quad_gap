@@ -8,7 +8,7 @@ namespace quad_gap
     {
         public: 
             using Visualizer::Visualizer;
-            GoalVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            GoalVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
 
             // void localGoal(const geometry_msgs::msg::PoseStamped);
 
@@ -26,7 +26,7 @@ namespace quad_gap
     
             void drawGapGoal(visualization_msgs::msg::Marker & marker, Gap * gap);  
 
-            rclcpp::Node::SharedPtr node_; /**< Node handle for ROS communication */
+            rclcpp_lifecycle::LifecycleNode::SharedPtr node_; /**< Node handle for ROS communication */
 
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalPathLocalWaypointPublisher; /**< Publisher for global path local waypoint */
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr globalGoalPublisher; /**< Publisher for global goal */

@@ -2,7 +2,7 @@
 
 namespace quad_gap
 {
-    TrajectoryController::TrajectoryController(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg) 
+    TrajectoryController::TrajectoryController(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg) 
     {
         projOpPublisher_ = node->create_publisher<visualization_msgs::msg::Marker>("po_dir", 10);
         cfg_ = & cfg;

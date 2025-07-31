@@ -9,8 +9,8 @@ namespace quad_gap
             using Visualizer::Visualizer;
         public: 
 
-            GapVisualizer(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
-            // void initialize(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            GapVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
+            // void initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
 
             void drawGaps(const std::vector<Gap *> & gaps, const std::string & ns);
             void drawManipGaps(const std::vector<Gap *> & gaps);
@@ -40,7 +40,7 @@ namespace quad_gap
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr simpGapsPublisher;
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr manipGapsPublisher;
 
-            rclcpp::Node::SharedPtr node_; /**< Node handle for ROS communication */
+            rclcpp_lifecycle::LifecycleNode::SharedPtr node_; /**< Node handle for ROS communication */
 
             int gapSpanResoln = 2;
             float invGapSpanResoln = 0.5;            

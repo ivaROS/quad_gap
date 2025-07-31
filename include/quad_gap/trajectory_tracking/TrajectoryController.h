@@ -27,7 +27,7 @@ namespace quad_gap
     {
         public:
 
-            TrajectoryController(const rclcpp::Node::SharedPtr & node, const QuadGapConfig& cfg);
+            TrajectoryController(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
 
             /**
             * \brief receive new laser scan and update member variable accordingly
