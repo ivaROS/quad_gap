@@ -61,7 +61,9 @@ namespace quad_gap
 
         private:
 
-            rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
+            rclcpp::Node::SharedPtr node_;
+            rclcpp_lifecycle::LifecycleNode::WeakPtr lifecycle_node_;
+
             rclcpp::Logger logger_ {rclcpp::get_logger("QuadGapPlanner")};
 
             // qgConfig loadRosParamFromNodeHandle(const ros::NodeHandle& nh);
@@ -70,7 +72,7 @@ namespace quad_gap
             std::string planner_name;
             // ros::NodeHandle nh, pnh;
 
-            // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
+            // std::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
             // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
     };
 }

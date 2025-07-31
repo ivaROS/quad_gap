@@ -12,7 +12,7 @@ namespace quad_gap
         return;
     }
 
-    void GlobalPlanManager::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan) 
+    void GlobalPlanManager::updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> scan) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = scan;

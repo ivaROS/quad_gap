@@ -46,7 +46,7 @@ namespace quad_gap
             * \brief update current scan
             * \param scan incoming scan
             */
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
+            void updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
 
             /**
             * \brief Place goal in the gap
@@ -70,7 +70,7 @@ namespace quad_gap
             float setBiasedGapGoalTheta(const float & leftTheta, const float & rightTheta, const float & globalGoalTheta,
                                         const float & leftToRightAngle, const float & leftToWaypointAngle,  const float & rightToWaypointAngle);
 
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             const QuadGapConfig* cfg_;        
             // int num_of_scan;
             boost::mutex scanMutex_;

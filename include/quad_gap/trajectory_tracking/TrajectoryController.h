@@ -33,7 +33,7 @@ namespace quad_gap
             * \brief receive new laser scan and update member variable accordingly
             * \param scan new laser scan
             */
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
+            void updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
 
             // geometry_msgs::msg::Twist controlLaw(const geometry_msgs::msg::Pose & current, 
             //                                 const geometry_msgs::msg::Pose & desired,
@@ -174,7 +174,7 @@ namespace quad_gap
 
             // float thres;
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             boost::mutex scanMutex_;
             rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr projOpPublisher_;
             // rclcpp::Time last_time;

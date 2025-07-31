@@ -55,7 +55,7 @@ namespace quad_gap
             *
             * \param scan pointer to incoming laser scan
             */
-            void preprocessScan(boost::shared_ptr<sensor_msgs::msg::LaserScan> scan);
+            sensor_msgs::msg::LaserScan::ConstSharedPtr preprocessScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scan);
 
             /**
             * \brief Detect raw set of gaps from incoming laser scan.
@@ -63,7 +63,7 @@ namespace quad_gap
             * \param scanPtr pointer to incoming laser scan
             * \return raw set of gaps
             */            
-            std::vector<Gap *> gapDetection(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr);
+            std::vector<Gap *> gapDetection(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanPtr);
 
             /**
             * \brief Condense raw set of gaps into a smaller set of simplified gaps more amenable for navigation.

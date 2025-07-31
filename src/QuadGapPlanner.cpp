@@ -28,17 +28,17 @@ namespace quad_gap
     {
         // RCLCPP_INFO_STREAM(logger_,  "Initializing Planner with name: " << name);
         
-        node_ = parent;
-        auto node = node_.lock();
-        logger_ = node->get_logger();
+        lifecycle_node_ = parent;
+        // node_ = lifecycle_node_.get_node_base_interface();
+        logger_ = lifecycle_node_->get_logger();
 
         // planner_name = name;
-        planner.initialize(node);
+        planner.initialize(lifecycle_node_);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 
         // // Setup dynamic reconfigure
-        // dynamic_recfg_server = boost::make_shared<dynamic_reconfigure::Server <qgConfig> > (pnh);
+        // dynamic_recfg_server = std::make_shared<dynamic_reconfigure::Server <qgConfig> > (pnh);
         // f = boost::bind(&Planner::rcfgCallback, &planner, _1, _2);
         // dynamic_recfg_server->setCallback(f);
     }

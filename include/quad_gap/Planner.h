@@ -54,6 +54,7 @@
 
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <std_msgs/msg/header.hpp>
 #include <nav_msgs/msg/odometry.hpp>
@@ -131,20 +132,21 @@ namespace quad_gap
             * @param msg laser scan msg
             * @return None, laser scan msg stored locally
             */
-            void laserScanCB(boost::shared_ptr<sensor_msgs::msg::LaserScan> msg);
+            void laserScanCB(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanSensorFrame);
 
             /**
             * call back function to pose, pose information obtained here only used when a new goal is used
             * @param msg pose msg
             * @return None
             */
-            void poseCB(const nav_msgs::msg::Odometry& msg);
+            void poseCB(const nav_msgs::msg::Odometry::ConstSharedPtr& msg);
 
             /**
             * \brief Function for updating all tf transform at the beginning of every planning cycle
-            * \param msg incoming agent odometry message
+            // * \param msg incoming agent odometry message
             */
-            void tfCB(const tf2_msgs::msg::TFMessage& msg);
+            // void tfCB(const tf2_msgs::msg::TFMessage& msg);
+            void updateTFs();
 
             /**
             * Interface function for receiving global plan
@@ -299,7 +301,7 @@ namespace quad_gap
 
             std::vector<Gap *> deepCopyCurrentSimplifiedGaps();
 
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> transformLaserToRbt(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
+            sensor_msgs::msg::LaserScan::ConstSharedPtr transformLaserToRbt(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanSensorFrame);
 
             // Transforms
             geometry_msgs::msg::TransformStamped map2rbt_;
@@ -371,7 +373,7 @@ namespace quad_gap
 
             geometry_msgs::msg::TwistStamped rbtVelRbtFrame_;
 
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanRbtFrame_;
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scanRbtFrame_;
 
             int trajectoryChangeCount_ = 0; /**< Counter for how many times the trajectory has been changed */
 
@@ -379,7 +381,7 @@ namespace quad_gap
             // TrajPlan ni_ref, orig_ref;
 
             // Dynamic Reconfigure
-            // boost::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
+            // std::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;
             // dynamic_reconfigure::Server<qgConfig>::CallbackType f;
 
             // bool replan = true;

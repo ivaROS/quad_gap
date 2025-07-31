@@ -56,7 +56,7 @@ namespace quad_gap
             * \brief receive new laser scan and update member variable accordingly
             * \param scan new laser scan
             */            
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
+            void updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
             
             
             /**
@@ -113,7 +113,7 @@ namespace quad_gap
             float terminalGoalCost(const geometry_msgs::msg::Pose & pose);
 
             const QuadGapConfig* cfg_;
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             // std::vector<Gap *> gaps;
             geometry_msgs::msg::PoseStamped globalPathLocalWaypointRobotFrame_;
 

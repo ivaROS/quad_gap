@@ -45,7 +45,7 @@ namespace quad_gap
             * \brief update current scan
             * \param scan incoming scan
             */            
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
+            void updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> msg);
 
             /**
             * \brief function for reducing gap's angle to ensure that gap is convex (angle < 180 degrees)
@@ -73,7 +73,7 @@ namespace quad_gap
             void inflateGapSides(Gap * gap);            
         
         private:
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scan_;
             const QuadGapConfig* cfg_;
             // int num_of_scan;
             boost::mutex egolock;

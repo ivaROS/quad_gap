@@ -92,7 +92,7 @@ namespace quad_gap
             * \brief receive new laser scan and update member variable accordingly
             * \param scan new laser scan
             */
-            void updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
+            void updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> scan);
 
         private:
             /**
@@ -134,7 +134,7 @@ namespace quad_gap
 
             // RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */       
 
-            boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan_; /**< Current laser scan */
+            std::shared_ptr<sensor_msgs::msg::LaserScan const> scan_; /**< Current laser scan */
 
             boost::mutex goalSelectMutex_; /**< mutex locking thread for goal selection updates */
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */

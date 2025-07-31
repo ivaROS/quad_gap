@@ -13,7 +13,7 @@ namespace quad_gap
         l_ = cfg_->rbt.r_inscr * cfg_->traj.inf_ratio; // error.norm();
     }
 
-    void TrajectoryController::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scan)
+    void TrajectoryController::updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> scan)
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = scan;

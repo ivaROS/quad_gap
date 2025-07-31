@@ -10,8 +10,11 @@ namespace quad_gap
 
     ///////////// SCAN PRE-PROCESSING ///////////////////////
 
-    void GapDetector::preprocessScan(boost::shared_ptr<sensor_msgs::msg::LaserScan> scan)
+    sensor_msgs::msg::LaserScan::ConstSharedPtr GapDetector::preprocessScan(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scan)
     {
+        // Make a copy of the scan to avoid modifying the original
+        sensor_msgs::msg::LaserScan preprocessed_scan = *scan;
+
         // pre-process scan (turning nan's and inf's into max ranges)
         float eps = 0.00001f;
         for (int i = 0; i < scan->ranges.size(); i++)
@@ -19,15 +22,16 @@ namespace quad_gap
             if (std::isnan(scan->ranges.at(i)))
             {
                 // ROS_WARN_STREAM_THROTTLE_NAMED(1.0, "GapDetector", "NaN detected in scan, replacing with max range");
-                scan->ranges.at(i) = cfg_->scan.range_max - eps;
+                preprocessed_scan.ranges.at(i) = cfg_->scan.range_max - eps;
             }
 
             if (std::isinf(scan->ranges.at(i)))
             {
                 // ROS_WARN_STREAM_THROTTLE_NAMED(1.0, "GapDetector", "Inf detected in scan, replacing with max range");
-                scan->ranges.at(i) = cfg_->scan.range_max - eps;
+                preprocessed_scan.ranges.at(i) = cfg_->scan.range_max - eps;
             }
         }
+        return std::make_shared<sensor_msgs::msg::LaserScan>(preprocessed_scan);
     }
 
     ////////////////// GAP DETECTION ///////////////////////
@@ -114,7 +118,7 @@ namespace quad_gap
         return firstAndLastGapsBorder;
     }
 
-    std::vector<Gap *> GapDetector::gapDetection(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr)
+    std::vector<Gap *> GapDetector::gapDetection(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanPtr)
     {
         std::vector<Gap *> rawGaps;
         // rawGaps.clear();

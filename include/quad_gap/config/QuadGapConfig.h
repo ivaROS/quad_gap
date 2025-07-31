@@ -142,7 +142,7 @@ namespace quad_gap
             /**
             * \brief Load in hyperparameters from current laser scan
             */
-            void updateParamFromScan(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr);            
+            void updateParamFromScan(std::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr);            
 
         private: 
             boost::mutex config_mutex; 

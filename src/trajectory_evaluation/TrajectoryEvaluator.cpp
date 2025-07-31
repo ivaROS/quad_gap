@@ -8,7 +8,7 @@ namespace quad_gap
         robotGeoProc_ = & robot_geo_proc;
     }
 
-    void TrajectoryEvaluator::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
+    void TrajectoryEvaluator::updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         scan_ = msg;

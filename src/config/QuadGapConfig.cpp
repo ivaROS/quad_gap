@@ -138,7 +138,7 @@ namespace quad_gap
         }
     }
 
-    void QuadGapConfig::updateParamFromScan(boost::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr)
+    void QuadGapConfig::updateParamFromScan(std::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr)
     {
         sensor_msgs::msg::LaserScan incomingScan = *scanPtr.get();
         scan.angle_min = incomingScan.angle_min;

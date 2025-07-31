@@ -2,7 +2,7 @@
 
 namespace quad_gap 
 {
-    void GapManipulator::updateEgoCircle(boost::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
+    void GapManipulator::updateEgoCircle(std::shared_ptr<sensor_msgs::msg::LaserScan const> msg) 
     {
         boost::mutex::scoped_lock lock(egolock);
         scan_ = msg;
