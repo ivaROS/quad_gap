@@ -160,6 +160,7 @@ namespace quad_gap
                                     const int & prevIdx,
                                     const float & prevRange);
 
+            rclcpp::Logger logger_ {rclcpp::get_logger("GapDetector")};
             sensor_msgs::msg::LaserScan scan_; /**< Current laser scan */
             const QuadGapConfig * cfg_ = NULL; /**< Planner hyperparameter config list */
             RobotGeometryProcessor * robotGeoProc_ = NULL; /**< Robot geometry processor */

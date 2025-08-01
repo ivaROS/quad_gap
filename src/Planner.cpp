@@ -198,48 +198,90 @@ namespace quad_gap
 
     sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanSensorFrame)
     {
-        sensor_msgs::msg::LaserScan transformed_laser = *scanSensorFrame;
-        transformed_laser.header = scanSensorFrame->header;
-        transformed_laser.header.frame_id = cfg_.robot_frame_id;
-        transformed_laser.angle_min = scanSensorFrame->angle_min;
-        transformed_laser.angle_max = scanSensorFrame->angle_max;
-        transformed_laser.angle_increment = scanSensorFrame->angle_increment;
-        transformed_laser.time_increment = scanSensorFrame->time_increment;
-        transformed_laser.scan_time = scanSensorFrame->scan_time;
-        transformed_laser.range_min = scanSensorFrame->range_min;
-        transformed_laser.range_max = scanSensorFrame->range_max;
-        transformed_laser.intensities = scanSensorFrame->intensities;
-        transformed_laser.ranges = std::vector<float>(scanSensorFrame->ranges.size(), scanSensorFrame->range_max);
+        RCLCPP_INFO_STREAM(node_->get_logger(), "[transformLaserToRbt()]");
+
+        sensor_msgs::msg::LaserScan scanRbtFrame = *scanSensorFrame;
+        scanRbtFrame.header = scanSensorFrame->header;
+        scanRbtFrame.header.frame_id = cfg_.robot_frame_id;
+        scanRbtFrame.angle_min = scanSensorFrame->angle_min;
+        scanRbtFrame.angle_max = scanSensorFrame->angle_max;
+        scanRbtFrame.angle_increment = scanSensorFrame->angle_increment;
+        scanRbtFrame.time_increment = scanSensorFrame->time_increment;
+        scanRbtFrame.scan_time = scanSensorFrame->scan_time;
+        scanRbtFrame.range_min = scanSensorFrame->range_min;
+        scanRbtFrame.range_max = scanSensorFrame->range_max;
+        scanRbtFrame.intensities = scanSensorFrame->intensities;
+        scanRbtFrame.ranges = scanSensorFrame->ranges;
+
+        // Initialize ranges to negative values to indicate no data, will use at second pass
+        // scanRbtFrame.ranges = std::vector<float>(scanSensorFrame->ranges.size(), -scanSensorFrame->range_max);
 
         float origRange = 0.0;
         float origAng = 0.0;
-        geometry_msgs::msg::PointStamped orig_pt, transformed_pt;
-        geometry_msgs::msg::TransformStamped trans;
+        geometry_msgs::msg::PointStamped scanPtSensorFrame;
+        geometry_msgs::msg::PointStamped scanPtRbtFrame;
+        geometry_msgs::msg::TransformStamped trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, rclcpp::Time(0));
         float transRange = 0.0;
         float transTheta = 0.0;
         int transIdx = 0;
+
         for (size_t i = 0; i < scanSensorFrame->ranges.size(); i++)
         {
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  scan point: " << i);
+
             origRange = scanSensorFrame->ranges[i];
             origAng = idx2theta(i);
 
-            orig_pt.header = scanSensorFrame->header;
-            orig_pt.point.x = origRange * cos(origAng);
-            orig_pt.point.y = origRange * sin(origAng);
-            
-            trans = tfBuffer->lookupTransform(cfg_.robot_frame_id, cfg_.sensor_frame_id, rclcpp::Time(0));
-            tf2::doTransform(orig_pt, transformed_pt, trans);
-            // RCLCPP_INFO_STREAM(node_->get_logger(),  cfg_.sensor_frame_id << " " << orig_pt.header.frame_id << " " << transformed_pt.header.frame_id);
+            scanPtSensorFrame.header = scanSensorFrame->header;
+            scanPtSensorFrame.point.x = origRange * cos(origAng);
+            scanPtSensorFrame.point.y = origRange * sin(origAng);
 
-            transRange = sqrt(pow(transformed_pt.point.x, 2) + pow(transformed_pt.point.y, 2));
-            transTheta = std::atan2(transformed_pt.point.y, transformed_pt.point.x);
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  Original scan point (pol): " << 
+            //     " (" << origAng << ", " << origRange << ")");
+
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  Original scan point (cart): " 
+            //     << scanPtSensorFrame.point.x << ", " << scanPtSensorFrame.point.y);
+            
+            tf2::doTransform(scanPtSensorFrame, scanPtRbtFrame, trans);
+
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan point (cart): " 
+            //     << scanPtRbtFrame.point.x << ", " << scanPtRbtFrame.point.y);
+            // RCLCPP_INFO_STREAM(node_->get_logger(),  cfg_.sensor_frame_id << " " << scanPtSensorFrame.header.frame_id << " " << scanPtRbtFrame.header.frame_id);
+
+            transRange = sqrt(pow(scanPtRbtFrame.point.x, 2) + pow(scanPtRbtFrame.point.y, 2));
+            transTheta = std::atan2(scanPtRbtFrame.point.y, scanPtRbtFrame.point.x);
             transIdx = theta2idx(transTheta);
 
-            if (transRange < transformed_laser.ranges[transIdx])
-                transformed_laser.ranges[transIdx] = transRange;
+            // what if original index is missed?
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan point (pol): " << 
+            //     " (" << transTheta << ", " << transRange << ")");
+
+            // if (transRange < scanRbtFrame.ranges[transIdx])
+            scanRbtFrame.ranges[transIdx] = std::min(scanSensorFrame->range_max, transRange);
+
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan point index: " << transIdx << 
+            //     ", range: " << scanRbtFrame.ranges[transIdx]);
         }
 
-        return std::make_shared<sensor_msgs::msg::LaserScan>(transformed_laser);
+        // TODO: second pass through scan to interpolate missing values
+
+        // // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan second pass...");
+        // // second pass through scan to interpolate missing values
+        // for (size_t i = 0; i < scanRbtFrame.ranges.size(); i++)
+        // {
+        //     // RCLCPP_INFO_STREAM(node_->get_logger(), "  (pre) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
+        //     if (scanRbtFrame.ranges[i] < 0.0)
+        //     {
+        //         // RCLCPP_INFO_STREAM(node_->get_logger(), "  scan point: " << i << " is negative, interpolating");
+        //         // interpolate missing values
+        //         float leftRange = (i > 0) ? scanRbtFrame.ranges[i - 1] : scanRbtFrame.range_max;
+        //         float rightRange = (i < scanRbtFrame.ranges.size() - 1) ? scanRbtFrame.ranges[i + 1] : scanRbtFrame.range_max;
+        //         scanRbtFrame.ranges[i] = std::min(leftRange, rightRange);
+        //     }
+        //     // RCLCPP_INFO_STREAM(node_->get_logger(), "  (post) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
+        // }
+
+        return std::make_shared<sensor_msgs::msg::LaserScan>(scanRbtFrame);
     }
 
     void Planner::laserScanCB(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanSensorFrame)
@@ -262,6 +304,8 @@ namespace quad_gap
             return;
         }
 
+        cfg_.updateParamFromScan(scanSensorFrame);
+
         /////////////////////////////////////
         //////// SCAN PRE-PROCESSING ////////
         /////////////////////////////////////
@@ -271,8 +315,12 @@ namespace quad_gap
         rclcpp::Duration scanDuration = currScanTime_ - lastScanTime_;
         // RCLCPP_INFO_STREAM(node_->get_logger(),  "     Time since last scan: " << scanDuration.seconds() << "." << scanDuration.nanoseconds() << " seconds");
 
+        float minScanRaw = *std::min_element(scanSensorFrame->ranges.begin(), scanSensorFrame->ranges.end());
+
         sensor_msgs::msg::LaserScan::ConstSharedPtr preprocessed_scan = 
             gapDetector_->preprocessScan(scanSensorFrame);
+
+        float minScanPostPreProcess = *std::min_element(preprocessed_scan->ranges.begin(), preprocessed_scan->ranges.end());
 
         scanRbtFrame_ = transformLaserToRbt(preprocessed_scan);
 
@@ -281,6 +329,10 @@ namespace quad_gap
         transformed_laser_pub->publish(*scanRbtFrame_);
 
         float minScanDist = *std::min_element(scanRbtFrame_->ranges.begin(), scanRbtFrame_->ranges.end());
+
+        RCLCPP_INFO_STREAM(node_->get_logger(),  "     Min scan distance: " << minScanDist << 
+                                                ", preprocessed: " << minScanPostPreProcess << 
+                                                ", raw: " << minScanRaw);
 
         if (minScanDist < cfg_.rbt.r_inscr)
         {
@@ -291,8 +343,6 @@ namespace quad_gap
         {
             colliding_ = false;
         }
-
-        cfg_.updateParamFromScan(scanRbtFrame_);
 
         ///////////////////////////////
         //////// GAP DETECTION ////////
