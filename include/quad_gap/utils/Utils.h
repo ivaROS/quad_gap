@@ -12,6 +12,10 @@
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <geometry_msgs/msg/pose.hpp>
  
+#include "nav2_util/node_utils.hpp"
+
+using nav2_util::declare_parameter_if_not_declared;
+
 namespace quad_gap 
 {
 
@@ -36,6 +40,7 @@ namespace quad_gap
     inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, bool & param)
     {
         // format: key, value, default value
+        declare_parameter_if_not_declared(node, param_name, rclcpp::ParameterValue(false));
 
         if (!node->get_parameter(param_name, param))
         {
@@ -49,6 +54,8 @@ namespace quad_gap
     
     inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, std::string & param)
     {
+        declare_parameter_if_not_declared(node, param_name, rclcpp::ParameterValue("N/A"));
+
         if (!node->get_parameter(param_name, param))
         {
             RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
@@ -61,6 +68,8 @@ namespace quad_gap
 
     inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, float & param)
     {
+        declare_parameter_if_not_declared(node, param_name, rclcpp::ParameterValue(0.0f));
+
         if (!node->get_parameter(param_name, param))
         {
             RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);
@@ -73,6 +82,8 @@ namespace quad_gap
 
     inline void ros_throw_param_load(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const std::string & param_name, int & param)
     {
+        declare_parameter_if_not_declared(node, param_name, rclcpp::ParameterValue(0));
+
         if (!node->get_parameter(param_name, param))
         {
             RCLCPP_ERROR_STREAM(node->get_logger(),  "Couldn't find parameter: " << param_name);

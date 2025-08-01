@@ -61,7 +61,8 @@ namespace quad_gap
         //     delete tfListener_;
     }
 
-    bool Planner::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
+    bool Planner::initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+                             const std::string & name)
     {
         node_ = node;
 
@@ -77,7 +78,7 @@ namespace quad_gap
         // pnh = ros::NodeHandle(unh.getNamespace() + "/cc");
 
         // Config Setup
-        cfg_.loadRosParamFromNodeHandle(node);
+        cfg_.loadRosParamFromNodeHandle(node, name);
 
         // Load precomputed robot geo
         // std::string file_name = ros::package::getPath("quad_gap") + "/config/box_1_geometry.yaml";
@@ -254,14 +255,21 @@ namespace quad_gap
         /////////////////////////////////////
         updateTFs();
 
+        if (!haveTFs_)
+        {
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Transforms not available yet, skipping scan processing");
+            timeKeeper_->stopTimer(SCAN);
+            return;
+        }
+
         /////////////////////////////////////
         //////// SCAN PRE-PROCESSING ////////
         /////////////////////////////////////
 
         currScanTime_ = scanSensorFrame->header.stamp;
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "     Current scan time: " << currScanTime_.seconds() << "." << currScanTime_.nanoseconds());
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "     Current scan time: " << currScanTime_.seconds() << "." << currScanTime_.nanoseconds());
         rclcpp::Duration scanDuration = currScanTime_ - lastScanTime_;
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "     Time since last scan: " << scanDuration.seconds() << "." << scanDuration.nanoseconds() << " seconds");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "     Time since last scan: " << scanDuration.seconds() << "." << scanDuration.nanoseconds() << " seconds");
 
         sensor_msgs::msg::LaserScan::ConstSharedPtr preprocessed_scan = 
             gapDetector_->preprocessScan(scanSensorFrame);

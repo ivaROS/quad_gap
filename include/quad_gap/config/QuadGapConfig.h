@@ -11,7 +11,7 @@
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include <quad_gap/utils/Utils.h>  
+#include <quad_gap/utils/Utils.h>
 
 namespace quad_gap 
 {
@@ -133,7 +133,8 @@ namespace quad_gap
 
             } collision_checker;
 
-            void loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
+            void loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+                                            const std::string & name);
 
             // void reconfigure(qgConfig& cfg);
 

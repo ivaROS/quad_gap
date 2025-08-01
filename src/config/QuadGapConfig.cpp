@@ -2,7 +2,8 @@
 
 namespace quad_gap 
 {
-    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node)
+    void QuadGapConfig::loadRosParamFromNodeHandle(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+                                                    const std::string & name)
     {
         // ros::NodeHandle nh("~/" + name);
 
@@ -11,131 +12,137 @@ namespace quad_gap
 
         // RCLCPP_INFO_STREAM(logger_, "Setting nh to: " << "~/" << name);
 
-        std::string model;
-        node->get_parameter("/model", model);
+        // RCLCPP_INFO_STREAM(logger_, "Setting model to: " << model);
 
-        if (model == "rto")
-        {
-            RCLCPP_INFO_STREAM(logger_, "Setting model to: " << model);
+        // auto parameters_and_prefixes = node->list_parameters({}, 10);
 
-            RCLCPP_INFO_STREAM(logger_, "map_frame_id is: " << map_frame_id);
+        // for (auto & name : parameters_and_prefixes.names) {
+        //     std::cout << "Parameter name: " << name << std::endl;
+        // }
+        // for (auto & prefix : parameters_and_prefixes.prefixes) {
+        //     std::cout << "Parameter prefix: " << prefix << std::endl;
+        // }
 
-            odom_frame_id = model + "/odom";
-            RCLCPP_INFO_STREAM(logger_, "Setting odom_frame_id to: " << odom_frame_id);
+        
+        float r_inscr;
+        ros_throw_param_load(node, name + ".r_inscr", r_inscr);
 
-            robot_frame_id = model + "/base_link";
-            RCLCPP_INFO_STREAM(logger_, "Setting robot_frame_id to: " << robot_frame_id);
 
-            sensor_frame_id = model + "/hokuyo_link";
-            RCLCPP_INFO_STREAM(logger_, "Setting sensor_frame_id to: " << sensor_frame_id);
+        map_frame_id = "map"; // model + "/map";
+        RCLCPP_INFO_STREAM(logger_, "map_frame_id is: " << map_frame_id);
 
-            odom_topic = "odom"; // model + "/odom";
-            RCLCPP_INFO_STREAM(logger_, "Setting odom_topic to: " << odom_topic);
+        odom_frame_id = "odom";
+        RCLCPP_INFO_STREAM(logger_, "Setting odom_frame_id to: " << odom_frame_id);
 
-            scan_topic = "scan"; // model + "/scan";
-            RCLCPP_INFO_STREAM(logger_, "Setting scan_topic to: " << scan_topic);
+        robot_frame_id = "base_link";
+        RCLCPP_INFO_STREAM(logger_, "Setting robot_frame_id to: " << robot_frame_id);
 
-            ///////////
-            // Robot //
-            ///////////
-            ros_throw_param_load(node, "r_inscr", rbt.r_inscr);
-            ros_throw_param_load(node, "length", rbt.length);
-            ros_throw_param_load(node, "width", rbt.width);
-            ros_throw_param_load(node, "avg_lin_speed", rbt.avg_lin_speed);
-            ros_throw_param_load(node, "avg_rot_speed", rbt.avg_rot_speed);
-            ros_throw_param_load(node, "vx_absmax", rbt.vx_absmax);
-            ros_throw_param_load(node, "vy_absmax", rbt.vy_absmax);
-            ros_throw_param_load(node, "vang_absmax", rbt.vang_absmax);
-            ros_throw_param_load(node, "speed_factor", rbt.speed_factor);            
-            ros_throw_param_load(node, "shape_id", rbt.shape_id);
-            ros_throw_param_load(node, "use_geo_storage", rbt.use_geo_storage);
+        sensor_frame_id = "laser";
+        RCLCPP_INFO_STREAM(logger_, "Setting sensor_frame_id to: " << sensor_frame_id);
 
-            ///////////
-            // Goal //
-            ///////////
-            ros_throw_param_load(node, "xy_global_goal_tolerance", goal.xy_global_goal_tolerance);
-            ros_throw_param_load(node, "xy_waypoint_tolerance", goal.xy_waypoint_tolerance);
-            ros_throw_param_load(node, "yaw_global_goal_tolerance", goal.yaw_global_goal_tolerance);
+        odom_topic = "/ground_truth/state"; // model + "/odom";
+        RCLCPP_INFO_STREAM(logger_, "Setting odom_topic to: " << odom_topic);
 
-            //////////
-            // Scan //
-            //////////
+        scan_topic = "/scan"; // model + "/scan";
+        RCLCPP_INFO_STREAM(logger_, "Setting scan_topic to: " << scan_topic);
 
-            // Populated later in updateParamFromScan
+        ///////////
+        // Robot //
+        ///////////
+        
+        ros_throw_param_load(node, name + ".r_inscr", rbt.r_inscr);
+        ros_throw_param_load(node, name + ".length", rbt.length);
+        ros_throw_param_load(node, name + ".width", rbt.width);
+        ros_throw_param_load(node, name + ".avg_lin_speed", rbt.avg_lin_speed);
+        ros_throw_param_load(node, name + ".avg_rot_speed", rbt.avg_rot_speed);
+        ros_throw_param_load(node, name + ".vx_absmax", rbt.vx_absmax);
+        ros_throw_param_load(node, name + ".vy_absmax", rbt.vy_absmax);
+        ros_throw_param_load(node, name + ".vang_absmax", rbt.vang_absmax);
+        ros_throw_param_load(node, name + ".speed_factor", rbt.speed_factor);
+        ros_throw_param_load(node, name + ".shape_id", rbt.shape_id);
+        ros_throw_param_load(node, name + ".use_geo_storage", rbt.use_geo_storage);
 
-            ///////////////////
-            // Planning Mode //
-            ///////////////////
-            ros_throw_param_load(node, "holonomic", planning.holonomic);
-            ros_throw_param_load(node, "heading", planning.heading);
-            ros_throw_param_load(node, "projection_operator", planning.projection_operator);
-            ros_throw_param_load(node, "robot_path_orient_linear_decay", planning.robot_path_orient_linear_decay);
-            ros_throw_param_load(node, "virtual_path_decay_enable", planning.virtual_path_decay_enable);
-            ros_throw_param_load(node, "decay_factor", planning.decay_factor);
-            ros_throw_param_load(node, "use_bezier", planning.use_bezier);
+        ///////////
+        // Goal //
+        ///////////
+        ros_throw_param_load(node, name + ".xy_global_goal_tolerance", goal.xy_global_goal_tolerance);
+        ros_throw_param_load(node, name + ".xy_waypoint_tolerance", goal.xy_waypoint_tolerance);
+        ros_throw_param_load(node, name + ".yaw_global_goal_tolerance", goal.yaw_global_goal_tolerance);
 
-            ////////////////////
-            // Control Params //
-            ////////////////////
-            ros_throw_param_load(node, "Kpx", control.Kpx);
-            ros_throw_param_load(node, "Kpy", control.Kpy);
-            ros_throw_param_load(node, "Kpz", control.Kpz);
-            // ros_throw_param_load(node, "v_ang_const", control.v_ang_const);
-            // ros_throw_param_load(node, "v_lin_x_const", control.v_lin_x_const);
-            // ros_throw_param_load(node, "v_lin_y_const", control.v_lin_y_const);
-            ros_throw_param_load(node, "ctrl_ahead_pose", control.ctrl_ahead_pose);
+        //////////
+        // Scan //
+        //////////
 
-            ///////////////////////////
-            // Manual Control Params //
-            ///////////////////////////
-            ros_throw_param_load(node, "man_ctrl", man.man_ctrl);
-            ros_throw_param_load(node, "man_x", man.man_x);
-            ros_throw_param_load(node, "man_y", man.man_y);
-            ros_throw_param_load(node, "man_theta", man.man_theta);
+        // Populated later in updateParamFromScan
 
-            ///////////////////////
-            // Gap Manipulation //
-            ///////////////////////
-            ros_throw_param_load(node, "sigma", traj.sigma);
-            ros_throw_param_load(node, "rot_ratio", gap_manip.rot_ratio);
-            ros_throw_param_load(node, "reduction_threshold", gap_manip.reduction_threshold);
-            ros_throw_param_load(node, "reduction_target", gap_manip.reduction_target);
-            // ros_throw_param_load(node, "max_idx_diff", gap_manip.max_idx_diff);
-            ros_throw_param_load(node, "radial_extend", gap_manip.radial_extend);
-            ros_throw_param_load(node, "radial_convert", gap_manip.radial_convert);
+        ///////////////////
+        // Planning Mode //
+        ///////////////////
+        ros_throw_param_load(node, name + ".holonomic", planning.holonomic);
+        ros_throw_param_load(node, name + ".heading", planning.heading);
+        ros_throw_param_load(node, name + ".projection_operator", planning.projection_operator);
+        ros_throw_param_load(node, name + ".robot_path_orient_linear_decay", planning.robot_path_orient_linear_decay);
+        ros_throw_param_load(node, name + ".virtual_path_decay_enable", planning.virtual_path_decay_enable);
+        ros_throw_param_load(node, name + ".decay_factor", planning.decay_factor);
+        ros_throw_param_load(node, name + ".use_bezier", planning.use_bezier);
 
-            ///////////////////////
-            // Projection Params //
-            ///////////////////////
-            ros_throw_param_load(node, "k_po_x", projection.k_po_x);
-            ros_throw_param_load(node, "r_unity", projection.r_unity);
-            ros_throw_param_load(node, "r_zero", projection.r_zero);
+        ////////////////////
+        // Control Params //
+        ////////////////////
+        ros_throw_param_load(node, name + ".Kpx", control.Kpx);
+        ros_throw_param_load(node, name + ".Kpy", control.Kpy);
+        ros_throw_param_load(node, name + ".Kpz", control.Kpz);
+        // ros_throw_param_load(node, name + ".v_ang_const", control.v_ang_const);
+        // ros_throw_param_load(node, name + ".v_lin_x_const", control.v_lin_x_const);
+        // ros_throw_param_load(node, name + ".v_lin_y_const", control.v_lin_y_const);
+        ros_throw_param_load(node, name + ".ctrl_ahead_pose", control.ctrl_ahead_pose);
 
-            ///////////////////////
-            // Trajectory Params //
-            ///////////////////////
-            ros_throw_param_load(node, "integrate_maxt", traj.integrate_maxt);
-            ros_throw_param_load(node, "integrate_stept", traj.integrate_stept);
-            ros_throw_param_load(node, "rmax", traj.rmax);
-            ros_throw_param_load(node, "inf_ratio", traj.inf_ratio);
-            ros_throw_param_load(node, "Q", traj.Q);
-            ros_throw_param_load(node, "pen_exp_weight", traj.pen_exp_weight);
-            ros_throw_param_load(node, "Q_f", traj.Q_f);
-            ros_throw_param_load(node, "robot_geo_scale", traj.robot_geo_scale);
-            ros_throw_param_load(node, "bezier_interp", traj.bezier_interp);
-            ros_throw_param_load(node, "bezier_unit_time", traj.bezier_unit_time);
-            ros_throw_param_load(node, "bezier_num_sampled_pts", traj.bezier_num_sampled_pts);
+        ///////////////////////////
+        // Manual Control Params //
+        ///////////////////////////
+        ros_throw_param_load(node, name + ".man_ctrl", man.man_ctrl);
+        ros_throw_param_load(node, name + ".man_x", man.man_x);
+        ros_throw_param_load(node, name + ".man_y", man.man_y);
+        ros_throw_param_load(node, name + ".man_theta", man.man_theta);
 
-            ///////////////////////
-            // Collision Checker //
-            ///////////////////////
-            ros_throw_param_load(node, "collision_checker_enable", collision_checker.collision_checker_enable);
-            ros_throw_param_load(node, "cc_type", collision_checker.cc_type);
+        ///////////////////////
+        // Gap Manipulation //
+        ///////////////////////
+        ros_throw_param_load(node, name + ".sigma", traj.sigma);
+        ros_throw_param_load(node, name + ".rot_ratio", gap_manip.rot_ratio);
+        ros_throw_param_load(node, name + ".reduction_threshold", gap_manip.reduction_threshold);
+        ros_throw_param_load(node, name + ".reduction_target", gap_manip.reduction_target);
+        // ros_throw_param_load(node, name + ".max_idx_diff", gap_manip.max_idx_diff);
+        ros_throw_param_load(node, name + ".radial_extend", gap_manip.radial_extend);
+        ros_throw_param_load(node, name + ".radial_convert", gap_manip.radial_convert);
 
-        } else
-        {
-            throw std::runtime_error("Model " + model + " not implemented!");
-        }
+        ///////////////////////
+        // Projection Params //
+        ///////////////////////
+        ros_throw_param_load(node, name + ".k_po_x", projection.k_po_x);
+        ros_throw_param_load(node, name + ".r_unity", projection.r_unity);
+        ros_throw_param_load(node, name + ".r_zero", projection.r_zero);
+
+        ///////////////////////
+        // Trajectory Params //
+        ///////////////////////
+        ros_throw_param_load(node, name + ".integrate_maxt", traj.integrate_maxt);
+        ros_throw_param_load(node, name + ".integrate_stept", traj.integrate_stept);
+        ros_throw_param_load(node, name + ".rmax", traj.rmax);
+        ros_throw_param_load(node, name + ".inf_ratio", traj.inf_ratio);
+        ros_throw_param_load(node, name + ".Q", traj.Q);
+        ros_throw_param_load(node, name + ".pen_exp_weight", traj.pen_exp_weight);
+        ros_throw_param_load(node, name + ".Q_f", traj.Q_f);
+        ros_throw_param_load(node, name + ".robot_geo_scale", traj.robot_geo_scale);
+        ros_throw_param_load(node, name + ".bezier_interp", traj.bezier_interp);
+        ros_throw_param_load(node, name + ".bezier_unit_time", traj.bezier_unit_time);
+        ros_throw_param_load(node, name + ".bezier_num_sampled_pts", traj.bezier_num_sampled_pts);
+
+        ///////////////////////
+        // Collision Checker //
+        ///////////////////////
+        ros_throw_param_load(node, name + ".collision_checker_enable", collision_checker.collision_checker_enable);
+        ros_throw_param_load(node, name + ".cc_type", collision_checker.cc_type);
     }
 
     void QuadGapConfig::updateParamFromScan(std::shared_ptr<sensor_msgs::msg::LaserScan const> scanPtr)

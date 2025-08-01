@@ -32,8 +32,10 @@ namespace quad_gap
         rclcpp_lifecycle::LifecycleNode::SharedPtr node = lifecycle_node_.lock();
         // logger_ = lifecycle_node_->get_logger();
 
+        plugin_name_ = name;
+
         // planner_name = name;
-        planner.initialize(node);
+        planner.initialize(node, plugin_name_);
 
         // ros::NodeHandle pnh("~/" + planner_name);
 

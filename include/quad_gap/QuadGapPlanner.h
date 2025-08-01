@@ -57,7 +57,7 @@ namespace quad_gap
             // qgConfig loadRosParamFromNodeHandle(const ros::NodeHandle& nh);
 
             Planner planner;
-            std::string planner_name;
+            std::string plugin_name_;
             // ros::NodeHandle nh, pnh;
 
             // std::shared_ptr<dynamic_reconfigure::Server<qgConfig> > dynamic_recfg_server;

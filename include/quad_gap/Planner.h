@@ -113,7 +113,8 @@ namespace quad_gap
             * \param name planner name (used for ROS namespaces) 
             * \return initialization success / failure
             */
-            bool initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node);
+            bool initialize(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node,
+                            const std::string & name);
 
             /**
             * \brief Indicator for if planner has been initialized
