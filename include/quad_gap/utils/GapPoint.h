@@ -80,7 +80,7 @@ namespace quad_gap
                 if (std::isnan(orig.range_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has NaN range");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN range");
 
                     return false;
                 }
@@ -88,42 +88,42 @@ namespace quad_gap
                 if (std::isinf(orig.range_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has Inf range");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has Inf range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has Inf range");
                     return false;
                 }
 
                 if (std::isnan(orig.idx_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has NaN index");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has NaN index");
                     return false;
                 }
 
                 if (std::isinf(orig.idx_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has negative or Inf index");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has negative or Inf index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has negative or Inf index");
                     return false;
                 }
 
                 if (orig.idx_ < 0)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has a negative index");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative index");
                     return false;
                 }
 
                 if (orig.range_ < 0)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has a negative range");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has a negative range");
                     return false;
                 }
 
                 if (orig.idx_ >= 2*half_num_scan)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Gap point has an index out of bounds");
-                    RCLCPP_INFO_STREAM(logger_,  "Gap point has an index out of bounds");
+                    // RCLCPP_INFO_STREAM(logger_,  "Gap point has an index out of bounds");
                     return false;
                 }
 
@@ -135,49 +135,49 @@ namespace quad_gap
                 if (std::isnan(manip.range_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has NaN range");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN range");
                     return false;
                 }
 
                 if (std::isinf(manip.range_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has Inf range");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has Inf range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has Inf range");
                     return false;
                 }
 
                 if (std::isnan(manip.idx_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has NaN index");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has NaN index");
                     return false;
                 }
 
                 if (std::isinf(manip.idx_))
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has negative or Inf index");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has negative or Inf index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has negative or Inf index");
                     return false;
                 }
 
                 if (manip.idx_ < 0)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has a negative index");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative index");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative index");
                     return false;
                 }
 
                 if (manip.range_ < 0)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has a negative range");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative range");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has a negative range");
                     return false;
                 }
 
                 if (manip.idx_ >= 2*half_num_scan)
                 {
                     RCLCPP_WARN_STREAM(logger_,  "Manip gap point has an index out of bounds");
-                    RCLCPP_INFO_STREAM(logger_,  "Manip gap point has an index out of bounds");
+                    // RCLCPP_INFO_STREAM(logger_,  "Manip gap point has an index out of bounds");
                     return false;
                 }
 
@@ -226,9 +226,9 @@ namespace quad_gap
 
             void getOrigCartesian(float &x, float &y) const
             {
-                // RCLCPP_INFO_STREAM(logger_,  "getOrigCartesian");
-                // RCLCPP_INFO_STREAM(logger_,  "  orig.idx_: " << orig.idx_);
-                // RCLCPP_INFO_STREAM(logger_,  "  orig.range_: " << orig.range_);
+                // // RCLCPP_INFO_STREAM(logger_,  "getOrigCartesian");
+                // // RCLCPP_INFO_STREAM(logger_,  "  orig.idx_: " << orig.idx_);
+                // // RCLCPP_INFO_STREAM(logger_,  "  orig.range_: " << orig.range_);
                 
                 float theta = idx2theta(orig.idx_);
                 x = (orig.range_) * std::cos(theta);

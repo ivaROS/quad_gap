@@ -237,7 +237,7 @@ namespace quad_gap
     geometry_msgs::msg::Twist TrajectoryController::controlLawNonholonomic(const geometry_msgs::msg::Pose & currentPoseOdomFrame, 
                                                                         const geometry_msgs::msg::Pose & desiredPoseOdomFrame) 
     { 
-        RCLCPP_INFO_STREAM(logger_,  "    [constantVelocityControlLawNonHolonomicLookahead()]");
+        // RCLCPP_INFO_STREAM(logger_,  "    [constantVelocityControlLawNonHolonomicLookahead()]");
         // Setup Vars
         // boost::mutex::scoped_lock lock(scanMutex_);
 
@@ -252,7 +252,7 @@ namespace quad_gap
         geometry_msgs::msg::Point currPosn = currentPoseOdomFrame.position;
         Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
-        RCLCPP_INFO_STREAM(logger_,  "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
+        // RCLCPP_INFO_STREAM(logger_,  "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
 
         // obtaining RPY of desired orientation
         geometry_msgs::msg::Point desPosn = desiredPoseOdomFrame.position;
@@ -260,7 +260,7 @@ namespace quad_gap
         tf2::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
         float desYaw = quaternionToYaw(desQuat);
 
-        RCLCPP_INFO_STREAM(logger_,  "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
+        // RCLCPP_INFO_STREAM(logger_,  "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
 
         // get desired x,y,theta
         Eigen::Matrix2cf desRbtTransform = getComplexMatrix(desPosn.x, desPosn.y, desYaw);
@@ -283,7 +283,7 @@ namespace quad_gap
 
         // float l_adj = l; // 0.5 * l;
 
-        RCLCPP_INFO_STREAM(logger_,  "        error: (" << errorX << ", " << errorY << "), l: " << l_); //  << ", l_adj: " << l_adj
+        // RCLCPP_INFO_STREAM(logger_,  "        error: (" << errorX << ", " << errorY << "), l: " << l_); //  << ", l_adj: " << l_adj
 
         Eigen::Matrix2f negRotMat = getRotMat(-currYaw);
 
@@ -310,7 +310,7 @@ namespace quad_gap
     */
     geometry_msgs::msg::Twist TrajectoryController::obstacleAvoidanceControlLaw() 
     {
-        RCLCPP_INFO_STREAM(logger_,  "obstacle avoidance control");
+        // RCLCPP_INFO_STREAM(logger_,  "obstacle avoidance control");
         float safeDirX = 0;
         float safeDirY = 0;                                   
         
@@ -332,12 +332,12 @@ namespace quad_gap
         float cmdVelTheta = 0.0;
 
 
-        RCLCPP_INFO_STREAM(logger_,  "raw safe vels: " << cmdVelX << ", " << cmdVelY);
-        RCLCPP_INFO_STREAM(logger_,  "weighted safe vels: " << cmdVelX << ", " << cmdVelY);
+        // RCLCPP_INFO_STREAM(logger_,  "raw safe vels: " << cmdVelX << ", " << cmdVelY);
+        // RCLCPP_INFO_STREAM(logger_,  "weighted safe vels: " << cmdVelX << ", " << cmdVelY);
 
         clipRobotVelocity(cmdVelX, cmdVelY, cmdVelTheta);
 
-        RCLCPP_INFO_STREAM(logger_,  "final safe vels: " << cmdVelX << ", " << cmdVelY);
+        // RCLCPP_INFO_STREAM(logger_,  "final safe vels: " << cmdVelX << ", " << cmdVelY);
 
         geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
         cmdVel.linear.x = cmdVelX;
@@ -352,7 +352,7 @@ namespace quad_gap
     */
     geometry_msgs::msg::Twist TrajectoryController::obstacleAvoidanceControlLawNonHolonomic() 
     {
-        RCLCPP_INFO_STREAM(logger_,  "obstacle avoidance control");
+        // RCLCPP_INFO_STREAM(logger_,  "obstacle avoidance control");
         float safeDirX = 0;
         float safeDirZ = 0;                                   
         
@@ -369,7 +369,7 @@ namespace quad_gap
         safeDirX /= scan_->ranges.size();
         safeDirZ /= scan_->ranges.size();
 
-        RCLCPP_INFO_STREAM(logger_,  "raw safe vels: x: " << safeDirX << ", z: " << safeDirZ);
+        // RCLCPP_INFO_STREAM(logger_,  "raw safe vels: x: " << safeDirX << ", z: " << safeDirZ);
 
         // clipRobotVelocity(cmdVelX, cmdVelY, cmdVelTheta);
 
@@ -388,7 +388,7 @@ namespace quad_gap
         cmdVel.linear.y = 0.0;
         cmdVel.angular.z = std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, safeDirZ));
 
-        RCLCPP_INFO_STREAM(logger_,  "final safe vels: " << cmdVel.linear.x << ", " << cmdVel.angular.z);
+        // RCLCPP_INFO_STREAM(logger_,  "final safe vels: " << cmdVel.linear.x << ", " << cmdVel.angular.z);
 
         return cmdVel;
     }
@@ -396,7 +396,7 @@ namespace quad_gap
     geometry_msgs::msg::Twist TrajectoryController::processCmdVelHolonomic(const geometry_msgs::msg::Twist & rawCmdVel,
                                                                         const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame) 
     {
-        RCLCPP_INFO_STREAM(logger_,  "    [processCmdVel()]");
+        // RCLCPP_INFO_STREAM(logger_,  "    [processCmdVel()]");
 
         geometry_msgs::msg::Twist cmdVel = geometry_msgs::msg::Twist();
 
@@ -404,11 +404,11 @@ namespace quad_gap
         float velLinYFeedback = rawCmdVel.linear.y;
         float velAngFeedback = rawCmdVel.angular.z;
 
-        // RCLCPP_INFO_STREAM(logger_,  rbtPoseInSensorFrame.pose);
+        // // RCLCPP_INFO_STREAM(logger_,  rbtPoseInSensorFrame.pose);
         float minRangeTheta = 0;
         float minRange = 0;
 
-        RCLCPP_INFO_STREAM(logger_,  "        feedback command velocities: " << velLinXFeedback << ", " << velLinYFeedback);
+        // RCLCPP_INFO_STREAM(logger_,  "        feedback command velocities: " << velLinXFeedback << ", " << velLinYFeedback);
 
         // applies PO
         float velLinXSafe = 0.;
@@ -416,7 +416,7 @@ namespace quad_gap
         
         if (cfg_->planning.projection_operator)
         {
-            RCLCPP_INFO_STREAM(logger_,  "        running projection operator");
+            // RCLCPP_INFO_STREAM(logger_,  "        running projection operator");
             
             Eigen::Vector2f cmdVelFeedback(rawCmdVel.linear.x, rawCmdVel.linear.y);
 
@@ -432,7 +432,7 @@ namespace quad_gap
         float weightedVelLinXSafe = cfg_->projection.k_po_x * velLinXSafe;
         float weightedVelLinYSafe = cfg_->projection.k_po_x * velLinYSafe;
 
-        RCLCPP_INFO_STREAM(logger_,  "        safe command velocity, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
+        // RCLCPP_INFO_STREAM(logger_,  "        safe command velocity, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
 
         // cmdVel_safe
         visualizeProjectionOperator(weightedVelLinXSafe, weightedVelLinYSafe, minRangeTheta, minRange);
@@ -440,15 +440,15 @@ namespace quad_gap
         velLinXFeedback += weightedVelLinXSafe;
         velLinYFeedback += weightedVelLinYSafe; 
 
-        RCLCPP_INFO_STREAM(logger_,  "        summed command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
+        // RCLCPP_INFO_STREAM(logger_,  "        summed command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
         clipRobotVelocity(velLinXFeedback, velLinYFeedback, velAngFeedback);
-        RCLCPP_INFO_STREAM(logger_,  "        clipped command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
+        // RCLCPP_INFO_STREAM(logger_,  "        clipped command velocity, v_x:" << velLinXFeedback << ", v_y: " << velLinYFeedback << ", v_ang: " << velAngFeedback);
 
         cmdVel.linear.x = velLinXFeedback;
         cmdVel.linear.y = velLinYFeedback;
         cmdVel.angular.z = velAngFeedback;
 
-        // RCLCPP_INFO_STREAM(logger_,  "ultimate command velocity: " << cmdVel.linear.x << ", " << cmdVel.linear.y << ", " << cmdVel.angular.z);
+        // // RCLCPP_INFO_STREAM(logger_,  "ultimate command velocity: " << cmdVel.linear.x << ", " << cmdVel.linear.y << ", " << cmdVel.angular.z);
 
         return cmdVel;       
     }
@@ -459,7 +459,7 @@ namespace quad_gap
                                                                             const geometry_msgs::msg::Twist & nonholoCmdVel,
                                                                             const geometry_msgs::msg::PoseStamped & rbtPoseInSensorFrame) 
     {
-        RCLCPP_INFO_STREAM(logger_,  "    [processCmdVelNonHolonomic()]");
+        // RCLCPP_INFO_STREAM(logger_,  "    [processCmdVelNonHolonomic()]");
 
         // obtain roll, pitch, and yaw of current orientation (I think we're only using yaw)
         geometry_msgs::msg::Quaternion currOrient = currentPoseOdomFrame.orientation;
@@ -470,7 +470,7 @@ namespace quad_gap
         geometry_msgs::msg::Point currPosn = currentPoseOdomFrame.position;
         Eigen::Matrix2cf currRbtTransform = getComplexMatrix(currPosn.x, currPosn.y, currYaw);
 
-        RCLCPP_INFO_STREAM(logger_,  "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
+        // RCLCPP_INFO_STREAM(logger_,  "        current pose x: " << currPosn.x << ", y: " << currPosn.y << ", yaw: " << currYaw);
 
         // // obtaining RPY of desired orientation
         // geometry_msgs::msg::Point desPosn = desiredPoseOdomFrame.position;
@@ -478,7 +478,7 @@ namespace quad_gap
         // tf2::Quaternion desQuat(desOrient.x, desOrient.y, desOrient.z, desOrient.w);
         // float desYaw = quaternionToYaw(desQuat);
 
-        // RCLCPP_INFO_STREAM(logger_,  "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
+        // // RCLCPP_INFO_STREAM(logger_,  "        desired pose x: " << desiredPoseOdomFrame.position.x << ", y: " << desiredPoseOdomFrame.position.y << ", yaw: "<< desYaw);
 
         // // get desired x,y,theta
         // Eigen::Matrix2cf desRbtTransform = getComplexMatrix(desPosn.x, desPosn.y, desYaw);
@@ -507,11 +507,11 @@ namespace quad_gap
         // float errorY = rawCmdVel.linear.y;
         // float errorTheta = rawCmdVel.angular.z;
 
-        // RCLCPP_INFO_STREAM(logger_,  rbtPoseInSensorFrame.pose);
+        // // RCLCPP_INFO_STREAM(logger_,  rbtPoseInSensorFrame.pose);
         float minRangeTheta = 0;
         float minRange = 0;
 
-        // RCLCPP_INFO_STREAM(logger_,  "        feedback errors: x: " << errorX << ", y: " << errorY << ", theta: " << errorTheta);
+        // // RCLCPP_INFO_STREAM(logger_,  "        feedback errors: x: " << errorX << ", y: " << errorY << ", theta: " << errorTheta);
 
         // applies PO
         float velLinXSafe = 0.;
@@ -519,7 +519,7 @@ namespace quad_gap
         
         if (cfg_->planning.projection_operator)
         {
-            RCLCPP_INFO_STREAM(logger_,  "        running projection operator");
+            // RCLCPP_INFO_STREAM(logger_,  "        running projection operator");
 
             Eigen::Vector2f holoCmdVelVector(holoCmdVel.linear.x, holoCmdVel.linear.y);
 
@@ -538,12 +538,12 @@ namespace quad_gap
         // cmdVel_safe
         visualizeProjectionOperator(weightedVelLinXSafe, weightedVelLinYSafe, minRangeTheta, minRange);
 
-        RCLCPP_INFO_STREAM(logger_,  "        safe desired direction, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
+        // RCLCPP_INFO_STREAM(logger_,  "        safe desired direction, v_x:" << weightedVelLinXSafe << ", v_y: " << weightedVelLinYSafe);
 
         float safeErrorX = holoCmdVel.linear.x + weightedVelLinXSafe;
         float safeErrorY = holoCmdVel.linear.y + weightedVelLinYSafe; 
 
-        RCLCPP_INFO_STREAM(logger_,  "        summed desired direction, v_x:" << safeErrorX << ", v_y: " << safeErrorY);
+        // RCLCPP_INFO_STREAM(logger_,  "        summed desired direction, v_x:" << safeErrorX << ", v_y: " << safeErrorY);
         Eigen::Vector2f safeError(safeErrorX, safeErrorY);
 
         // Eigen::Matrix2f negRotMat = getRotMat(-currYaw);
@@ -557,8 +557,8 @@ namespace quad_gap
         float velLinYFeedback = 0.0;
         float velAngFeedback = nonholoVelocityCommand[1]; // nonholoCmdVel.angular.z; //  
 
-        RCLCPP_INFO_STREAM(logger_,  "        generating nonholonomic control signal");            
-        RCLCPP_INFO_STREAM(logger_,  "        Feedback command velocities, v_x: " << velLinXFeedback << ", v_ang: " << velAngFeedback);
+        // RCLCPP_INFO_STREAM(logger_,  "        generating nonholonomic control signal");            
+        // RCLCPP_INFO_STREAM(logger_,  "        Feedback command velocities, v_x: " << velLinXFeedback << ", v_ang: " << velAngFeedback);
 
         float clippedVelLinXFeedback = 0.0;
         if (std::abs(velLinXFeedback) < cfg_->rbt.vx_absmax)
@@ -575,7 +575,7 @@ namespace quad_gap
         cmdVel.angular.z = std::max(-cfg_->rbt.vang_absmax, std::min(cfg_->rbt.vang_absmax, velAngFeedback));
 
         // clipRobotVelocity(velLinXFeedback, velLinYFeedback, velAngFeedback);
-        RCLCPP_INFO_STREAM(logger_,  "        clipped nonholonomic command velocity, v_x:" << cmdVel.linear.x << ", v_ang: " << cmdVel.angular.z);
+        // RCLCPP_INFO_STREAM(logger_,  "        clipped nonholonomic command velocity, v_x:" << cmdVel.linear.x << ", v_ang: " << cmdVel.angular.z);
 
         return cmdVel;
     }
@@ -585,7 +585,7 @@ namespace quad_gap
                                                            const float & minRangeTheta, 
                                                            const float & minRange) 
     {
-        RCLCPP_INFO_STREAM(logger_,  "[visualizeProjectionOperator()]");
+        // RCLCPP_INFO_STREAM(logger_,  "[visualizeProjectionOperator()]");
 
         if (cfg_->robot_frame_id.empty())
         {
@@ -646,12 +646,12 @@ namespace quad_gap
                                                      float & velLinXSafe, float & velLinYSafe,
                                                      float & minRangeTheta, float & minRange) 
     {
-        RCLCPP_INFO_STREAM(logger_,  "        [runProjectionOperator()]");
+        // RCLCPP_INFO_STREAM(logger_,  "        [runProjectionOperator()]");
         float Psi = 0.0;
         Eigen::Vector2f dPsiDx(0.0, 0.0);
 
         // iterates through current egocircle and finds the minimum distance to the robot's pose
-        // RCLCPP_INFO_STREAM(logger_,  "rbtPoseInSensorFrame pose: " << rbtPoseInSensorFrame.pose.position.x << ", " << rbtPoseInSensorFrame.pose.position.y);
+        // // RCLCPP_INFO_STREAM(logger_,  "rbtPoseInSensorFrame pose: " << rbtPoseInSensorFrame.pose.position.x << ", " << rbtPoseInSensorFrame.pose.position.y);
         std::vector<float> minScanDists(scan_->ranges.size());
         float theta = 0.0, dist = 0.0;
         for (int i = 0; i < minScanDists.size(); i++) 
@@ -666,8 +666,8 @@ namespace quad_gap
 
         minRange = minScanDists.at(minDistScanIdx);
 
-        RCLCPP_INFO_STREAM(logger_,  "           minDistScanIdx: " << minDistScanIdx << ", minRangeTheta: "<< minRangeTheta << ", minRange: " << minRange);
-        // RCLCPP_INFO_STREAM(logger_,  "min_x: " << min_x << ", min_y: " << min_y);
+        // RCLCPP_INFO_STREAM(logger_,  "           minDistScanIdx: " << minDistScanIdx << ", minRangeTheta: "<< minRangeTheta << ", minRange: " << minRange);
+        // // RCLCPP_INFO_STREAM(logger_,  "min_x: " << min_x << ", min_y: " << min_y);
               
         Eigen::Vector2f closestScanPtToRobot(-minRange * std::cos(minRangeTheta), -minRange * std::sin(minRangeTheta));
 
@@ -683,16 +683,16 @@ namespace quad_gap
 
         // Psi = PsiDerAndPsi(2);
 
-        RCLCPP_INFO_STREAM(logger_,  "           Psi: " << Psi);
-        RCLCPP_INFO_STREAM(logger_,  "           dPsiDx: " << dPsiDx[0] << ", " << dPsiDx[1]);
-        RCLCPP_INFO_STREAM(logger_,  "           Dot product check: " << projOpDotProd);
+        // RCLCPP_INFO_STREAM(logger_,  "           Psi: " << Psi);
+        // RCLCPP_INFO_STREAM(logger_,  "           dPsiDx: " << dPsiDx[0] << ", " << dPsiDx[1]);
+        // RCLCPP_INFO_STREAM(logger_,  "           Dot product check: " << projOpDotProd);
 
         if (Psi >= 0 && projOpDotProd >= 0)
         {
             velLinXSafe = - Psi * projOpDotProd * normDPsiDx(0);
             velLinYSafe = - Psi * projOpDotProd * normDPsiDx(1);
         }
-        RCLCPP_INFO_STREAM(logger_,  "           cmdVel_safe: " << velLinXSafe << ", " << velLinYSafe);
+        // RCLCPP_INFO_STREAM(logger_,  "           cmdVel_safe: " << velLinXSafe << ", " << velLinYSafe);
     }
 
     void TrajectoryController::calculateProjectionOperator(const Eigen::Vector2f & closestScanPtToRobot,
@@ -768,7 +768,7 @@ namespace quad_gap
     {
         // Find pose right ahead
         std::vector<float> localTrajectoryDeviations(localTrajectory.poses.size());
-        RCLCPP_INFO_STREAM(logger_,  "[extractTargetPoseIdx()]");
+        // RCLCPP_INFO_STREAM(logger_,  "[extractTargetPoseIdx()]");
 
         // obtain distance from entire ref traj and current pose
         for (int i = 0; i < localTrajectoryDeviations.size(); i++) // i will always be positive, so this is fine
@@ -781,7 +781,7 @@ namespace quad_gap
             tf2::Quaternion deviationQuat = desQuat * currQuatInv;
             float deviationYaw = quaternionToYaw(deviationQuat);
 
-            // RCLCPP_INFO_STREAM(logger_,  "   pose" << i << ", yaw_curr: " << yaw_curr << ", yaw_des: " << yaw_des << ", deviationYaw: " << deviationYaw);
+            // // RCLCPP_INFO_STREAM(logger_,  "   pose" << i << ", yaw_curr: " << yaw_curr << ", yaw_des: " << yaw_des << ", deviationYaw: " << deviationYaw);
 
             localTrajectoryDeviations.at(i) = sqrt(pow(currPose.position.x - localTrajectory.poses[i].position.x, 2) + 
                                                 pow(currPose.position.y - localTrajectory.poses[i].position.y, 2)) + 

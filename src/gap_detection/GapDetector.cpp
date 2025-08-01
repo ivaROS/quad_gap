@@ -132,7 +132,7 @@ namespace quad_gap
 
     std::vector<Gap *> GapDetector::gapDetection(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanPtr)
     {
-        // RCLCPP_INFO_STREAM(logger_, "[gapDetection()]");
+        // // RCLCPP_INFO_STREAM(logger_, "[gapDetection()]");
 
         std::vector<Gap *> rawGaps;
         // rawGaps.clear();
@@ -167,27 +167,27 @@ namespace quad_gap
 
             currRange = scan_.ranges[currIdx];
 
-            // RCLCPP_INFO_STREAM(logger_, "   currIdx: " << currIdx << ", currRange: " << currRange);
+            // // RCLCPP_INFO_STREAM(logger_, "   currIdx: " << currIdx << ", currRange: " << currRange);
 
             // Arbitrary small threshold for a range difference to be considered
 
             // If both current and last values are not infinity, meaning this is not a swept gap
             if (radialGapSizeCheck(currRange, prevRange, scan_.angle_increment)) 
             {
-                // RCLCPP_INFO_STREAM(logger_, "       radial gap size check passed");
+                // // RCLCPP_INFO_STREAM(logger_, "       radial gap size check passed");
                 // rawGap->addLeftInformation(currIdx, currRange);
                 // rawGap->setMinSafeDist(minScanDist_);
 
                 if (equivalentPLDistcheck(currIdx, currRange, prevIdx, prevRange))
                 {
-                    // RCLCPP_INFO_STREAM(logger_, "       equivalent PL dist check passed");
+                    // // RCLCPP_INFO_STREAM(logger_, "       equivalent PL dist check passed");
                     // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 1");
                     Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, prevIdx, prevRange, minScanDist_, true);
                     rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                 } 
                 // else
                 // {
-                //      RCLCPP_INFO_STREAM(logger_, "       equivalent PL dist check failed");
+                //      // RCLCPP_INFO_STREAM(logger_, "       equivalent PL dist check failed");
                 // }
             }
                 
@@ -196,29 +196,29 @@ namespace quad_gap
             // Beginning or the end of a reading into infinity => swept gap
             if (sweptGapStartedOrEnded(currRange, prevRange))
             {
-                // RCLCPP_INFO_STREAM(logger_, "       swept gap started or ended");
+                // // RCLCPP_INFO_STREAM(logger_, "       swept gap started or ended");
                 // If previously marked gap, meaning ending of a gap
                 if (withinSweptGap)
                 {
-                    // RCLCPP_INFO_STREAM(logger_, "       within swept gap, gap ended");
+                    // // RCLCPP_INFO_STREAM(logger_, "       within swept gap, gap ended");
                     withinSweptGap = false;
                     // rawGap->addLeftInformation(currIdx, currRange);
                     // rawGap->setMinSafeDist(minScanDist_);
 
                     if (sweptGapSizeCheck(currIdx, currRange, gapRIdx, gapRRange))
                     {
-                        // RCLCPP_INFO_STREAM(logger_, "       swept gap size check passed");
+                        // // RCLCPP_INFO_STREAM(logger_, "       swept gap size check passed");
                         // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 2");
                         Gap * rawGap = new Gap(frame, timeStamp, currIdx, currRange, gapRIdx, gapRRange, minScanDist_, false);
                         rawGaps.push_back(rawGap); //  || cfg_->planning.planning_inflated
                     } 
                     // else
                     // {
-                        // RCLCPP_INFO_STREAM(logger_, "       swept gap size check failed");
+                        // // RCLCPP_INFO_STREAM(logger_, "       swept gap size check failed");
                     // }
                 } else // previously not marked a gap, not marking the gap
                 {
-                    // RCLCPP_INFO_STREAM(logger_, "       not within swept gap, gap started");
+                    // // RCLCPP_INFO_STREAM(logger_, "       not within swept gap, gap started");
                     gapRIdx = prevIdx;
                     gapRRange = prevRange;
                     withinSweptGap = true;
@@ -232,7 +232,7 @@ namespace quad_gap
         // Catch the last gap
         if (withinSweptGap) 
         {
-            // RCLCPP_INFO_STREAM(logger_, "       within swept gap, gap ended at last index");
+            // // RCLCPP_INFO_STREAM(logger_, "       within swept gap, gap ended at last index");
             int lastIdx = scan_.ranges.size() - 1;
             int lastRange = scan_.ranges[lastIdx];
 
@@ -241,7 +241,7 @@ namespace quad_gap
 
             if (sweptGapSizeCheck(lastIdx, lastRange, gapRIdx, gapRRange))
             {
-                // RCLCPP_INFO_STREAM(logger_, "       swept gap size check passed at last index");
+                // // RCLCPP_INFO_STREAM(logger_, "       swept gap size check passed at last index");
                 // ROS_INFO_STREAM_NAMED("GapDetector", "Gap constructor 3");
                 Gap * rawGap = new Gap(frame, timeStamp, lastIdx, lastRange, gapRIdx, gapRRange, minScanDist_, false);
 
@@ -249,14 +249,14 @@ namespace quad_gap
             } 
             // else
             // {
-                // RCLCPP_INFO_STREAM(logger_, "       swept gap size check failed at last index");
+                // // RCLCPP_INFO_STREAM(logger_, "       swept gap size check failed at last index");
             // }
         }
         
         // Bridge the last gap around
         if (bridgeCondition(rawGaps))
         {
-            // RCLCPP_INFO_STREAM(logger_, "       bridging last gap");
+            // // RCLCPP_INFO_STREAM(logger_, "       bridging last gap");
             rawGaps.back()->addLeftInformation(rawGaps.front()->LIdx(), rawGaps.front()->LRange());
 
             // delete first gap

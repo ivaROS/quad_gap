@@ -11,7 +11,7 @@ namespace quad_gap
 
     void GapGoalPlacer::setGapWaypoint(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypointRobotFrame)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[setGapWaypoint()]");
+        // // RCLCPP_INFO_STREAM(logger_,  "[setGapWaypoint()]");
 
         // TODO: assume there is no idx that will pass 0
         float xLeft, xRight, yLeft, yRight;
@@ -61,7 +61,7 @@ namespace quad_gap
         bool smallGap = (leftToRightAngle < M_PI && 
                             sqrt(pow(xLeft - xRight, 2) + pow(yLeft - yRight, 2)) < 4 * cfg_->rbt.r_inscr);
 
-        // RCLCPP_INFO_STREAM(logger_,  gap->mode.reduced << " " << gap->convex.rightIdx_ << " " << gap->convex.leftIdx_ << " " << pRight[0] << " " << pRight[1] << " " << pLeft[0] << " " << pLeft[1] << " " << thetaLeft << " " << thetaRight);
+        // // RCLCPP_INFO_STREAM(logger_,  gap->mode.reduced << " " << gap->convex.rightIdx_ << " " << gap->convex.leftIdx_ << " " << pRight[0] << " " << pRight[1] << " " << pLeft[0] << " " << pLeft[1] << " " << thetaLeft << " " << thetaRight);
 
         // thetaLeft < thetaRight || 
 
@@ -71,16 +71,16 @@ namespace quad_gap
                 
             float thetaLeft = std::atan2(pLeft[1], pLeft[0]);
 
-            // RCLCPP_INFO_STREAM(logger_,  "leftToRightAngle: " << leftToRightAngle);
+            // // RCLCPP_INFO_STREAM(logger_,  "leftToRightAngle: " << leftToRightAngle);
             float thetaCenter = (thetaLeft - 0.5 * leftToRightAngle); 
             float rangeCenter = 0.5 * (pLeft.norm() + pRight.norm());
             Eigen::Vector2f centerGoal(rangeCenter * std::cos(thetaCenter), rangeCenter * std::sin(thetaCenter));
-            // RCLCPP_INFO_STREAM(logger_,  "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
+            // // RCLCPP_INFO_STREAM(logger_,  "thetaLeft: " << thetaLeft << ", thetaRight: " << thetaRight << ", thetaCenter: " << thetaCenter);
 
             gap->setGoalPos(centerGoal[0], centerGoal[1]);
 
-            RCLCPP_INFO_STREAM(logger_,  "        Option 1: small gap");
-            RCLCPP_INFO_STREAM(logger_,  "            goal: " << centerGoal[0] << ", " << centerGoal[1]);
+            // // RCLCPP_INFO_STREAM(logger_,  "        Option 1: small gap");
+            // // RCLCPP_INFO_STREAM(logger_,  "            goal: " << centerGoal[0] << ", " << centerGoal[1]);
 
             return;
         }
@@ -88,9 +88,9 @@ namespace quad_gap
         if (checkWaypointVisibility(pGoal) // pLeft, pRight, 
             && isGlobalPathLocalWaypointWithinGapAngle(idxGoal, idxRight, idxLeft)) 
         {
-            RCLCPP_INFO_STREAM(logger_,  "Goal is visible, setting goal within gap");
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal is visible, setting goal within gap");
             gap->setGoalPos(pGoal[0], pGoal[1]);
-            RCLCPP_INFO_STREAM(logger_,  "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
             // gap->goal.x = localgoal.pose.position.x;
             // gap->goal.y = localgoal.pose.position.y;
             // gap->goal.set = true;
@@ -99,7 +99,7 @@ namespace quad_gap
             return;
         }
 
-        RCLCPP_INFO_STREAM(logger_,  "Biasing goal position");
+        // // RCLCPP_INFO_STREAM(logger_,  "Biasing goal position");
         
         float globalPathLocalWaypointTheta = std::atan2(pGoal[1], pGoal[0]);
         
@@ -181,7 +181,7 @@ namespace quad_gap
         // gap->goal.y = goal_pt(1);
         // gap->goal.set = true;
         gap->setGoalPos(biasedGapGoal(0), biasedGapGoal(1));
-        RCLCPP_INFO_STREAM(logger_,  "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
+        // // RCLCPP_INFO_STREAM(logger_,  "Goal set to: " << gap->getGoalX() << ", " << gap->getGoalY());
         return;
     }
 

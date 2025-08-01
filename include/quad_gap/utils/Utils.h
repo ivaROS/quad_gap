@@ -48,7 +48,7 @@ namespace quad_gap
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
+            // RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
     
@@ -62,7 +62,7 @@ namespace quad_gap
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
+            // RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
 
@@ -76,7 +76,7 @@ namespace quad_gap
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
+            // RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }
 
@@ -90,7 +90,7 @@ namespace quad_gap
             throw std::runtime_error("Couldn't find parameter: " + param_name);
         } else
         {
-            RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
+            // RCLCPP_INFO_STREAM(node->get_logger(),  "Loaded parameter: " << param_name << " = " << param);
         }
     }    
     

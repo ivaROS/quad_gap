@@ -26,7 +26,7 @@ namespace quad_gap
                                     const std::shared_ptr<tf2_ros::Buffer> tf,
                                     const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
     {
-        // RCLCPP_INFO_STREAM(logger_,  "Initializing Planner with name: " << name);
+        // // RCLCPP_INFO_STREAM(logger_,  "Initializing Planner with name: " << name);
         
         lifecycle_node_ = parent;
         rclcpp_lifecycle::LifecycleNode::SharedPtr node = lifecycle_node_.lock();
@@ -47,17 +47,17 @@ namespace quad_gap
 
     void QuadGapPlanner::cleanup()
     {
-        RCLCPP_INFO_STREAM(logger_,  "Cleaning up Planner");
+        // RCLCPP_INFO_STREAM(logger_,  "Cleaning up Planner");
     }
 
     void QuadGapPlanner::activate()
     {
-        RCLCPP_INFO_STREAM(logger_,  "Activating Planner");
+        // RCLCPP_INFO_STREAM(logger_,  "Activating Planner");
     }
 
     void QuadGapPlanner::deactivate()
     {
-        RCLCPP_INFO_STREAM(logger_,  "Deactivating Planner");
+        // RCLCPP_INFO_STREAM(logger_,  "Deactivating Planner");
     }
 
     void QuadGapPlanner::setSpeedLimit(const double& speed_limit, 
@@ -71,7 +71,7 @@ namespace quad_gap
                                                                                 const geometry_msgs::msg::Twist & velocity,
                                                                                 nav2_core::GoalChecker * goal_checker)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]");
+        // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]");
 
         geometry_msgs::msg::TwistStamped cmd_vel;
 
@@ -104,18 +104,18 @@ namespace quad_gap
 
         bool acceptedCmdVel = planner.recordAndCheckVel(cmd_vel);  
 
-        RCLCPP_INFO_STREAM(logger_,  "computeVelocityCommands cmdVel: ");
-        RCLCPP_INFO_STREAM(logger_,  "                linear: ");
-        RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.linear.x << ", y: " << cmd_vel.twist.linear.y << ", z: " << cmd_vel.twist.linear.z);
-        RCLCPP_INFO_STREAM(logger_,  "                angular: ");
-        RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.angular.x << ", y: " << cmd_vel.twist.angular.y << ", z: " << cmd_vel.twist.angular.z);
+        // RCLCPP_INFO_STREAM(logger_,  "computeVelocityCommands cmdVel: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                linear: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.linear.x << ", y: " << cmd_vel.twist.linear.y << ", z: " << cmd_vel.twist.linear.z);
+        // RCLCPP_INFO_STREAM(logger_,  "                angular: ");
+        // RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.angular.x << ", y: " << cmd_vel.twist.angular.y << ", z: " << cmd_vel.twist.angular.z);
 
         return cmd_vel;
     }
 
     void QuadGapPlanner::setPlan(const nav_msgs::msg::Path & path)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::setPlan()]");
+        // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::setPlan()]");
 
         if (!planner.initialized())
         {

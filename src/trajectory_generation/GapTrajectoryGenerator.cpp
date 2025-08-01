@@ -21,7 +21,7 @@ namespace quad_gap
 
         if (gap->isGoalWithin()) // (gap->goal.goalwithin) 
         {
-            // RCLCPP_INFO_STREAM(logger_,  "Goal to Goal");
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal to Goal");
             g2g inte_g2g(gap->getGoalX(),
                          gap->getGoalY());
             boost::numeric::odeint::integrate_const(boost::numeric::odeint::euler<state_type>(),
@@ -100,7 +100,7 @@ namespace quad_gap
                                                 Bezier::Bezier<2>& BezierCurve, 
                                                 const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[findBezierControlPts()]");
+        // // RCLCPP_INFO_STREAM(logger_,  "[findBezierControlPts()]");
 
         // Bezier control poitns
         // Q0 = (0, 0)
@@ -187,7 +187,7 @@ namespace quad_gap
         ///////////////////////////////////////////////////////////
         if (pGoal.norm() <= minSafeDist)
         {
-            RCLCPP_INFO_STREAM(logger_,  "Goal is within circle.");
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal is within circle.");
 
             if (q1IdealNorm > q1MaxNorm)
                 q1 = q1MaxNorm * robotOrientationVector;
@@ -200,7 +200,7 @@ namespace quad_gap
                                                 {q1[0], q1[1]}, 
                                                 {q2[0], q2[1]} });
 
-            // RCLCPP_INFO_STREAM(logger_,  "Goal is within circle.");
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal is within circle.");
             return true;
         }
 
@@ -268,7 +268,7 @@ namespace quad_gap
                                                     Eigen::Vector2f & q1,
                                                     Eigen::Vector2f & q2)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[findBezierControlPtsNew]");
+        // // RCLCPP_INFO_STREAM(logger_,  "[findBezierControlPtsNew]");
 
         ///////////////
         // Max's way //
@@ -278,26 +278,26 @@ namespace quad_gap
         if (q1IdealNorm > q1MaxNorm)
         {
             q1 = q1MaxNorm * robotOrientationVector;
-            RCLCPP_INFO_STREAM(logger_,  "q1IdealNorm is larger than q1MaxNorm");
+            // // RCLCPP_INFO_STREAM(logger_,  "q1IdealNorm is larger than q1MaxNorm");
         } else
         {
             q1 = q1IdealNorm * robotOrientationVector;
-            RCLCPP_INFO_STREAM(logger_,  "q1IdealNorm is smaller than q1MaxNorm");
+            // // RCLCPP_INFO_STREAM(logger_,  "q1IdealNorm is smaller than q1MaxNorm");
         }
-        RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
+        // // RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
 
         // 2. Calculate qL_infl and qL_infl
         Eigen::Vector2f eLeft = pLeftSafe.normalized();
         Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eLeft; 
 
         Eigen::Vector2f pLeftSafeInfl = pLeftSafe; //  + scaledMinDim * leftAngularInflDir;
-        RCLCPP_INFO_STREAM(logger_,  "pLeftSafeInfl: " << pLeftSafeInfl.transpose());
+        // // RCLCPP_INFO_STREAM(logger_,  "pLeftSafeInfl: " << pLeftSafeInfl.transpose());
 
         Eigen::Vector2f eRight = pRightSafe.normalized();
         Eigen::Vector2f rightAngularInflDir = Rpi2 * eRight; 
 
         Eigen::Vector2f pRightSafeInfl = pRightSafe; //  + scaledMinDim * rightAngularInflDir;
-        RCLCPP_INFO_STREAM(logger_,  "pRightSafeInfl: " << pRightSafeInfl.transpose());
+        // // RCLCPP_INFO_STREAM(logger_,  "pRightSafeInfl: " << pRightSafeInfl.transpose());
 
         // Check if inflation failed
 
@@ -306,7 +306,7 @@ namespace quad_gap
 
         if (newLeftToRightAngle > origLeftToRightAngle)
         {
-            RCLCPP_INFO_STREAM(logger_,  "Inflation failed. The new angle is larger than the original angle.");
+            // // RCLCPP_INFO_STREAM(logger_,  "Inflation failed. The new angle is larger than the original angle.");
             // RCLCPP_WARN_STREAM(logger_,  "Inflation failed. The new angle is larger than the original angle.");
             return false;
         }
@@ -323,8 +323,8 @@ namespace quad_gap
         {
             // Goal is in between the inflated lines
             q2 = pGoal;
-            RCLCPP_INFO_STREAM(logger_,  "Goal is in between the inflated lines.");
-            RCLCPP_INFO_STREAM(logger_,  "q2 set to goal: " << q2.transpose());
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal is in between the inflated lines.");
+            // // RCLCPP_INFO_STREAM(logger_,  "q2 set to goal: " << q2.transpose());
             return true;
         }
 
@@ -333,15 +333,15 @@ namespace quad_gap
         {
             // Goal is closer to the left side
             q2 = pLeftSafeInfl.normalized() * pGoal.norm();
-            RCLCPP_INFO_STREAM(logger_,  "Goal is closer to the left side.");
-            RCLCPP_INFO_STREAM(logger_,  "q2 set to left side: " << q2.transpose());
+            // // RCLCPP_INFO_STREAM(logger_,  "Goal is closer to the left side.");
+            // // RCLCPP_INFO_STREAM(logger_,  "q2 set to left side: " << q2.transpose());
             return true;
         }
 
         // if goal closer to right side, set q2 to right side
         q2 = pRightSafeInfl.normalized() * pGoal.norm();
-        RCLCPP_INFO_STREAM(logger_,  "Goal is closer to the right side.");
-        RCLCPP_INFO_STREAM(logger_,  "q2 set to right side: " << q2.transpose());
+        // // RCLCPP_INFO_STREAM(logger_,  "Goal is closer to the right side.");
+        // // RCLCPP_INFO_STREAM(logger_,  "q2 set to right side: " << q2.transpose());
         return true;
     }
 
@@ -358,22 +358,22 @@ namespace quad_gap
     //                                                         Eigen::Vector2f & q2,
     //                                                         bool & success)
     // {
-    //     RCLCPP_INFO_STREAM(logger_,  "Front-facing gap");
+    //     // RCLCPP_INFO_STREAM(logger_,  "Front-facing gap");
 
     //     float thetaCloseSafe = atan2(pCloseSafe[1], pCloseSafe[0]);
 
     //     if (abs(thetaCloseSafe) <= M_PI_OVER_TWO)
     //     {
-    //         RCLCPP_INFO_STREAM(logger_,  "   Convex gap");
+    //         // RCLCPP_INFO_STREAM(logger_,  "   Convex gap");
 
     //         float dist_inter_orient = abs(pCloseSafe[1]);
 
-    //         RCLCPP_INFO_STREAM(logger_,  "       dist_inter_orient: " << dist_inter_orient);
-    //         RCLCPP_INFO_STREAM(logger_,  "       scaledMinDim: " << scaledMinDim);
+    //         // RCLCPP_INFO_STREAM(logger_,  "       dist_inter_orient: " << dist_inter_orient);
+    //         // RCLCPP_INFO_STREAM(logger_,  "       scaledMinDim: " << scaledMinDim);
 
     //         if (dist_inter_orient >= scaledMinDim)
     //         {
-    //             RCLCPP_INFO_STREAM(logger_,  "       Larger than robot geo thresh dist");
+    //             // RCLCPP_INFO_STREAM(logger_,  "       Larger than robot geo thresh dist");
 
     //             if (q1IdealNorm > q1MaxNorm)
     //                 q1 = q1MaxNorm * rbt_orient_vec;
@@ -383,7 +383,7 @@ namespace quad_gap
     //             // Goal point region
     //             success = true;
 
-    //             // RCLCPP_INFO_STREAM(logger_,  "Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //             // // RCLCPP_INFO_STREAM(logger_,  "Within 1: " << cp[0] << " " << cp[1] << " " << pLeft[0] << " " << pLeft[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << pRight[0] << " " << pRight[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
                 
     //             // INFLATING
     //             Eigen::Vector2f l_used_vec = pCloseSafe;
@@ -404,7 +404,7 @@ namespace quad_gap
     //             Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
     //             Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
 
-    //             RCLCPP_INFO_STREAM(logger_,  "Within 1: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
+    //             // RCLCPP_INFO_STREAM(logger_,  "Within 1: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
 
     //             if (!isLargerAngle(r_new, l_new))
     //             {
@@ -434,7 +434,7 @@ namespace quad_gap
     //             }
     //         } else
     //         {
-    //             RCLCPP_INFO_STREAM(logger_,  "       Smaller than robot geo thresh dist");
+    //             // RCLCPP_INFO_STREAM(logger_,  "       Smaller than robot geo thresh dist");
 
     //             float distPFarSafeOrient = abs(pFarSafe[1]);
     //             if (distPFarSafeOrient >= scaledMinDim)
@@ -464,7 +464,7 @@ namespace quad_gap
     //                     success = true;
     //                     if (left)
     //                     {
-    //                         // RCLCPP_INFO_STREAM(logger_,  "Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //                         // // RCLCPP_INFO_STREAM(logger_,  "Within 2 l side: " << cp[0] << " " << cp[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
     //                         // Eigen::Vector2f r_normal_vec(pFarSafe[1], -pFarSafe[0]);
     //                         Eigen::Vector2f eFar = pFarSafe.normalized();
@@ -472,10 +472,10 @@ namespace quad_gap
 
     //                         Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * rightAngularInflDir;
 
-    //                         RCLCPP_INFO_STREAM(logger_,  "Within 2 l side: ");
-    //                         RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
-    //                         RCLCPP_INFO_STREAM(logger_,  "pFarSafe: " << pFarSafe.transpose());
-    //                         RCLCPP_INFO_STREAM(logger_,  "pFarSafeInfl: " << pFarSafeInfl.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "Within 2 l side: ");
+    //                         // RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "pFarSafe: " << pFarSafe.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "pFarSafeInfl: " << pFarSafeInfl.transpose());
 
     //                         if (!isLargerAngle(pFarSafeInfl, rbt_orient_vec))
     //                         {
@@ -503,22 +503,22 @@ namespace quad_gap
     //                         }
     //                     } else
     //                     {
-    //                         RCLCPP_INFO_STREAM(logger_,  "Within 2 r side: ");
+    //                         // RCLCPP_INFO_STREAM(logger_,  "Within 2 r side: ");
     //                         // Eigen::Vector2f l_normal_vec(-pFarSafe[1], pFarSafe[0]);
     //                         Eigen::Vector2f eFar = pFarSafe.normalized();
     //                         Eigen::Vector2f leftAngularInflDir = Rnegpi2 * eFar; 
 
     //                         Eigen::Vector2f pFarSafeInfl = pFarSafe + scaledMinDim * leftAngularInflDir;
 
-    //                         RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
-    //                         RCLCPP_INFO_STREAM(logger_,  "pFarSafe: " << pFarSafe.transpose());
-    //                         RCLCPP_INFO_STREAM(logger_,  "pFarSafeInfl: " << pFarSafeInfl.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "q1: " << q1.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "pFarSafe: " << pFarSafe.transpose());
+    //                         // RCLCPP_INFO_STREAM(logger_,  "pFarSafeInfl: " << pFarSafeInfl.transpose());
 
     //                         // I THINK THIS IS WRONG OR UNNECESSARY
     //                         // if (isLargerAngle(pFarSafeInfl, rbt_orient_vec))
     //                         // {
     //                         //     success = false;
-    //                         //     RCLCPP_INFO_STREAM(logger_,  "The union region does not exist. [Orientation is within gap 2 r side]");
+    //                         //     // RCLCPP_INFO_STREAM(logger_,  "The union region does not exist. [Orientation is within gap 2 r side]");
     //                         //     RCLCPP_WARN_STREAM(logger_,  "The union region does not exist. [Orientation is within gap 2 r side]");
     //                         // } else
     //                         // {
@@ -536,7 +536,7 @@ namespace quad_gap
     //                             q2 = pGoal;
     //                         } else
     //                         {
-    //                             RCLCPP_INFO_STREAM(logger_,  "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
+    //                             // RCLCPP_INFO_STREAM(logger_,  "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
     //                             RCLCPP_WARN_STREAM(logger_,  "Goal point is in the wrong region. [Orientation is within gap 2 r side]");
     //                             success = false;
     //                         }
@@ -545,20 +545,20 @@ namespace quad_gap
     //                 }
     //             } else // dist to other inter < thresh
     //             {
-    //                 RCLCPP_INFO_STREAM(logger_,  "Distances to the both intersections are smaller than diagonal / 2.");
+    //                 // RCLCPP_INFO_STREAM(logger_,  "Distances to the both intersections are smaller than diagonal / 2.");
     //                 RCLCPP_WARN_STREAM(logger_,  "Distances to the both intersections are smaller than diagonal / 2.");
     //                 success = false;
     //             }
     //         }
     //     } else // the closest inter point has angle larger than pi/2
     //     {
-    //         RCLCPP_INFO_STREAM(logger_,  "   (Potentially) non-convex gap");
+    //         // RCLCPP_INFO_STREAM(logger_,  "   (Potentially) non-convex gap");
 
     //         q1 = q1IdealNorm * rbt_orient_vec;
 
     //         success = true;
 
-    //         // RCLCPP_INFO_STREAM(logger_,  "Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
+    //         // // RCLCPP_INFO_STREAM(logger_,  "Within 1 larger: " << cp[0] << " " << cp[1] << " " << l_vec[0] << " " << l_vec[1] << " " << l_new_vec[0] << " " << l_new_vec[1] << " " << r_vec[0] << " " << r_vec[1] << " " << r_new_vec[0] << " " << r_new_vec[1]);
 
     //         Eigen::Vector2f l_used_vec;
     //         Eigen::Vector2f r_used_vec;
@@ -578,7 +578,7 @@ namespace quad_gap
     //         Eigen::Vector2f l_new = l_used_vec + scaledMinDim * l_normal_vec / l_normal_vec.norm();
     //         Eigen::Vector2f r_new = r_used_vec + scaledMinDim * r_normal_vec / r_normal_vec.norm();
 
-    //         RCLCPP_INFO_STREAM(logger_,  "Within 1 larger: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
+    //         // RCLCPP_INFO_STREAM(logger_,  "Within 1 larger: " << q1[0] << " " << q1[1] << " " << l_used_vec[0] << " " << l_used_vec[1] << " " << l_new[0] << " " << l_new[1] << " " << r_used_vec[0] << " " << r_used_vec[1] << " " << r_new[0] << " " << r_new[1]);
 
     //         if (!isLargerAngle(r_new, l_new))
     //         {
@@ -620,7 +620,7 @@ namespace quad_gap
     //                                                         Eigen::Vector2f & q2,
     //                                                         bool & success)
     // {
-    //     RCLCPP_INFO_STREAM(logger_,  "Backward-facing gap");
+    //     // RCLCPP_INFO_STREAM(logger_,  "Backward-facing gap");
             
     //     if (q1IdealNorm > q1MaxNorm)
     //         q1 = q1MaxNorm * rbt_orient_vec;
@@ -633,7 +633,7 @@ namespace quad_gap
 
     //     if (!left)
     //     {
-    //         RCLCPP_INFO_STREAM(logger_,  "   Right side gap");
+    //         // RCLCPP_INFO_STREAM(logger_,  "   Right side gap");
 
     //         Eigen::Vector2f cp_inter_normal_vec(cp_inter_vec[1], -cp_inter_vec[0]);
     //         Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
@@ -643,7 +643,7 @@ namespace quad_gap
     //         Eigen::Vector2f pLeftSafe_normal_vec(-l_used[1], l_used[0]);
     //         Eigen::Vector2f l_new_inter_vec = scaledMinDim * pLeftSafe_normal_vec / pLeftSafe_normal_vec.norm() + l_used;
 
-    //         RCLCPP_INFO_STREAM(logger_,  "Not within r side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << l_used[0] << " " << l_used[1] << " " << l_new_inter_vec[0] << " " << l_new_inter_vec[1]);
+    //         // RCLCPP_INFO_STREAM(logger_,  "Not within r side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << l_used[0] << " " << l_used[1] << " " << l_new_inter_vec[0] << " " << l_new_inter_vec[1]);
             
     //         // Get intersection point p1 = (0, 0), p2 = l_new_inter_vec, p3 = cp, p4 = new_inter_vec
     //         float denominator = (0. - l_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - l_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
@@ -694,7 +694,7 @@ namespace quad_gap
             
     //     } else
     //     {
-    //         RCLCPP_INFO_STREAM(logger_,  "   Left side gap");
+    //         // RCLCPP_INFO_STREAM(logger_,  "   Left side gap");
 
     //         Eigen::Vector2f cp_inter_normal_vec(-cp_inter_vec[1], cp_inter_vec[0]);
     //         Eigen::Vector2f cp_new_inter_vec = scaledMinDim * cp_inter_normal_vec / cp_inter_normal_vec.norm() + cp_inter_vec;
@@ -704,7 +704,7 @@ namespace quad_gap
     //         Eigen::Vector2f r_inter_normal_vec(r_used[1], -r_used[0]);
     //         Eigen::Vector2f r_new_inter_vec = scaledMinDim * r_inter_normal_vec / r_inter_normal_vec.norm() + r_used;
 
-    //         RCLCPP_INFO_STREAM(logger_,  "Not within l side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << r_used[0] << " " << r_used[1] << " " << r_new_inter_vec[0] << " " << r_new_inter_vec[1]);
+    //         // RCLCPP_INFO_STREAM(logger_,  "Not within l side: " << q1[0] << " " << q1[1] << " " << pCloseSafe[0] << " " << pCloseSafe[1] << " " << new_inter_vec[0] << " " << new_inter_vec[1] << " " << r_used[0] << " " << r_used[1] << " " << r_new_inter_vec[0] << " " << r_new_inter_vec[1]);
 
     //         // Get intersection point p1 = (0, 0), p2 = r_new_inter_vec, p3 = cp, p4 = new_inter_vec
     //         float denominator = (0. - r_new_inter_vec[0]) * (q1[1] - new_inter_vec[1]) - (0. - r_new_inter_vec[1]) * (q1[0] - new_inter_vec[0]);
@@ -758,7 +758,7 @@ namespace quad_gap
     Trajectory GapTrajGenerator::generateBezierTrajectory(Gap * gap, 
                                                             const geometry_msgs::msg::TwistStamped & rbtVelRbtFrame)
     {
-        RCLCPP_INFO_STREAM(logger_,  "[generateBezierTrajectory()]");
+        // // RCLCPP_INFO_STREAM(logger_,  "[generateBezierTrajectory()]");
         geometry_msgs::msg::PoseArray pathRbtFrame;
         pathRbtFrame.header.stamp = gap->getTimeStamp();
         pathRbtFrame.header.frame_id = gap->getFrame();
@@ -774,14 +774,14 @@ namespace quad_gap
         Bezier::Bezier<2> quadraBezier;
         bool success = findBezierControlPts(gap, quadraBezier, rbtVelRbtFrame);
         
-        RCLCPP_INFO_STREAM(logger_,  "Bezier control points:");
-        RCLCPP_INFO_STREAM(logger_,  "P0: " << quadraBezier[0][0] << " " << quadraBezier[0][1]);
-        RCLCPP_INFO_STREAM(logger_,  "P1: " << quadraBezier[1][0] << " " << quadraBezier[1][1]);
-        RCLCPP_INFO_STREAM(logger_,  "P2: " << quadraBezier[2][0] << " " << quadraBezier[2][1]);
+        // // RCLCPP_INFO_STREAM(logger_,  "Bezier control points:");
+        // // RCLCPP_INFO_STREAM(logger_,  "P0: " << quadraBezier[0][0] << " " << quadraBezier[0][1]);
+        // // RCLCPP_INFO_STREAM(logger_,  "P1: " << quadraBezier[1][0] << " " << quadraBezier[1][1]);
+        // // RCLCPP_INFO_STREAM(logger_,  "P2: " << quadraBezier[2][0] << " " << quadraBezier[2][1]);
 
         if (!success)
         {
-            RCLCPP_INFO_STREAM(logger_,  "No path is generated.");
+            // // RCLCPP_INFO_STREAM(logger_,  "No path is generated.");
             Trajectory traj(pathRbtFrame);
             return traj;
         }
@@ -814,14 +814,14 @@ namespace quad_gap
                 int numPtToPtIntegrationPts = 5;
                 float ptToPtArclengthErrorThresh = desPtToPtArclength / 25;
 
-                // RCLCPP_INFO_STREAM(logger_,  "Arclenght sampling Bezier... ");
+                // // RCLCPP_INFO_STREAM(logger_,  "Arclenght sampling Bezier... ");
 
-                // RCLCPP_INFO_STREAM(logger_,  "Curve arclength: " << curveArclength);
-                // RCLCPP_INFO_STREAM(logger_,  "Number of curve points: " << numCurvePts);
-                // RCLCPP_INFO_STREAM(logger_,  "Desired pt to pt arclength: " << desPtToPtArclength);
-                // RCLCPP_INFO_STREAM(logger_,  "Number of sample points: " << numSamplePts);
-                // RCLCPP_INFO_STREAM(logger_,  "Number of integration points for pt to pt arclength: " << numPtToPtIntegrationPts);
-                // RCLCPP_INFO_STREAM(logger_,  "pt to pt arclength error threshold: " << ptToPtArclengthErrorThresh);
+                // // RCLCPP_INFO_STREAM(logger_,  "Curve arclength: " << curveArclength);
+                // // RCLCPP_INFO_STREAM(logger_,  "Number of curve points: " << numCurvePts);
+                // // RCLCPP_INFO_STREAM(logger_,  "Desired pt to pt arclength: " << desPtToPtArclength);
+                // // RCLCPP_INFO_STREAM(logger_,  "Number of sample points: " << numSamplePts);
+                // // RCLCPP_INFO_STREAM(logger_,  "Number of integration points for pt to pt arclength: " << numPtToPtIntegrationPts);
+                // // RCLCPP_INFO_STREAM(logger_,  "pt to pt arclength error threshold: " << ptToPtArclengthErrorThresh);
 
                 float t_delta = 1. / (numSamplePts - 1);
                 float t_kmin1 = 0.0f;
@@ -830,13 +830,13 @@ namespace quad_gap
                 {
                     t_k = i * t_delta;
 
-                    // RCLCPP_INFO_STREAM(logger_,  "i: " << i << ", t_k: " << t_k << ", t_kmin1: " << t_kmin1);
+                    // // RCLCPP_INFO_STREAM(logger_,  "i: " << i << ", t_k: " << t_k << ", t_kmin1: " << t_kmin1);
 
                     float currPtToPtArclength = getBezierDist(quadraBezier, t_kmin1, t_k, numPtToPtIntegrationPts);
 
                     if (std::abs(currPtToPtArclength - desPtToPtArclength) < ptToPtArclengthErrorThresh)
                     {
-                        // RCLCPP_INFO_STREAM(logger_,  "Adding point at t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
+                        // // RCLCPP_INFO_STREAM(logger_,  "Adding point at t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
                         geometry_msgs::msg::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_k, 0);
                         pose.position.y = quadraBezier.valueAt(t_k, 1);
@@ -844,7 +844,7 @@ namespace quad_gap
                         t_kmin1 = t_k;
                     } else if (currPtToPtArclength > desPtToPtArclength)
                     {
-                        // RCLCPP_INFO_STREAM(logger_,  "Interpolating point between t_kmin1: " << t_kmin1 << " and t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
+                        // // RCLCPP_INFO_STREAM(logger_,  "Interpolating point between t_kmin1: " << t_kmin1 << " and t_k: " << t_k << ", currPtToPtArclength: " << currPtToPtArclength);
                         // float t_prev = (i - 1) * t_delta;
                         float t_interp = 0.5 * (t_kmin1 + t_k);
                         float interm_arclength = getBezierDist(quadraBezier, t_kmin1, t_interp, numPtToPtIntegrationPts);
@@ -869,11 +869,11 @@ namespace quad_gap
 
                             // if (abs(t_interp - t_lower_bound) <= 1e-3 && abs(t_interp - t_upper_bound) <= 1e-3)
                             //     break;
-                            // RCLCPP_INFO_STREAM(logger_,  t_interp << " " << t_lower_bound << " " << t_upper_bound << " " << interm_arclength << " " << abs(interm_arclength - desPtToPtArclength) << " " << ptToPtArclengthErrorThresh);
+                            // // RCLCPP_INFO_STREAM(logger_,  t_interp << " " << t_lower_bound << " " << t_upper_bound << " " << interm_arclength << " " << abs(interm_arclength - desPtToPtArclength) << " " << ptToPtArclengthErrorThresh);
                         }
-                        // RCLCPP_INFO_STREAM(logger_,  "exit");
+                        // // RCLCPP_INFO_STREAM(logger_,  "exit");
 
-                        // RCLCPP_INFO_STREAM(logger_,  "t_interp: " << t_interp << " t_kmin1: " << t_kmin1 << " dist: " << interm_arclength);
+                        // // RCLCPP_INFO_STREAM(logger_,  "t_interp: " << t_interp << " t_kmin1: " << t_kmin1 << " dist: " << interm_arclength);
                         geometry_msgs::msg::Pose pose;
                         pose.position.x = quadraBezier.valueAt(t_interp, 0);
                         pose.position.y = quadraBezier.valueAt(t_interp, 1);
@@ -882,10 +882,9 @@ namespace quad_gap
                     }                
                 }
                 
-
                 if (pathRbtFrame.poses.size() < numCurvePts)
                 {
-                    // RCLCPP_INFO_STREAM(logger_,  "The number of points in the bezier curve is less than the desired number of points. [ " << pathRbtFrame.poses.size() << " < " << numCurvePts << " ]");
+                    // // RCLCPP_INFO_STREAM(logger_,  "The number of points in the bezier curve is less than the desired number of points. [ " << pathRbtFrame.poses.size() << " < " << numCurvePts << " ]");
                     geometry_msgs::msg::Pose pose;
                     pose.position.x = quadraBezier.valueAt(1, 0);
                     pose.position.y = quadraBezier.valueAt(1, 1);

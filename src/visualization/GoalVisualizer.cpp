@@ -91,7 +91,7 @@ namespace quad_gap
     {
         if (!gap->isGoalSet()) 
         {
-            RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal is not set");
+            // RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal is not set");
             RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal is not set");
             return;
         }
@@ -103,7 +103,7 @@ namespace quad_gap
         lg_point.y = gap->getGoalY(); // gap->goal.y;
         lg_point.z = 0.0;
 
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal position: " << lg_point.x << ", " << lg_point.y);
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoal] Gap goal position: " << lg_point.x << ", " << lg_point.y);
 
         marker.points.push_back(lg_point);
         // marker.colors.push_back(gapGoalsColor);
@@ -120,7 +120,7 @@ namespace quad_gap
 
         if (gaps.empty()) 
         {
-            RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoals] No gaps to visualize");
+            // RCLCPP_INFO_STREAM(node_->get_logger(),  "[drawGapGoals] No gaps to visualize");
             RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGapGoals] No gaps to visualize");
             return;
         }
