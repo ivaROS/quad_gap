@@ -9,7 +9,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode
         trajSwitchIdxPublisher = node->create_publisher<visualization_msgs::msg::Marker>("trajectory_switch", 10);
         planLoopIdxPublisher = node->create_publisher<visualization_msgs::msg::Marker>("planning_loop_idx", 10);
 
-        currentTrajectoryPublisher_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("curr_exec_dg_traj", 1);
+        currentTrajectoryPublisher_ = node->create_publisher<visualization_msgs::msg::MarkerArray>("current_trajectory", 1);
 
         globalPlanPublisher = node->create_publisher<visualization_msgs::msg::MarkerArray>("entire_global_plan", 10);
         
@@ -129,15 +129,15 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode
         trajSwitchIdxPublisher->publish(trajSwitchIdxMarker);
     }
 
-    void TrajectoryVisualizer::drawGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlan) 
+    void TrajectoryVisualizer::drawGlobalPlan(const nav_msgs::msg::Path & globalPlan) 
     {
         // First, clearing topic.
         clearMarkerArrayPublisher(globalPlanPublisher);
 
-        if (globalPlan.empty()) 
+        if (globalPlan.poses.empty()) 
             RCLCPP_WARN_STREAM(node_->get_logger(),  "Goal Selector Returned Trajectory Size 0");
 
-        if (globalPlan.at(0).header.frame_id.empty())
+        if (globalPlan.header.frame_id.empty())
         {
             RCLCPP_WARN_STREAM(node_->get_logger(),  "[drawGlobalPlan] Trajectory frame_id is empty");
             return;
@@ -146,8 +146,8 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode
         visualization_msgs::msg::MarkerArray globalPlanMarkerArray;
         visualization_msgs::msg::Marker globalPlanMarker;
 
-        globalPlanMarker.header.frame_id = globalPlan.at(0).header.frame_id;
-        globalPlanMarker.header.stamp = globalPlan.at(0).header.stamp;
+        globalPlanMarker.header.frame_id = globalPlan.header.frame_id;
+        globalPlanMarker.header.stamp = globalPlan.header.stamp;
         globalPlanMarker.ns = "globalPlan";
         globalPlanMarker.type = visualization_msgs::msg::Marker::ARROW;
         globalPlanMarker.action = visualization_msgs::msg::Marker::ADD;
@@ -161,7 +161,7 @@ TrajectoryVisualizer::TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode
 
         globalPlanMarker.lifetime = rclcpp::Duration::from_seconds(0);  
         
-        for (const geometry_msgs::msg::PoseStamped & poseStamped : globalPlan) 
+        for (const geometry_msgs::msg::PoseStamped & poseStamped : globalPlan.poses) 
         {
             globalPlanMarker.id = int (globalPlanMarkerArray.markers.size());
             globalPlanMarker.pose = poseStamped.pose;

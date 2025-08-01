@@ -7,8 +7,7 @@
 #include <quad_gap/utils/Gap.h>
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
-#include <geometry_msgs/msg/pose_stamped.hpp>
-#include <geometry_msgs/msg/transform_stamped.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 // #include "tf/transform_datatypes.h"
@@ -18,7 +17,12 @@
 // #include <tf2_ros/transform_listener.h>
 // #include <tf2_ros/transform_broadcaster.h>
 // #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
+#include <nav_msgs/msg/path.hpp>
+
 #include <boost/shared_ptr.hpp>
 
 #include <quad_gap/utils/Utils.h>
@@ -73,7 +77,7 @@ namespace quad_gap
             * \brief return global path in odometry frame
             * \return global path in odometry frame
             */  
-            std::vector<geometry_msgs::msg::PoseStamped> getGlobalPathOdomFrame();
+            nav_msgs::msg::Path getGlobalPathOdomFrame();
 
             /**
             * \brief extract portion of global plan (in robot frame) that lies within the current laser scan
@@ -86,7 +90,7 @@ namespace quad_gap
             * \brief receive new global plan in map frame and update member variable accordingly
             * \param globalPlanMapFrame new global plan in map frame
             */
-            void updateGlobalPathMapFrame(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlanMapFrame);
+            void updateGlobalPathMapFrame(const nav_msgs::msg::Path & globalPlanMapFrame);
 
             /**
             * \brief receive new laser scan and update member variable accordingly
@@ -140,7 +144,7 @@ namespace quad_gap
             boost::mutex scanMutex_; /**< mutex locking thread for updating current scan */
             boost::mutex globalPlanMutex_; /**< mutex locking thread for updating current global plan */
 
-            std::vector<geometry_msgs::msg::PoseStamped> globalPlanMapFrame_; /**< Current global plan in map frame */
+            nav_msgs::msg::Path globalPlanMapFrame_; /**< Current global plan in map frame */
             geometry_msgs::msg::PoseStamped globalPathLocalWaypointRobotFrame_; /**< Current local waypoint along global plan in robot frame */
 
     };

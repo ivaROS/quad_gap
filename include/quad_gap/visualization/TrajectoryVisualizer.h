@@ -9,7 +9,7 @@ namespace quad_gap
             using Visualizer::Visualizer;
         public: 
             TrajectoryVisualizer(const rclcpp_lifecycle::LifecycleNode::SharedPtr & node, const QuadGapConfig& cfg);
-            void drawGlobalPlan(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlan);
+            void drawGlobalPlan(const nav_msgs::msg::Path & globalPlan);
 
             // void pubAllTraj(const std::vector<geometry_msgs::msg::PoseArray> & prr);
             void drawCurrentTrajectory(const Trajectory & traj);

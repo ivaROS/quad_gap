@@ -2,7 +2,7 @@
 
 namespace quad_gap 
 {
-    void GlobalPlanManager::updateGlobalPathMapFrame(const std::vector<geometry_msgs::msg::PoseStamped> & globalPlanMapFrame) 
+    void GlobalPlanManager::updateGlobalPathMapFrame(const nav_msgs::msg::Path & globalPlanMapFrame) 
     {
         // Incoming plan is in map frame
         boost::mutex::scoped_lock lock(goalSelectMutex_);
@@ -23,7 +23,7 @@ namespace quad_gap
         boost::mutex::scoped_lock glock(goalSelectMutex_);
         boost::mutex::scoped_lock llock(scanMutex_);
         
-        if (globalPlanMapFrame_.size() < 2) // No Global Path
+        if (globalPlanMapFrame_.poses.size() < 2) // No Global Path
             return;
 
         // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "running generateGlobalPathLocalWaypoint");
@@ -40,7 +40,7 @@ namespace quad_gap
     {
         // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "getVisibleGlobalPlanSnippetRobotFrame");
         boost::mutex::scoped_lock gplock(globalPlanMutex_);
-        std::vector<geometry_msgs::msg::PoseStamped> globalPlan = globalPlanMapFrame_;
+        std::vector<geometry_msgs::msg::PoseStamped> globalPlan = globalPlanMapFrame_.poses;
         // where is globalPlanMapFrame_ coming from?
         // globalPlan = globalPlanMapFrame_;
 
@@ -131,7 +131,7 @@ namespace quad_gap
         return globalPathLocalWaypointOdomFrame;
     }
 
-    std::vector<geometry_msgs::msg::PoseStamped> GlobalPlanManager::getGlobalPathOdomFrame() 
+    nav_msgs::msg::Path GlobalPlanManager::getGlobalPathOdomFrame() 
     {
         return globalPlanMapFrame_;
     }

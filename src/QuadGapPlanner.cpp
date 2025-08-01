@@ -122,7 +122,7 @@ namespace quad_gap
             return;
         } else
         {
-            return planner.setPlan(path.poses);
+            return planner.setPlan(path);
         }
     }
 

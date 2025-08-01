@@ -38,6 +38,7 @@
 //////////////
 // ROS MSGS //
 //////////////
+#include <nav_msgs/msg/path.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -155,7 +156,7 @@ namespace quad_gap
             * @param plan, vector of PoseStamped
             * @return boolean type on whether successfully registered goal
             */
-            void setPlan(const std::vector<geometry_msgs::msg::PoseStamped> &plan);
+            void setPlan(const nav_msgs::msg::Path & path);
 
             // /**
             // * update all tf transform at the beginning of every planning cycle

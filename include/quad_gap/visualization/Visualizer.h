@@ -9,11 +9,13 @@
 #include <quad_gap/config/QuadGapConfig.h>
 #include <vector>
 #include <map>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <std_msgs/msg/color_rgba.hpp>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+#include <nav_msgs/msg/path.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 

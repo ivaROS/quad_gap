@@ -198,7 +198,7 @@ namespace quad_gap
 
     sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt(const sensor_msgs::msg::LaserScan::ConstSharedPtr & scanSensorFrame)
     {
-        RCLCPP_INFO_STREAM(node_->get_logger(), "[transformLaserToRbt()]");
+        // RCLCPP_INFO_STREAM(node_->get_logger(), "[transformLaserToRbt()]");
 
         sensor_msgs::msg::LaserScan scanRbtFrame = *scanSensorFrame;
         scanRbtFrame.header = scanSensorFrame->header;
@@ -211,10 +211,10 @@ namespace quad_gap
         scanRbtFrame.range_min = scanSensorFrame->range_min;
         scanRbtFrame.range_max = scanSensorFrame->range_max;
         scanRbtFrame.intensities = scanSensorFrame->intensities;
-        scanRbtFrame.ranges = scanSensorFrame->ranges;
+        // scanRbtFrame.ranges = scanSensorFrame->ranges;
 
         // Initialize ranges to negative values to indicate no data, will use at second pass
-        // scanRbtFrame.ranges = std::vector<float>(scanSensorFrame->ranges.size(), -scanSensorFrame->range_max);
+        scanRbtFrame.ranges = std::vector<float>(scanSensorFrame->ranges.size(), -scanSensorFrame->range_max);
 
         float origRange = 0.0;
         float origAng = 0.0;
@@ -265,21 +265,36 @@ namespace quad_gap
 
         // TODO: second pass through scan to interpolate missing values
 
-        // // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan second pass...");
-        // // second pass through scan to interpolate missing values
-        // for (size_t i = 0; i < scanRbtFrame.ranges.size(); i++)
-        // {
-        //     // RCLCPP_INFO_STREAM(node_->get_logger(), "  (pre) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
-        //     if (scanRbtFrame.ranges[i] < 0.0)
-        //     {
-        //         // RCLCPP_INFO_STREAM(node_->get_logger(), "  scan point: " << i << " is negative, interpolating");
-        //         // interpolate missing values
-        //         float leftRange = (i > 0) ? scanRbtFrame.ranges[i - 1] : scanRbtFrame.range_max;
-        //         float rightRange = (i < scanRbtFrame.ranges.size() - 1) ? scanRbtFrame.ranges[i + 1] : scanRbtFrame.range_max;
-        //         scanRbtFrame.ranges[i] = std::min(leftRange, rightRange);
-        //     }
-        //     // RCLCPP_INFO_STREAM(node_->get_logger(), "  (post) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
-        // }
+        // RCLCPP_INFO_STREAM(node_->get_logger(), "  Transformed scan second pass...");
+        // second pass through scan to interpolate missing values
+        for (size_t i = 0; i < scanRbtFrame.ranges.size(); i++)
+        {
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  (pre) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
+            if (scanRbtFrame.ranges[i] < 0.0)
+            {
+                // find closest non-negative value
+                size_t leftIdx = (i + 1) % cfg_.scan.full_scan;
+                while (scanRbtFrame.ranges[leftIdx] < 0.0 && leftIdx != i) // prevent infinite loop
+                {
+                    leftIdx = (leftIdx + 1) % cfg_.scan.full_scan;
+                }
+
+                size_t rightIdx = subtractAndWrapScanIndices(i - 1, cfg_.scan.full_scan);
+                while (scanRbtFrame.ranges[rightIdx] < 0.0 && rightIdx != i) // prevent infinite loop
+                {
+                    rightIdx = subtractAndWrapScanIndices(rightIdx - 1, cfg_.scan.full_scan);
+                }
+
+                scanRbtFrame.ranges[i] = std::min(scanRbtFrame.ranges[leftIdx], scanRbtFrame.ranges[rightIdx]);
+
+                // RCLCPP_INFO_STREAM(node_->get_logger(), "  scan point: " << i << " is negative, interpolating");
+                // interpolate missing values
+                // float leftRange = (i > 0) ? scanRbtFrame.ranges[i - 1] : scanRbtFrame.range_max;
+                // float rightRange = (i < scanRbtFrame.ranges.size() - 1) ? scanRbtFrame.ranges[i + 1] : scanRbtFrame.range_max;
+                // scanRbtFrame.ranges[i] = std::min(leftRange, rightRange);
+            }
+            // RCLCPP_INFO_STREAM(node_->get_logger(), "  (post) scan point: " << i << ", range: " << scanRbtFrame.ranges[i]);
+        }
 
         return std::make_shared<sensor_msgs::msg::LaserScan>(scanRbtFrame);
     }
@@ -288,7 +303,7 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "[laserScanCB()]");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "[laserScanCB()]");
 
         timeKeeper_->startTimer(SCAN);
 
@@ -330,9 +345,9 @@ namespace quad_gap
 
         float minScanDist = *std::min_element(scanRbtFrame_->ranges.begin(), scanRbtFrame_->ranges.end());
 
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "     Min scan distance: " << minScanDist << 
-                                                ", preprocessed: " << minScanPostPreProcess << 
-                                                ", raw: " << minScanRaw);
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "     Min scan distance: " << minScanDist << 
+        //                                         ", preprocessed: " << minScanPostPreProcess << 
+        //                                         ", raw: " << minScanRaw);
 
         if (minScanDist < cfg_.rbt.r_inscr)
         {
@@ -484,11 +499,11 @@ namespace quad_gap
         // }
     }
 
-    void Planner::setPlan(const std::vector<geometry_msgs::msg::PoseStamped> &incomingGlobalPlan)
+    void Planner::setPlan(const nav_msgs::msg::Path & incomingGlobalPlan)
     {
         RCLCPP_INFO_STREAM(node_->get_logger(),  "[setPlan()]");
 
-        if (incomingGlobalPlan.size() == 0) 
+        if (incomingGlobalPlan.poses.size() == 0) 
             return;
 
         if (!haveTFs_)
@@ -499,25 +514,27 @@ namespace quad_gap
         ////////////////////////////////////
 
         // plan should be in global frame
-        std::vector<geometry_msgs::msg::PoseStamped> globalPlanMapFrame;
-        if(incomingGlobalPlan[0].header.frame_id != cfg_.map_frame_id)
+        nav_msgs::msg::Path globalPlanMapFrame;
+        if (incomingGlobalPlan.header.frame_id != cfg_.map_frame_id)
         {
-            geometry_msgs::msg::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg_.map_frame_id, incomingGlobalPlan[0].header.frame_id, rclcpp::Time(0));
-            for (size_t i = 0; i < incomingGlobalPlan.size(); i++)
+            RCLCPP_WARN_STREAM(node_->get_logger(),  "Global plan header frame " << incomingGlobalPlan.header.frame_id << 
+                                                    " not same as cfg_ map frame: " << cfg_.map_frame_id);
+            geometry_msgs::msg::TransformStamped other_to_global_trans = tfBuffer->lookupTransform(cfg_.map_frame_id, incomingGlobalPlan.header.frame_id, rclcpp::Time(0));
+            for (size_t i = 0; i < incomingGlobalPlan.poses.size(); i++)
             {
-                geometry_msgs::msg::PoseStamped plan_pose = incomingGlobalPlan[i];
+                geometry_msgs::msg::PoseStamped plan_pose = incomingGlobalPlan.poses[i];
                 geometry_msgs::msg::PoseStamped out_pose;
                 tf2::doTransform(plan_pose, out_pose, other_to_global_trans);
                 out_pose.header.stamp = plan_pose.header.stamp;
                 out_pose.header.frame_id = cfg_.map_frame_id;
-                globalPlanMapFrame.push_back(out_pose);
+                globalPlanMapFrame.poses.push_back(out_pose);
             }
         } else
         {
             globalPlanMapFrame = incomingGlobalPlan;
         }
         
-        geometry_msgs::msg::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.end());
+        geometry_msgs::msg::PoseStamped globalGoalMapFrame = *std::prev(globalPlanMapFrame.poses.end());
         // geometry_msgs::msg::PoseStamped globalGoalOdomFrame;
         // Transform global goal to odom frame
         tf2::doTransform(globalGoalMapFrame, globalGoalOdomFrame_, map2odom_);
