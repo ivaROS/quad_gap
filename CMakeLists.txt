@@ -16,17 +16,20 @@ if(OPENMP_FOUND)
   set(OpenMP_LIBS gomp)
 endif()
 
+find_package(ament_cmake REQUIRED)
+
 ################
 # Dependencies #
 ################
 set(dependencies
     rclcpp
-    geometry_msgs
-    nav2_costmap_2d
-    pluginlib
-    nav_msgs
-    nav2_util
+    nav2_common
     nav2_core
+    nav2_util
+    nav2_costmap_2d
+    nav_msgs
+    geometry_msgs
+    pluginlib
     tf2
   # pips_trajectory_testing
   # turtlebot_trajectory_testing
@@ -38,8 +41,6 @@ set(dependencies
   # pips
   # pips_trajectory_msgs
 )
-
-find_package(ament_cmake REQUIRED)
 
 foreach(dependency IN ITEMS ${dependencies})
   find_package(${dependency} REQUIRED)
@@ -55,11 +56,13 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
+# nav2_package()
+
 ###########
 # Library #
 ###########
 
-add_library(quad_gap
+add_library(${PROJECT_NAME} SHARED
   src/gap_detection/GapDetector.cpp
   src/config/QuadGapConfig.cpp
   src/visualization/GapVisualizer.cpp

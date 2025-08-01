@@ -35,9 +35,9 @@ namespace quad_gap
         
         // Get the equivalent passing length
         // Eigen::Vector2f orient_vec(1, 0);
-        Eigen::Vector2f pMid = 0.5 * (pLeft + pRight);
+        // Eigen::Vector2f pMid = 0.5 * (pLeft + pRight);
         // float epl = robotGeoProc_.getDecayEquivalentPL(orient_vec, pMid, pMid.norm());
-        float epl = robotGeoProc_->getLinearDecayEquivalentPL(pMid);
+        // float epl = robotGeoProc_->getLinearDecayEquivalentPL(pMid);
         
         // Eigen::Vector2f lr = (pLeft - pRight) / (pLeft - pRight).norm() * (epl / 2) * cfg_->traj.inf_ratio + pRight;
         // float thetaRight = car2pol(lr)(1);
@@ -85,7 +85,7 @@ namespace quad_gap
             return;
         }
 
-        if (checkWaypointVisibility(pLeft, pRight, pGoal)
+        if (checkWaypointVisibility(pGoal) // pLeft, pRight, 
             && isGlobalPathLocalWaypointWithinGapAngle(idxGoal, idxRight, idxLeft)) 
         {
             RCLCPP_INFO_STREAM(logger_,  "Goal is visible, setting goal within gap");
@@ -208,9 +208,10 @@ namespace quad_gap
         return biasedGapGoalTheta;
     }
 
-    bool GapGoalPlacer::checkWaypointVisibility(const Eigen::Vector2f & pLeft, 
-                                                const Eigen::Vector2f & pRight,
-                                                const Eigen::Vector2f & globalGoal) 
+    // const Eigen::Vector2f & pLeft, 
+    // const Eigen::Vector2f & pRight,
+                                                    
+    bool GapGoalPlacer::checkWaypointVisibility(const Eigen::Vector2f & globalGoal) 
     {
         boost::mutex::scoped_lock lock(scanMutex_);
         // with robot as 0,0 (globalGoal in robot frame as well)

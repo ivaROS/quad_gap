@@ -144,7 +144,7 @@ namespace quad_gap
                 float t_diff = (tEnd - tStart) / (numPts - 1);
                 float t_k = 0.0;
                 float t_kplus1 = 0.0;
-                for (size_t k = 0; k < numPts; k++)
+                for (int k = 0; k < numPts; k++)
                 {
                     t_k = tStart + k * t_diff;
                     t_kplus1 = tStart + (k + 1) * t_diff;

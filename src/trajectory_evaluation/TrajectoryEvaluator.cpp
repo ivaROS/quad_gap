@@ -70,7 +70,7 @@ namespace quad_gap
         sensor_msgs::msg::LaserScan scan = *scan_.get();
 
         std::vector<float> posewiseCosts(pathRbtFrame.poses.size());
-        for (int i = 0; i < posewiseCosts.size(); i++) 
+        for (size_t i = 0; i < posewiseCosts.size(); i++) 
         {
             RCLCPP_INFO_STREAM(logger_,  "  Pose " << i);
             posewiseCosts.at(i) = evaluatePose(pathRbtFrame.poses.at(i), scan);
@@ -152,7 +152,7 @@ namespace quad_gap
         // #pragma omp parallel for shared(scan2RbtDists, poseRbtFrameVec, poseHeading, scan)
         // #pragma GCC ivdep  //https://gcc.gnu.org/onlinedocs/gcc/Loop-Specific-Pragmas.html
         #pragma omp parallel for num_threads(4) // works sometimes? Unclear.
-        for (int i = 0; i < scan.ranges.size(); i++)
+        for (size_t i = 0; i < scan.ranges.size(); i++)
         {
             float range_i = scan.ranges.at(i);
             float theta_i = idx2theta(i);

@@ -284,7 +284,7 @@ namespace quad_gap
 
         int checkIdx = 0;
         float checkRange = 0.0, checkIdxSpan = 0.0;
-        for (int i = 0; i < nearPtToScanDists.size(); i++) 
+        for (size_t i = 0; i < nearPtToScanDists.size(); i++) 
         {
             checkIdx = (i + scanSearchStartIdx) % cfg_->scan.full_scan; // int(2 * gap->half_scan);
             checkRange = desScan.ranges.at(checkIdx);
@@ -543,7 +543,7 @@ namespace quad_gap
         RCLCPP_INFO_STREAM(logger_,  "        leftToRightAngle: " << leftToRightAngle);;
 
         float epl_radius = 0.5 * epl;
-        float newLeftToRightAngle = leftToRightAngle;
+        // float newLeftToRightAngle = leftToRightAngle;
         float inflatedLeftTheta = leftTheta;
         float inflatedRightTheta = rightTheta;
         int inflatedLeftIdx = leftIdx;

@@ -49,7 +49,7 @@ namespace quad_gap
         // }
 
         // transforming plan into robot frame
-        for (int i = 0; i < globalPlan.size(); i++)
+        for (size_t i = 0; i < globalPlan.size(); i++)
             tf2::doTransform(globalPlan.at(i), globalPlan.at(i), map2rbt);
 
         // ROS_INFO_STREAM_NAMED("GlobalPlanManager", "mod plan size: " << globalPlan.size());
@@ -57,7 +57,7 @@ namespace quad_gap
         std::vector<float> scanDistsAtPlanIndices(globalPlan.size());
         std::vector<float> scanMinusPlanPoseNormDiffs(globalPlan.size());
 
-        for (int i = 0; i < planPoseNorms.size(); i++) 
+        for (size_t i = 0; i < planPoseNorms.size(); i++) 
         {
             planPoseNorms.at(i) = poseNorm(globalPlan.at(i)); // calculating distance to robot at each step of plan
             scanDistsAtPlanIndices.at(i) = calculateScanRangesAtPlanIndices(globalPlan.at(i));

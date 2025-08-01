@@ -9,13 +9,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>rclcpp</depend>
   <depend>nav2_common</depend>
   <depend>nav2_core</depend>
   <depend>nav2_util</depend>
   <depend>nav2_costmap_2d</depend>
-  <depend>rclcpp</depend>
-  <depend>geometry_msgs</depend>
   <depend>nav2_msgs</depend>
+  <depend>geometry_msgs</depend>
   <depend>pluginlib</depend>
   <depend>tf2</depend>
 
@@ -25,7 +25,7 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <nav2_core> plugin="${prefix}/quad_gap.xml" </nav2_core>
+    <nav2_core plugin="${prefix}/quad_gap.xml" />
   </export>
 
 </package>

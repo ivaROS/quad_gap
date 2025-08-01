@@ -4,24 +4,12 @@
 // #include <ros/console.h>
 #include <rclcpp/rclcpp.hpp>
 
-// move_base_flex
-// #include <mbf_costmap_core/costmap_controller.h>
-// #include <nav_core/base_local_planner.h>
+// #include <geometry_msgs/msg/pose_array.hpp>
+// #include <sensor_msgs/msg/laser_scan.hpp>
+// #include <std_msgs/msg/header.hpp>
 
-#include <sensor_msgs/msg/laser_scan.hpp>
-#include <std_msgs/msg/header.hpp>
-// #include <navfn/navfn_ros.h>
-#include <boost/shared_ptr.hpp>
-// #include <quad_gap/utils/Gap.h>
-#include <geometry_msgs/msg/pose_array.hpp>
-
-// #include <tf2_ros/transform_listener.h>
-// #include <tf2/LinearMath/Quaternion.h>
-// #include <tf2_ros/transform_broadcaster.h>
-// #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
-// #include <geometry_msgs/msg/transform_stamped.h>
-
-#include <boost/numeric/odeint.hpp>
+// #include <boost/shared_ptr.hpp>
+// #include <boost/numeric/odeint.hpp>
 
 #include <nav2_core/controller.hpp>
 

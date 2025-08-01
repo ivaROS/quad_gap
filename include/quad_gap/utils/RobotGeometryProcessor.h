@@ -7,6 +7,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <quad_gap/utils/Utils.h>
 #include <quad_gap/utils/Robot.h>
 
 namespace quad_gap
@@ -30,7 +31,7 @@ namespace quad_gap
                 
                 initialized_ = true;
 
-                float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
+                // float o_new_ang = atan2(robotOrientationVector[1], robotOrientationVector[0]);
                 Eigen::Vector2f o_normal(-robotOrientationVector[1], robotOrientationVector[0]);
                 Eigen::Vector2f robot_f_vec = robot_.half_length * robotOrientationVector.normalized();
                 Eigen::Vector2f robot_ccw_n_vec = robot_.half_width * o_normal.normalized();
@@ -102,7 +103,7 @@ namespace quad_gap
                 // assert(projHeading.norm() == 1 && gapDir.norm() == 1);
 
                 float alpha = atan2(gapDir[1], gapDir[0]);
-                float theta = atan2(projHeading[1], projHeading[0]);
+                // float theta = atan2(projHeading[1], projHeading[0]);
 
                 // 
                 float rot_ang = 0 - alpha;
@@ -147,7 +148,7 @@ namespace quad_gap
                     return 2 * robot_.radius;
 
                 // Eigen::Vector2f o_vec = projHeading;
-                Eigen::Vector2f eDes = pDes.normalized();
+                // Eigen::Vector2f eDes = pDes.normalized();
 
                 // o_vec.normalize();
                 // if(o_vec.norm() != 1)

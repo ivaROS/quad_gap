@@ -56,16 +56,15 @@ namespace quad_gap
             void setGapWaypoint(Gap * gap, const geometry_msgs::msg::PoseStamped & globalPathLocalWaypoint);
 
         private:
+
+            // const Eigen::Vector2f & leftPt, 
+            // const Eigen::Vector2f & rightPt,                             
             /**
             * \brief checking if global path local waypoint lies within gap
-            * \param leftPt left gap point
-            * \param rightPt right gap point
-            * \param globalPathLocalWaypoint local waypoint along global path in robot frame
+            * \param globalGoal local waypoint along global path in robot frame
             * \return boolean for if global path local waypoint lies within gap
             */              
-            bool checkWaypointVisibility(const Eigen::Vector2f & leftPt, 
-                                            const Eigen::Vector2f & rightPt,
-                                            const Eigen::Vector2f & globalPathLocalWaypoint);
+            bool checkWaypointVisibility(const Eigen::Vector2f & globalGoal);
                                       
             float setBiasedGapGoalTheta(const float & leftTheta, const float & rightTheta, const float & globalGoalTheta,
                                         const float & leftToRightAngle, const float & leftToWaypointAngle,  const float & rightToWaypointAngle);

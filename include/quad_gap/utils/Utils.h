@@ -89,10 +89,10 @@ namespace quad_gap
 
     static float eps = std::numeric_limits<float>::min(); /**< Infinitesimal epsilon value */
 
-    static float TWO_M_PI = 2*M_PI; /**< 2 * pi */
-    static float M_PI_OVER_TWO = M_PI / 2.0; /**< pi / 2 */
-    static float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
-    static float THREE_M_PI_OVER_FOUR = 3.0 * M_PI / 4.0; /**< 3 * pi / 4 */
+    const float TWO_M_PI = 2*M_PI; /**< 2 * pi */
+    const float M_PI_OVER_TWO = M_PI / 2.0; /**< pi / 2 */
+    const float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
+    const float THREE_M_PI_OVER_FOUR = 3.0 * M_PI / 4.0; /**< 3 * pi / 4 */
 
     static int half_num_scan = 256; /**< Half of total rays in scan */
     static float angle_increment = (TWO_M_PI) / (2*half_num_scan - 1); /**< Angular increment of scan */
@@ -377,25 +377,25 @@ namespace quad_gap
         return dist;
     }
 
-    /** 
-    * \brief Calculates the euclidean distance between the left and right gap points using the law of cosines
-    * \return distance between left and right gap points
-    */
-    inline float getGapEuclideanDist(const int & leftIdx, const float & leftRange, const int & rightIdx, const float & rightRange) 
-    {
-        int checkLeftIdx = leftIdx; // leftGapPt_->getOrigIdx(); // 
-        int checkRightIdx = rightIdx; // rightGapPt_->getOrigIdx(); // ;
+    // /** 
+    // * \brief Calculates the euclidean distance between the left and right gap points using the law of cosines
+    // * \return distance between left and right gap points
+    // */
+    // inline float getGapEuclideanDist(const int & leftIdx, const float & leftRange, const int & rightIdx, const float & rightRange) 
+    // {
+    //     int checkLeftIdx = leftIdx; // leftGapPt_->getOrigIdx(); // 
+    //     int checkRightIdx = rightIdx; // rightGapPt_->getOrigIdx(); // ;
 
-        float checkLeftRange = leftRange; // leftGapPt_->getOrigRange(); // 
-        float checkRightRange = rightRange; // rightGapPt_->getOrigRange(); // 
+    //     float checkLeftRange = leftRange; // leftGapPt_->getOrigRange(); // 
+    //     float checkRightRange = rightRange; // rightGapPt_->getOrigRange(); // 
 
-        float resoln = M_PI / half_num_scan;
-        float gapAngle = (checkLeftIdx - checkRightIdx) * angle_increment;
-        if (gapAngle < 0)
-            gapAngle += TWO_M_PI;
+    //     float resoln = M_PI / half_num_scan;
+    //     float gapAngle = (checkLeftIdx - checkRightIdx) * angle_increment;
+    //     if (gapAngle < 0)
+    //         gapAngle += TWO_M_PI;
 
-        return sqrt(pow(checkRightRange, 2) + pow(checkLeftRange, 2) - 2 * checkRightRange * checkLeftRange * cos(gapAngle));
-    }
+    //     return sqrt(pow(checkRightRange, 2) + pow(checkLeftRange, 2) - 2 * checkRightRange * checkLeftRange * cos(gapAngle));
+    // }
 
     //////////////////////////////
     //       FUNCTIONS          // 

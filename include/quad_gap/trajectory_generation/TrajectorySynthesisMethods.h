@@ -40,7 +40,7 @@ namespace quad_gap
                         const float & xGoal, const float & yGoal, 
                         const bool & radial, const float & sigma)
             : xLeft_(xLeft), xRight_(xRight), yLeft_(yLeft), yRight_(yRight), 
-                xGoal_(xGoal), yGoal_(yGoal), radial_(radial), sigma_(sigma) 
+                xGoal_(xGoal), yGoal_(yGoal), sigma_(sigma), radial_(radial) 
         {
             float rotAngle = M_PI_OVER_TWO;
             Rpi2_ << std::cos(rotAngle), -std::sin(rotAngle), 
@@ -79,7 +79,7 @@ namespace quad_gap
             //     std::swap(y_right, y_left);
             //     std::swap(x_right, x_left);
             // }
-            
+
             Eigen::Vector2f pLeft(xLeft_, yLeft_);
             Eigen::Vector2f pRight(xRight_, yRight_);
 

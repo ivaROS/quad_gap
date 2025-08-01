@@ -17,7 +17,7 @@ namespace quad_gap
 
         // pre-process scan (turning nan's and inf's into max ranges)
         float eps = 0.00001f;
-        for (int i = 0; i < scan->ranges.size(); i++)
+        for (size_t i = 0; i < scan->ranges.size(); i++)
         {
             if (std::isnan(scan->ranges.at(i)))
             {
@@ -75,7 +75,7 @@ namespace quad_gap
 
         float currTheta = idx2theta(currIdx);
         Eigen::Vector2f currPt = currRange * Eigen::Vector2f(cos(currTheta), sin(currTheta));
-        float prevTheta = idx2theta(currIdx - 1);
+        float prevTheta = idx2theta(prevIdx); // currIdx - 1
         Eigen::Vector2f prevPt = prevRange * Eigen::Vector2f(cos(prevTheta), sin(prevTheta));
 
         Eigen::Vector2f midPt = 0.5 * (currPt + prevPt);
@@ -148,7 +148,7 @@ namespace quad_gap
         int prevIdx = 0; // Previous index
         
 
-        for (int currIdx = 1; currIdx < scan_.ranges.size(); currIdx++)
+        for (size_t currIdx = 1; currIdx < scan_.ranges.size(); currIdx++)
         {
             currRange = scan_.ranges[currIdx];
 
