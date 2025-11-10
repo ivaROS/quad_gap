@@ -326,8 +326,6 @@ namespace quad_gap
             std::shared_ptr<tf2_ros::TransformListener> tfListener;
 
             // ros::NodeHandle nh, pnh;
-            // ros::Publisher trajectory_pub;
-
             rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr transformed_laser_pub;
 
             bool reachedGlobalGoal_ = false; /**< Flag for if global goal has been reached */

@@ -303,7 +303,7 @@ namespace quad_gap
     {
         boost::mutex::scoped_lock gapset(gapMutex_);
 
-        // // RCLCPP_INFO_STREAM(node_->get_logger(),  "[laserScanCB()]");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "[laserScanCB()]");
 
         timeKeeper_->startTimer(SCAN);
 
@@ -1178,7 +1178,7 @@ namespace quad_gap
 
     Trajectory Planner::runPlanningLoop() 
     {
-        // RCLCPP_INFO_STREAM(node_->get_logger(),  "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
+        RCLCPP_INFO_STREAM(node_->get_logger(),  "[runPlanningLoop()]: count " << timeKeeper_->getPlanningLoopCalls());
 
         currPlanTime_ = node_->get_clock()->now();
         // RCLCPP_INFO_STREAM(node_->get_logger(), "Current planning time: " << currPlanTime_.seconds() << "." << currPlanTime_.nanoseconds() << " seconds");

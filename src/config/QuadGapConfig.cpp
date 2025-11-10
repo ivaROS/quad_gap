@@ -37,13 +37,13 @@ namespace quad_gap
         robot_frame_id = "base_link";
         // RCLCPP_INFO_STREAM(logger_, "Setting robot_frame_id to: " << robot_frame_id);
 
-        sensor_frame_id = "laser";
+        sensor_frame_id = "egocan_stabilized";
         // RCLCPP_INFO_STREAM(logger_, "Setting sensor_frame_id to: " << sensor_frame_id);
 
         odom_topic = "/ground_truth/state"; // model + "/odom";
         // RCLCPP_INFO_STREAM(logger_, "Setting odom_topic to: " << odom_topic);
 
-        scan_topic = "/scan"; // model + "/scan";
+        scan_topic = "/egocircle"; // model + "/scan";
         // RCLCPP_INFO_STREAM(logger_, "Setting scan_topic to: " << scan_topic);
 
         ///////////
