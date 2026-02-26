@@ -23,28 +23,29 @@ namespace quad_gap
         //     std::cout << "Parameter prefix: " << prefix << std::endl;
         // }
 
-        
-        float r_inscr;
-        ros_throw_param_load(node, name + ".r_inscr", r_inscr);
+        // map_frame_id = "map"; // model + "/map";
+        ros_throw_param_load(node, name + ".map_frame_id", map_frame_id);
+        RCLCPP_INFO_STREAM(logger_, "map_frame_id is: " << map_frame_id);
 
+        // odom_frame_id = "odom";
+        ros_throw_param_load(node, name + ".odom_frame_id", odom_frame_id);
+        RCLCPP_INFO_STREAM(logger_, "Setting odom_frame_id to: " << odom_frame_id);
 
-        map_frame_id = "map"; // model + "/map";
-        // RCLCPP_INFO_STREAM(logger_, "map_frame_id is: " << map_frame_id);
+        // robot_frame_id = "base_link";
+        ros_throw_param_load(node, name + ".robot_frame_id", robot_frame_id);
+        RCLCPP_INFO_STREAM(logger_, "Setting robot_frame_id to: " << robot_frame_id);
 
-        odom_frame_id = "odom";
-        // RCLCPP_INFO_STREAM(logger_, "Setting odom_frame_id to: " << odom_frame_id);
+        // sensor_frame_id = "laser";
+        ros_throw_param_load(node, name + ".sensor_frame_id", sensor_frame_id);
+        RCLCPP_INFO_STREAM(logger_, "Setting sensor_frame_id to: " << sensor_frame_id);
 
-        robot_frame_id = "base_link";
-        // RCLCPP_INFO_STREAM(logger_, "Setting robot_frame_id to: " << robot_frame_id);
+        // odom_topic = "/ground_truth/state"; // model + "/odom";
+        ros_throw_param_load(node, name + ".odom_topic", odom_topic);
+        RCLCPP_INFO_STREAM(logger_, "Setting odom_topic to: " << odom_topic);
 
-        sensor_frame_id = "egocan_stabilized";
-        // RCLCPP_INFO_STREAM(logger_, "Setting sensor_frame_id to: " << sensor_frame_id);
-
-        odom_topic = "/ground_truth/state"; // model + "/odom";
-        // RCLCPP_INFO_STREAM(logger_, "Setting odom_topic to: " << odom_topic);
-
-        scan_topic = "/scan"; // model + "/scan";
-        // RCLCPP_INFO_STREAM(logger_, "Setting scan_topic to: " << scan_topic);
+        // scan_topic = "/scan"; // model + "/scan";
+        ros_throw_param_load(node, name + ".scan_topic", scan_topic);
+        RCLCPP_INFO_STREAM(logger_, "Setting scan_topic to: " << scan_topic);
 
         ///////////
         // Robot //

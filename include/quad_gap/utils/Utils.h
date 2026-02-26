@@ -105,7 +105,7 @@ namespace quad_gap
     const float M_PI_OVER_FOUR = M_PI / 4.0; /**< pi / 4 */
     const float THREE_M_PI_OVER_FOUR = 3.0 * M_PI / 4.0; /**< 3 * pi / 4 */
 
-    static int half_num_scan = 256; /**< Half of total rays in scan */
+    static int half_num_scan = 128; /**< Half of total rays in scan */
     static float angle_increment = (TWO_M_PI) / (2*half_num_scan - 1); /**< Angular increment of scan */
     static float inv_angle_increment = (2*half_num_scan - 1) / (TWO_M_PI); /**< Inverse angular increment of scan */
 

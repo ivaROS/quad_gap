@@ -23,7 +23,6 @@ namespace quad_gap
             std::string robot_frame_id = "TBD"; /**< Robot frame ID */
             std::string sensor_frame_id = "TBD"; /**< Sensor frame ID */
             std::string odom_topic = "TBD"; /**< Odometry ROS topic */
-            // std::string acc_topic = "TBD"; /**< IMU ROS topic */
             std::string scan_topic = "TBD"; /**< Laser scan ROS topic */
 
             struct Robot 
@@ -56,10 +55,10 @@ namespace quad_gap
                 // will get overriden in updateParamFromScan
                 float angle_min = -M_PI; /**< minimum angle value in scan */
                 float angle_max = M_PI; /**< maximum angle value in scan */
-                int half_scan = 256; /**< Half of total rays in scan (integer) */
-                float half_scan_f = 256.; /**< Half of total rays in scan (float) */
-                int full_scan = 512; /**< Total ray count in scan (integer) */
-                float full_scan_f = 512.; /**< Total ray count in scan (float) */
+                int half_scan = 128; /**< Half of total rays in scan (integer) */
+                float half_scan_f = 128.; /**< Half of total rays in scan (float) */
+                int full_scan = 256; /**< Total ray count in scan (integer) */
+                float full_scan_f = 256.; /**< Total ray count in scan (float) */
                 float angle_increment = (2 * M_PI) / (full_scan_f - 1); /**< Angular increment between consecutive scan indices */
                 float range_min = 0.03; /**< Minimum detectable range in scan */
                 float range_max = -1e10; /**< Maximum detectable range in scan */

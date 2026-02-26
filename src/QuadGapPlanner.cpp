@@ -43,27 +43,27 @@ namespace quad_gap
         // dynamic_recfg_server = std::make_shared<dynamic_reconfigure::Server <qgConfig> > (pnh);
         // f = boost::bind(&Planner::rcfgCallback, &planner, _1, _2);
         // dynamic_recfg_server->setCallback(f);
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::configure ended");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::configure ended");
     }
 
     void QuadGapPlanner::cleanup()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::cleanup started");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::cleanup started");
         // RCLCPP_INFO_STREAM(logger_,  "Cleaning up Planner");
     }
 
     void QuadGapPlanner::activate()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::activate started");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::activate started");
         // RCLCPP_INFO_STREAM(logger_,  "Activating Planner");
     }
 
     void QuadGapPlanner::deactivate()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::deactivate started");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::deactivate started");
         // RCLCPP_INFO_STREAM(logger_,  "Deactivating Planner");
     }
 
@@ -71,12 +71,12 @@ namespace quad_gap
                                         const bool& percentage)
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setSpeedLimit started");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setSpeedLimit started");
 
         (void) speed_limit;
         (void) percentage;
 
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setSpeedLimit ended");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setSpeedLimit ended");
     }
 
     geometry_msgs::msg::TwistStamped QuadGapPlanner::computeVelocityCommands(const geometry_msgs::msg::PoseStamped & pose,
@@ -84,7 +84,7 @@ namespace quad_gap
                                                                                 nav2_core::GoalChecker * goal_checker)
     {
         // // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]");
+        // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]");
 
         geometry_msgs::msg::TwistStamped cmd_vel;
 
@@ -124,7 +124,7 @@ namespace quad_gap
         // RCLCPP_INFO_STREAM(logger_,  "                  x: " << cmd_vel.twist.angular.x << ", y: " << cmd_vel.twist.angular.y << ", z: " << cmd_vel.twist.angular.z);
 
         // // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]   ended");
+        // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::computeVelocityCommands(twist)]   ended");
 
         return cmd_vel;
     }
@@ -132,7 +132,7 @@ namespace quad_gap
     void QuadGapPlanner::setPlan(const nav_msgs::msg::Path & path)
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setPlan started");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setPlan started");
 
         // RCLCPP_INFO_STREAM(logger_,  "[QuadGapPlanner::setPlan()]");
 
@@ -145,7 +145,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setPlan ended");
+        // RCLCPP_INFO_STREAM(logger_,  "void QuadGapPlanner::setPlan ended");
     }
 
 }

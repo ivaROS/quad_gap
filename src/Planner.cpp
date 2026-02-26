@@ -67,7 +67,7 @@ namespace quad_gap
         node_ = node;
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::initialize started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::initialize started");
 
         if (initialized_)
         {
@@ -173,7 +173,7 @@ namespace quad_gap
         lastPlanTime_ = currPlanTime_;
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::initialize ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::initialize ended");
 
         return true;
     }
@@ -182,7 +182,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::isGoalReached started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::isGoalReached started");
 
 
         // Linear distance
@@ -205,7 +205,7 @@ namespace quad_gap
         //                                      ", Goal tolerance: " << cfg_.goal.xy_global_goal_tolerance);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::isGoalReached ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::isGoalReached ended");
 
         return reachedGlobalGoal_;
     }    
@@ -214,7 +214,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt started");
 
         // // RCLCPP_INFO_STREAM(node_->get_logger(), "[transformLaserToRbt()]");
 
@@ -315,7 +315,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "sensor_msgs::msg::LaserScan::ConstSharedPtr Planner::transformLaserToRbt ended");
 
         return std::make_shared<sensor_msgs::msg::LaserScan>(scanRbtFrame);
     }
@@ -324,7 +324,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::laserScanCB started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::laserScanCB started");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -355,7 +355,7 @@ namespace quad_gap
         rclcpp::Duration scanDuration = currScanTime_ - lastScanTime_;
         // // RCLCPP_INFO_STREAM(node_->get_logger(),  "     Time since last scan: " << scanDuration.seconds() << "." << scanDuration.nanoseconds() << " seconds");
 
-        float minScanRaw = *std::min_element(scanSensorFrame->ranges.begin(), scanSensorFrame->ranges.end());
+        // float minScanRaw = *std::min_element(scanSensorFrame->ranges.begin(), scanSensorFrame->ranges.end());
 
         sensor_msgs::msg::LaserScan::ConstSharedPtr preprocessed_scan = 
             gapDetector_->preprocessScan(scanSensorFrame);
@@ -450,13 +450,13 @@ namespace quad_gap
         timeKeeper_->stopTimer(SCAN);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::laserScanCB ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::laserScanCB ended");
     }
 
     void Planner::updateEgoCircle()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateEgoCircle started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateEgoCircle started");
 
         // If no global plan, the local goal finding won't execute.
         globalPlanManager_->updateEgoCircle(scanRbtFrame_);
@@ -467,13 +467,13 @@ namespace quad_gap
         trajController_->updateEgoCircle(scanRbtFrame_);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateEgoCircle ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateEgoCircle ended");
     }
 
     void Planner::poseCB(const nav_msgs::msg::Odometry::ConstSharedPtr& rbtOdomMsg)
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::poseCB started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::poseCB started");
 
         // // RCLCPP_INFO_STREAM(node_->get_logger(),  "[poseCB()]");
         // // RCLCPP_INFO_STREAM(node_->get_logger(),  "[poseCB()]");
@@ -535,13 +535,13 @@ namespace quad_gap
 
         // }
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::poseCB ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::poseCB ended");
     }
 
     void Planner::setPlan(const nav_msgs::msg::Path & incomingGlobalPlan)
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setPlan started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setPlan started");
 
         // RCLCPP_INFO_STREAM(node_->get_logger(),  "[setPlan()]");
 
@@ -608,7 +608,7 @@ namespace quad_gap
         setReachedGlobalGoal(false);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setPlan ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setPlan ended");
         return;
     }
 
@@ -619,7 +619,7 @@ namespace quad_gap
     void Planner::updateTFs()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateTFs started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateTFs started");
 
         try
         {
@@ -646,14 +646,13 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateTFs ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::updateTFs ended");
     }
 
     std::vector<Gap *> Planner::gapManipulate(const std::vector<Gap *> & planningGaps) 
     {
-
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::gapManipulate started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::gapManipulate started");
 
         // RCLCPP_INFO_STREAM(node_->get_logger(), "[manipulateGaps()]");
 
@@ -687,14 +686,14 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::gapManipulate ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::gapManipulate ended");
         return manipGaps;
     }
 
     void Planner::gapGoalPlace(const std::vector<Gap *> & planningGaps) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::gapGoalPlace started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::gapGoalPlace started");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -712,7 +711,7 @@ namespace quad_gap
         }            
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::gapGoalPlace ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::gapGoalPlace ended");
     }
 
     // std::vector<geometry_msgs::msg::PoseArray>& gapPaths, 
@@ -723,7 +722,7 @@ namespace quad_gap
                                             std::vector<Trajectory> & gapTrajs) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::generateGapTrajectories started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::generateGapTrajectories started");
 
         // // RCLCPP_INFO_STREAM(node_->get_logger(), "[generateGapTrajectories()]");
 
@@ -826,7 +825,7 @@ namespace quad_gap
         trajVisualizer_->drawGapTrajectories(gapTrajs);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::generateGapTrajectories ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::generateGapTrajectories ended");
         return;
     }
 
@@ -839,7 +838,7 @@ namespace quad_gap
     int Planner::pickTraj(const std::vector<Trajectory> & gapTrajs) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::pickTraj started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::pickTraj started");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -902,7 +901,7 @@ namespace quad_gap
         // RCLCPP_INFO_STREAM(node_->get_logger(),  "Picked [" << candidateLowestCostTrajIdx << "] traj" );
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::pickTraj ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::pickTraj ended");
 
         return candidateLowestCostTrajIdx;
     }
@@ -911,7 +910,7 @@ namespace quad_gap
                                                 const bool & switchToIncoming)
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::changeTrajectoryHelper started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::changeTrajectoryHelper started");
 
         trajectoryChangeCount_++;
 
@@ -935,7 +934,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::changeTrajectoryHelper ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::changeTrajectoryHelper ended");
     }
 
     // , 
@@ -943,7 +942,7 @@ namespace quad_gap
     Trajectory Planner::compareToCurrentTraj(Trajectory & incomingTraj) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::compareToCurrentTraj started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::compareToCurrentTraj started");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -1065,7 +1064,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::compareToCurrentTraj ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::compareToCurrentTraj ended");
 
         return Trajectory();
     }
@@ -1114,7 +1113,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::getClosestTrajectoryPoseIdx started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::getClosestTrajectoryPoseIdx started");
 
         std::vector<float> pathPoseNorms(currTrajRbtFrame.poses.size());
         // // RCLCPP_INFO_STREAM(node_->get_logger(),  "Ref_pose length: " << ref_pose.poses.size());
@@ -1128,7 +1127,7 @@ namespace quad_gap
         int minPoseNormIdx = std::distance(pathPoseNorms.begin(), minPoseNormIter) + 1;
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::getClosestTrajectoryPoseIdx ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "int Planner::getClosestTrajectoryPoseIdx ended");
 
         return std::min(minPoseNormIdx, int(currTrajRbtFrame.poses.size() - 1));
     }
@@ -1136,12 +1135,12 @@ namespace quad_gap
     void Planner::setCurrentTraj(const Trajectory & currTraj) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setCurrentTraj started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setCurrentTraj started");
 
         currTraj_ = currTraj;
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setCurrentTraj ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::setCurrentTraj ended");
 
         return;
     }
@@ -1149,10 +1148,10 @@ namespace quad_gap
     Trajectory Planner::getCurrentTraj() 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::getCurrentTraj started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::getCurrentTraj started");
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::getCurrentTraj ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::getCurrentTraj ended");
 
         return currTraj_;
     }
@@ -1161,7 +1160,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::reset started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::reset started");
 
         // currSimpGaps_.clear();
         setCurrentTraj(Trajectory());
@@ -1171,7 +1170,7 @@ namespace quad_gap
         // RCLCPP_INFO_STREAM(node_->get_logger(),  "cmdVelBuffer size after clear: " << cmdVelBuffer.size() << ", is full: " << cmdVelBuffer.capacity());
         
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::reset ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "void Planner::reset ended");
 
         return;
     }
@@ -1180,7 +1179,7 @@ namespace quad_gap
     {
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "geometry_msgs::msg::Twist Planner::ctrlGeneration started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "geometry_msgs::msg::Twist Planner::ctrlGeneration started");
 
         // RCLCPP_INFO_STREAM(node_->get_logger(), "[ctrlGeneration()]");
 
@@ -1267,7 +1266,7 @@ namespace quad_gap
         timeKeeper_->stopTimer(CONTROL);
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "geometry_msgs::msg::Twist Planner::ctrlGeneration ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "geometry_msgs::msg::Twist Planner::ctrlGeneration ended");
 
         return cmdVel;        
     }
@@ -1286,7 +1285,7 @@ namespace quad_gap
     std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps()
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps started");
 
         boost::mutex::scoped_lock gapset(gapMutex_);
 
@@ -1299,7 +1298,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "std::vector<Gap *> Planner::deepCopyCurrentSimplifiedGaps ended");
 
         return planningGaps;
     }
@@ -1307,7 +1306,7 @@ namespace quad_gap
     Trajectory Planner::runPlanningLoop() 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::runPlanningLoop started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::runPlanningLoop started");
 
         currPlanTime_ = node_->get_clock()->now();
         // RCLCPP_INFO_STREAM(node_->get_logger(), "Current planning time: " << currPlanTime_.seconds() << "." << currPlanTime_.nanoseconds() << " seconds");
@@ -1482,7 +1481,7 @@ namespace quad_gap
         // function ends
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::runPlanningLoop started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "Trajectory Planner::runPlanningLoop started");
 
         return chosenTraj;
     }
@@ -1490,7 +1489,7 @@ namespace quad_gap
     bool Planner::recordAndCheckVel(const geometry_msgs::msg::TwistStamped & cmd_vel) 
     {
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::recordAndCheckVel started");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::recordAndCheckVel started");
 
         float val = std::abs(cmd_vel.twist.linear.x) + std::abs(cmd_vel.twist.linear.y) + std::abs(cmd_vel.twist.angular.z);
         cmdVelBuffer.push_back(val);
@@ -1502,7 +1501,7 @@ namespace quad_gap
         }
 
         // print initalize message
-        RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::recordAndCheckVel ended");
+        // RCLCPP_INFO_STREAM(node_->get_logger(),  "bool Planner::recordAndCheckVel ended");
 
         return ret_val || cfg_.man.man_ctrl;
     }
